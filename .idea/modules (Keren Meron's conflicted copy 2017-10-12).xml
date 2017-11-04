@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/FetalBrainSegTool.iml" filepath="$PROJECT_DIR$/.idea/FetalBrainSegTool.iml" />
+      <module fileurl="file://$USER_HOME$/PycharmProjects/Intro Ex12/.idea/Intro Ex12.iml" filepath="$USER_HOME$/PycharmProjects/Intro Ex12/.idea/Intro Ex12.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../data/.idea/data.iml" filepath="$PROJECT_DIR$/../data/.idea/data.iml" />
+    </modules>
+  </component>
+</project>

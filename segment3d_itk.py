@@ -1,0 +1,233 @@
+import SimpleITK as sitk
+import nibabel as nib
+from matplotlib import pyplot as plt
+import numpy as np
+from scipy import ndimage as nd
+from skimage import measure
+# import pysegbase.pycut as pspc
+# import sitk_show
+
+MORPH_NUM_ITERS = 3
+LABEL_SEGMENTED_COLOR = 1
+
+def sitk_show(img, title=None, margin=0.05, dpi=40):
+    nda = sitk.GetArrayFromImage(img)
+    spacing = img.GetSpacing()
+    figsize = (1 + margin) * nda.shape[0] / dpi, (1 + margin) * nda.shape[1] / dpi
+    extent = (0, nda.shape[1] * spacing[1], nda.shape[0] * spacing[0], 0)
+    fig = plt.figure(figsize=figsize, dpi=dpi)
+    ax = fig.add_axes([margin, margin, 1 - 2 * margin, 1 - 2 * margin])
+
+    plt.set_cmap("gray")
+    ax.imshow(nda, extent=extent, interpolation=None)
+
+    if title:
+        plt.title(title)
+
+    plt.show()
+
+def remove_keymap_conflicts(new_keys_set):
+    for prop in plt.rcParams:
+        if prop.startswith('keymap.'):
+            keys = plt.rcParams[prop]
+            remove_list = set(keys) & new_keys_set
+            for key in remove_list:
+                keys.remove(key)
+
+def multi_slice_viewer(volume):
+    remove_keymap_conflicts({'j', 'k'})
+    fig, ax = plt.subplots()
+    ax.volume = volume
+    ax.index = volume.shape[0] // 2
+    ax.imshow(volume[ax.index],cmap='gray')
+    fig.canvas.mpl_connect('key_press_event', process_key)
+    plt.show()
+
+def process_key(event):
+    fig = event.canvas.figure
+    ax = fig.axes[0]
+    if event.key == 'j':
+        previous_slice(ax)
+    elif event.key == 'k':
+        next_slice(ax)
+    fig.canvas.draw()
+
+def previous_slice(ax):
+    volume = ax.volume
+    ax.index = (ax.index - 1) % volume.shape[0]  # wrap around using %
+    ax.images[0].set_array(volume[ax.index])
+
+def next_slice(ax):
+    volume = ax.volume
+    ax.index = (ax.index + 1) % volume.shape[0]
+    ax.images[0].set_array(volume[ax.index])
+def get_correct_order(min_axis):
+    '''
+    returns the order of the image matrix according as required, frame and then X Y
+    :param min_axis: The smallest axis
+    :return: tuple with the correct order
+    '''
+    if min_axis == 0:
+        return (1,2,0)
+    elif min_axis == 1:
+        return (0,2,1)
+    else:
+        return (0,1,2)
+
+
+def get_display_axis(min_axis):
+    if min_axis == 0:
+        return (0,1,2)
+    elif min_axis == 1:
+        return (1,0,2)
+    else:
+        return (2,0,1)
+
+
+# def segmentation_graph_cut(data_array, seeds):
+#     igc = pspc.ImageGraphCut(data_array, voxelsize=[1, 1, 1])
+#     seeds = igc.interactivity()
+#     print(seeds)
+
+
+def segmentation_sitk_connect_threshold(image, seeds, lower_intensity, upper_intensity):
+    '''
+    Perform sitk.ConnectedThreshold
+    :param image: sitk.Image
+    :param seeds: list of tuples
+    :return: Image with segmentation
+    '''
+    return sitk.ConnectedThreshold(image1=image, seedList=seeds,
+                                   lower=float(lower_intensity),
+                                   upper=float(upper_intensity),
+                                   replaceValue=LABEL_SEGMENTED_COLOR)
+
+def close_holes_opening_closing(data_array):
+    '''
+    Close holes in image by using morphological operations.
+    :param data_array: numpy array
+    :return: sitk Image
+    '''
+    for i in range(MORPH_NUM_ITERS):
+        data_array = nd.morphology.binary_erosion(data_array, iterations=3).astype(np.int32)
+        data_array = nd.morphology.binary_dilation(data_array, iterations=1).astype(np.int32)
+
+    fixed_image = sitk.GetImageFromArray(data_array)
+    fixed_again_image = sitk.VotingBinaryHoleFilling(image1=fixed_image, radius=[2] * 4,
+                                               majorityThreshold=3,
+                                               backgroundValue=0,
+                                               foregroundValue=LABEL_SEGMENTED_COLOR)
+    return fixed_again_image
+
+
+def segmentation_sitk_vector_confidence(sitk_image, seeds):
+    sitk_image = sitk.Cast(sitk_image, sitk.sitkVectorFloat64)
+    CC_image = sitk.VectorConfidenceConnected(image1=sitk_image,
+                                                            seedList=seeds,
+                                                            numberOfIterations=1,
+                                                            multiplier=0.1,
+                                                            replaceValue=LABEL_SEGMENTED_COLOR)
+    # CC_image = sitk.GetImageFromArray(sitk.GetArrayFromImage(CC_image).transpose(2,0,1))
+    cc_array = find_conected_comp(sitk.GetArrayFromImage(CC_image), seeds)
+    return sitk.GetImageFromArray(CC_image)
+
+def find_conected_comp(seg_image, seed_list):
+    blobs, num_blobs = measure.label(seg_image,return_num=True,connectivity=2)
+    print(np.max(blobs))
+    multi_slice_viewer(blobs)
+    new_seg_imag = np.zeros(seg_image.shape)
+    print (np.max(blobs))
+    labels = []
+    for seed in seed_list:
+        if blobs[seed[0],seed[1],seed[2]]:
+            labels.append(blobs[seed[0],seed[1],seed[2]])
+
+    labels = np.unique(labels)
+    for label in labels:
+        new_seg_imag[np.where(seg_image == label)] = 1
+    return new_seg_imag
+
+def cut_image_out(image,seed_list):
+    seed_vector = np.array([[seed[1],seed[2]]for seed in seed_list]).reshape((len(seed_list),2))
+    x_size = image.shape[0]
+    y_size = image.shape[1]
+    r_bot = np.max(seed_vector[:,0])
+    r_top = np.min(seed_vector[:,0])
+    c_right = np.max(seed_vector[:, 1])
+    c_left = np.min(seed_vector[:, 1])
+
+    r_points_dis = r_bot - r_top
+    c_points_dis = c_right - c_left
+    r_bot_cut = r_bot + int((x_size/3 - r_points_dis) / 2) if r_bot + (x_size/2 - r_points_dis) / 2 < \
+                                                              x_size else x_size
+    r_top_cut = r_top - int((x_size/3 - r_points_dis) / 2) if r_top - (x_size/2 - r_points_dis) /2 > 0 else 0
+    c_right_cut = c_right + int((y_size/3 - c_points_dis) / 2) if c_right + (y_size/2 - c_points_dis) / 2 < \
+                                                                y_size else y_size
+    c_left_cut = c_left - int((y_size/3 - c_points_dis) / 2) if c_left - (y_size/2 - c_points_dis) / 2 > 0 \
+        else 0
+    new_cut_imag = np.zeros(image.shape)
+    new_cut_imag[r_top_cut: r_bot_cut,c_left_cut:c_right_cut,:] = image[r_top_cut: r_bot_cut,
+                                                                 c_left_cut:c_right_cut,:]
+    return new_cut_imag
+
+def segmentation_3d(array_data, seed_list):
+    '''
+    :param array_data: [numpy array] shape: (frame_num, x, y)
+    :param seed_list: list of tuples (frame_num, x, y)
+    :return: np array of 3d segmentation (frame_num,X,Y)
+    '''
+    try:
+        array_data = array_data.transpose(1,2,0)
+        sitk_image = sitk.GetImageFromArray(array_data) # (x, y,frame_num)
+
+        intens_list = [array_data[seed[1], seed[2], seed[0]] for seed in seed_list]
+
+        #smoothing of the image while it keeps edges and borders
+        sitk_image = sitk.CurvatureFlow(image1=sitk_image, timeStep=0.12, numberOfIterations=3)
+        upper_int, lower_int = np.min(intens_list), np.max(intens_list)
+
+        # Attempt several segmentation techniques
+
+        connected_threshold_segmented_image = segmentation_sitk_connect_threshold(sitk_image, seed_list,
+                                                                                  upper_int, lower_int)
+        vector_segmented_image = segmentation_sitk_vector_confidence(sitk_image, seed_list)
+
+        segmented_image_to_use = vector_segmented_image
+
+        segmented_array = sitk.GetArrayFromImage(segmented_image_to_use)
+        closed_holes_image = close_holes_opening_closing(segmented_array)
+
+        final_array = sitk.GetArrayFromImage(closed_holes_image)
+        final_array = final_array.transpose(2,0,1)
+
+        sitk_show(sitk.LabelOverlayImageFilter(sitk_image, closed_holes_image))
+
+
+        display_image = final_array.transpose(get_display_axis(np.argmin(final_array.shape)))
+        multi_slice_viewer(display_image)
+
+
+        return final_array
+
+    except Exception as ex:
+        print('segmentation', type(ex), ex)
+        return None
+#
+# if __name__ == '__main__':
+#     nifti_path = 'C:\\Users\\Eldan\\Dropbox\\University\\Final  Project - joint dir\\engineer\\Final ' \
+#                  'Project\\FetalBrainSegTool\\Nifti Files\\St08_Se09_Sag  T2 FRFSE ARC\\9_fetal.nii.gz'
+#     nifti_path = 'C:\\Users\\Eldan\\Dropbox\\University\\Final  Project - joint dir\\engineer\\Final ' \
+#            'Project\\FetalBrainSegToolNifti Files\\5_fetal.nii.gz'
+#     nifti_path='C:\\Users\\Eldan\\Dropbox\\University\\Final  Project - joint dir\\engineer\\Final ' \
+#                  'Project\\FetalBrainSegToolNifti Files\\5_fetal.nii.gz'
+#
+#
+#     # array_data_sitk = sitk.GetImageFromArray(array_data)
+#     list_seeds = [(5,230,230),(8,230,230),(10,230,230),(7,230,230)]
+#
+#     segmentation_3d(nifti,list_seeds)
+    nifti_path = 'C:\\Users\\Keren Meron\\Documents\\School Work\\Fetal MRI\\FetalBrainSegTool\\Nifti ' \
+                 'Files\\St08_Se04_Cor  T2 FRFSE ARC\\4_fetal.nii.gz'
+    nifti = nib.load(nifti_path)
+    array_data = nifti.get_data()
+    segmentation_graph_cut(array_data, None)
