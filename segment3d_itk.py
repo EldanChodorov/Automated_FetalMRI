@@ -99,12 +99,10 @@ def segmentation_sitk_connect_threshold(image, seeds, lower_intensity, upper_int
     :param seeds: list of tuples
     :return: Image with segmentation
     '''
-    segmented = sitk.ConnectedThreshold(image1=image, seedList=seeds,
+    return sitk.ConnectedThreshold(image1=image, seedList=seeds,
                                    lower=float(lower_intensity),
                                    upper=float(upper_intensity),
                                    replaceValue=LABEL_SEGMENTED_COLOR)
-    cut_out_segmented = cut_image_out(sitk.GetArrayFromImage(segmented), seeds)
-    return sitk.GetImageFromArray(cut_out_segmented)
 
 def close_holes_opening_closing(data_array):
     '''
@@ -113,12 +111,12 @@ def close_holes_opening_closing(data_array):
     :return: sitk Image
     '''
     for i in range(MORPH_NUM_ITERS):
-        data_array = nd.morphology.binary_erosion(data_array, iterations=3).astype(np.int32)
-        data_array = nd.morphology.binary_dilation(data_array, iterations=1).astype(np.int32)
+        # data_array = nd.morphology.binary_erosion(data_array, iterations=1).astype(np.int32)
+        data_array = nd.morphology.binary_dilation(data_array, iterations=3).astype(np.int32)
 
     fixed_image = sitk.GetImageFromArray(data_array)
     fixed_again_image = sitk.VotingBinaryHoleFilling(image1=fixed_image, radius=[2] * 4,
-                                               majorityThreshold=3,
+                                               majorityThreshold=1,
                                                backgroundValue=0,
                                                foregroundValue=LABEL_SEGMENTED_COLOR)
     return fixed_again_image
@@ -131,21 +129,31 @@ def segmentation_sitk_vector_confidence(sitk_image, seeds):
                                                             numberOfIterations=1,
                                                             multiplier=0.1,
                                                             replaceValue=LABEL_SEGMENTED_COLOR)
-    CC_image = sitk.GetImageFromArray(sitk.GetArrayFromImage(CC_image).transpose(2,0,1))
-    cc_array = find_conected_comp(sitk.GetArrayFromImage(CC_image), seeds)
-    print('found cc')
-    return sitk.GetImageFromArray(cc_array)
+    return sitk.GetImageFromArray(CC_image)
+
+def get_intrinsic_component(image, seed_list):
+    data_array = sitk.GetArrayFromImage(image)
+    data_array = nd.morphology.binary_erosion(data_array, iterations=3).astype(np.int32)
+    image1 = find_conected_comp(data_array,seed_list)
+    fixed_image = sitk.GetImageFromArray(data_array)
+
+
+    find_conected_comp
+
+
+
+
+
+
+
+
 
 
 def find_conected_comp(seg_image, seed_list):
     blobs, num_blobs = measure.label(seg_image, return_num=True, connectivity=1)
     multi_slice_viewer(blobs)
     new_seg_imag = np.zeros(seg_image.shape)
-    labels = []
-    for seed in seed_list:
-        if blobs[seed[0],seed[1],seed[2]]:
-            labels.append(blobs[seed[0],seed[1],seed[2]])
-
+    labels = [blobs[seed[1],seed[2],seed[3]] for seed in seed_list if blobs[seed[1],seed[2],seed[3]]]
     labels = np.unique(labels)
     for label in labels:
         new_seg_imag[np.where(seg_image == label)] = 1
@@ -218,8 +226,7 @@ def segmentation_3d(array_data, seed_list):
 #                  'Project\\FetalBrainSegTool\\Nifti Files\\St08_Se09_Sag  T2 FRFSE ARC\\9_fetal.nii.gz'
 #     nifti_path = 'C:\\Users\\Eldan\\Dropbox\\University\\Final  Project - joint dir\\engineer\\Final ' \
 #            'Project\\FetalBrainSegToolNifti Files\\5_fetal.nii.gz'
-#     nifti_path='C:\\Users\\Eldan\\Dropbox\\University\\Final  Project - joint dir\\engineer\\Final ' \
-#                  'Project\\FetalBrainSegToolNifti Files\\5_fetal.nii.gz'
+#     nifti_path='C:\\Users\\Eldan\\Documents\\Final Project\\FetalBrainSegToolNifti Files\\5_fetal.nii.gz'
 #
 #
 #     # array_data_sitk = sitk.GetImageFromArray(array_data)
