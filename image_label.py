@@ -35,8 +35,11 @@ class ImageLabel(QtWidgets.QLabel):
 
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFixedSize(512,512)
+        self.setFixedSize(1000,1000)
         self.set_image(self.frames[self.frame_displayed_index])
+
+        # numpy array of binary frames containing segmentation
+        self.segmented_frames = None
 
     def sizeHint(self):
         # TODO: set label minimum size
@@ -52,10 +55,24 @@ class ImageLabel(QtWidgets.QLabel):
         # update so that paintEvent will be called
         self.update()
 
+    def label_to_image_pos(self, label_pos):
+        # image is of size 512x512 pixels
+        label_x, label_y = float(label_pos.x()), float(label_pos.y())
+        image_x = (label_x / self.width()) * 512
+        image_y = (label_y / self.height()) * 512
+        return QtCore.QPoint(image_x, image_y)
+
     def paintEvent(self, paint_event):
         painter = QtGui.QPainter(self)
-        # draw image so that points will be on top of image
+
+        # draw image first so that points will be on top of image
         painter.drawPixmap(self.rect(), self._displayed_pixmap)
+
+        # if exists, draw segmentation frame over image
+        if self.segmented_frames:
+            segmented_img = self.set_image(self.segmented_frames, True)
+            painter.drawPixmap(self.rect(), segmented_img)
+
         pen = QtGui.QPen()
         pen.setWidth(10)
         pen.setColor(QtGui.QColor('blue'))
@@ -64,11 +81,13 @@ class ImageLabel(QtWidgets.QLabel):
         for pos in self.chosen_points[self.frame_displayed_index]:
             painter.drawPoint(pos)
 
-    def set_image(self, img, img_format=4):
-        img = qimage2ndarray.array2qimage(img)
-        if img.isNull():
-            img = QtGui.QImage('images\\unavailable.jpg')
-        qimg = QtGui.QPixmap.fromImage(img)
+    def set_image(self, img_numpy_array, get_image_only=False):
+        image = qimage2ndarray.array2qimage(img_numpy_array)
+        if image.isNull():
+            image = QtGui.QImage('images\\unavailable.jpg')
+        if get_image_only:
+            return image
+        qimg = QtGui.QPixmap.fromImage(image)
         self._displayed_pixmap = QtGui.QPixmap(qimg)
         # scale image to fit label
         self._displayed_pixmap.scaled(self.width(), self.height(), QtCore.Qt.KeepAspectRatio)
@@ -221,10 +240,12 @@ class ImageDisplay(QtWidgets.QWidget):
             for frame_idx, frame_points in self._image_label.chosen_points.items():
                 if frame_points:
                     for pos in frame_points:
-                        seeds.append((frame_idx, pos.y(), pos.x()))
+                        translated_pos = self._image_label.label_to_image_pos(pos)
+                        seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
 
             # run segmentation algorithm in separate thread so that gui does not freeze
             self._segmentation_array = segment3d_itk.segmentation_3d(self.frames, seeds) * 255
+            self._image_label.segmented_frames = self._segmentation_array
 
             self._remove_progress_bar()
 
