@@ -115,7 +115,7 @@ def close_holes_opening_closing(data_array):
 
     # fixed_image = sitk.GetImageFromArray(data_array)
     print('lala')
-    fixed_again_image = sitk.VotingBinaryHoleFilling(image1=data_array, radius=[2] * 5,
+    fixed_again_image = sitk.VotingBinaryHoleFilling(image1=data_array, radius=[7,7,4],
                                                majorityThreshold=1,
                                                backgroundValue=0,
                                                foregroundValue=LABEL_SEGMENTED_COLOR)
