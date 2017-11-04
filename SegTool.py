@@ -21,6 +21,7 @@ if __name__ == '__main__':
     app.setStyle(style)
     try:
         window = MainWindow(data_dir)
+        window.resize(1800, 900)
         window.show()
     except Exception as e:
         print('{}: {}'.format(type(e), str(e)))
