@@ -217,7 +217,6 @@ class ImageDisplay(QtWidgets.QWidget):
         try:
             if not self._image_label or not self._image_label.chosen_points:
                 return
-            print(self._image_label.chosen_points)
             seeds = []
             for frame_idx, frame_points in self._image_label.chosen_points.items():
                 if frame_points:
@@ -264,7 +263,6 @@ class ChosenPointsLabel(QtWidgets.QLabel):
             # point was already added
             if (frame, pos.y(), pos.x()) in self._button_layouts:
                 return
-            print(frame, pos)
             new_label = QtWidgets.QLabel('Frame #{}\n({},{})'.format(frame, pos.y(), pos.x()))
             remove_button = QtWidgets.QPushButton('Remove Point')
             new_layout = QtWidgets.QVBoxLayout()

@@ -10,7 +10,9 @@ from skimage import measure
 MORPH_NUM_ITERS = 3
 LABEL_SEGMENTED_COLOR = 1
 
+
 def sitk_show(img, title=None, margin=0.05, dpi=40):
+    print(type(img))
     nda = sitk.GetArrayFromImage(img)
     spacing = img.GetSpacing()
     figsize = (1 + margin) * nda.shape[0] / dpi, (1 + margin) * nda.shape[1] / dpi
@@ -97,10 +99,12 @@ def segmentation_sitk_connect_threshold(image, seeds, lower_intensity, upper_int
     :param seeds: list of tuples
     :return: Image with segmentation
     '''
-    return sitk.ConnectedThreshold(image1=image, seedList=seeds,
+    segmented = sitk.ConnectedThreshold(image1=image, seedList=seeds,
                                    lower=float(lower_intensity),
                                    upper=float(upper_intensity),
                                    replaceValue=LABEL_SEGMENTED_COLOR)
+    cut_out_segmented = cut_image_out(sitk.GetArrayFromImage(segmented), seeds)
+    return sitk.GetImageFromArray(cut_out_segmented)
 
 def close_holes_opening_closing(data_array):
     '''
@@ -127,16 +131,16 @@ def segmentation_sitk_vector_confidence(sitk_image, seeds):
                                                             numberOfIterations=1,
                                                             multiplier=0.1,
                                                             replaceValue=LABEL_SEGMENTED_COLOR)
-    # CC_image = sitk.GetImageFromArray(sitk.GetArrayFromImage(CC_image).transpose(2,0,1))
+    CC_image = sitk.GetImageFromArray(sitk.GetArrayFromImage(CC_image).transpose(2,0,1))
     cc_array = find_conected_comp(sitk.GetArrayFromImage(CC_image), seeds)
-    return sitk.GetImageFromArray(CC_image)
+    print('found cc')
+    return sitk.GetImageFromArray(cc_array)
+
 
 def find_conected_comp(seg_image, seed_list):
-    blobs, num_blobs = measure.label(seg_image,return_num=True,connectivity=2)
-    print(np.max(blobs))
+    blobs, num_blobs = measure.label(seg_image, return_num=True, connectivity=1)
     multi_slice_viewer(blobs)
     new_seg_imag = np.zeros(seg_image.shape)
-    print (np.max(blobs))
     labels = []
     for seed in seed_list:
         if blobs[seed[0],seed[1],seed[2]]:
@@ -190,9 +194,9 @@ def segmentation_3d(array_data, seed_list):
 
         connected_threshold_segmented_image = segmentation_sitk_connect_threshold(sitk_image, seed_list,
                                                                                   upper_int, lower_int)
-        vector_segmented_image = segmentation_sitk_vector_confidence(sitk_image, seed_list)
+        # vector_segmented_image = segmentation_sitk_vector_confidence(sitk_image, seed_list)
 
-        segmented_image_to_use = vector_segmented_image
+        segmented_image_to_use = connected_threshold_segmented_image
 
         segmented_array = sitk.GetArrayFromImage(segmented_image_to_use)
         closed_holes_image = close_holes_opening_closing(segmented_array)
@@ -200,12 +204,8 @@ def segmentation_3d(array_data, seed_list):
         final_array = sitk.GetArrayFromImage(closed_holes_image)
         final_array = final_array.transpose(2,0,1)
 
-        sitk_show(sitk.LabelOverlayImageFilter(sitk_image, closed_holes_image))
-
-
         display_image = final_array.transpose(get_display_axis(np.argmin(final_array.shape)))
         multi_slice_viewer(display_image)
-
 
         return final_array
 
