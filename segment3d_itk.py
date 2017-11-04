@@ -43,7 +43,6 @@ def multi_slice_viewer(volume):
     ax.index = volume.shape[0] // 2
     ax.imshow(volume[ax.index],cmap='gray')
     fig.canvas.mpl_connect('key_press_event', process_key)
-    plt.show()
 
 def process_key(event):
     fig = event.canvas.figure
@@ -110,15 +109,17 @@ def close_holes_opening_closing(data_array):
     :param data_array: numpy array
     :return: sitk Image
     '''
-    for i in range(MORPH_NUM_ITERS):
+    # for i in range(MORPH_NUM_ITERS):
         # data_array = nd.morphology.binary_erosion(data_array, iterations=1).astype(np.int32)
-        data_array = nd.morphology.binary_dilation(data_array, iterations=3).astype(np.int32)
+    # data_array = nd.morphology.binary_dilation(data_array, iterations=1).astype(np.int32)
 
-    fixed_image = sitk.GetImageFromArray(data_array)
-    fixed_again_image = sitk.VotingBinaryHoleFilling(image1=fixed_image, radius=[2] * 4,
+    # fixed_image = sitk.GetImageFromArray(data_array)
+    print('lala')
+    fixed_again_image = sitk.VotingBinaryHoleFilling(image1=data_array, radius=[2] * 5,
                                                majorityThreshold=1,
                                                backgroundValue=0,
                                                foregroundValue=LABEL_SEGMENTED_COLOR)
+    print('lala2')
     return fixed_again_image
 
 
@@ -133,12 +134,10 @@ def segmentation_sitk_vector_confidence(sitk_image, seeds):
 
 def get_intrinsic_component(image, seed_list):
     data_array = sitk.GetArrayFromImage(image)
-    data_array = nd.morphology.binary_erosion(data_array, iterations=3).astype(np.int32)
-    image1 = find_conected_comp(data_array,seed_list)
-    fixed_image = sitk.GetImageFromArray(data_array)
+    data_array = nd.morphology.binary_erosion(data_array, iterations=1).astype(np.int32)
+    image1 = find_conected_comp(data_array,seed_list).astype(np.int)
 
-
-    find_conected_comp
+    return sitk.GetImageFromArray(image1)
 
 
 
@@ -150,13 +149,26 @@ def get_intrinsic_component(image, seed_list):
 
 
 def find_conected_comp(seg_image, seed_list):
+    '''
+
+    :param seg_image:
+    :param seed_list:
+    :return:
+    '''
     blobs, num_blobs = measure.label(seg_image, return_num=True, connectivity=1)
-    multi_slice_viewer(blobs)
+
     new_seg_imag = np.zeros(seg_image.shape)
-    labels = [blobs[seed[1],seed[2],seed[3]] for seed in seed_list if blobs[seed[1],seed[2],seed[3]]]
+    print(np.max(blobs))
+    labels = [blobs[seed[1],seed[2],seed[0]] for seed in seed_list if blobs[seed[1],seed[2],seed[0]]>0]
+    print(labels)
     labels = np.unique(labels)
     for label in labels:
-        new_seg_imag[np.where(seg_image == label)] = 1
+        print((np.where(blobs == label)[0]).size)
+        new_seg_imag[np.where(blobs == label)] = 1
+    print('im here 1')
+    display_image = new_seg_imag.transpose(get_display_axis(np.argmin(new_seg_imag.shape)))
+    multi_slice_viewer(display_image)
+    plt.show()
     return new_seg_imag
 
 def cut_image_out(image,seed_list):
@@ -195,7 +207,7 @@ def segmentation_3d(array_data, seed_list):
         intens_list = [array_data[seed[1], seed[2], seed[0]] for seed in seed_list]
 
         #smoothing of the image while it keeps edges and borders
-        sitk_image = sitk.CurvatureFlow(image1=sitk_image, timeStep=0.12, numberOfIterations=3)
+        sitk_image = sitk.CurvatureFlow(image1=sitk_image, timeStep=0.12, numberOfIterations=5)
         upper_int, lower_int = np.min(intens_list), np.max(intens_list)
 
         # Attempt several segmentation techniques
@@ -206,14 +218,16 @@ def segmentation_3d(array_data, seed_list):
 
         segmented_image_to_use = connected_threshold_segmented_image
 
-        segmented_array = sitk.GetArrayFromImage(segmented_image_to_use)
-        closed_holes_image = close_holes_opening_closing(segmented_array)
+        segmented_image_to_use = get_intrinsic_component(segmented_image_to_use,seed_list)
+
+        # segmented_array = sitk.GetArrayFromImage(segmented_image_to_use)
+        closed_holes_image = close_holes_opening_closing(segmented_image_to_use)
 
         final_array = sitk.GetArrayFromImage(closed_holes_image)
         final_array = final_array.transpose(2,0,1)
 
-        display_image = final_array.transpose(get_display_axis(np.argmin(final_array.shape)))
-        multi_slice_viewer(display_image)
+        # display_image = final_array.transpose(get_display_axis(np.argmin(final_array.shape)))
+        # multi_slice_viewer(display_image)
 
         return final_array
 
