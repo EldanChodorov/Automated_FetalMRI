@@ -1,3 +1,6 @@
 *.xml
 *.pyc
 *.iml
+images*
+__pycache__*
+.idea*
