@@ -4,6 +4,8 @@ from threading import Thread
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui, QtCore
 import qimage2ndarray
+from skimage import color
+import cv2
 import segment3d_itk
 
 
@@ -38,9 +40,6 @@ class ImageLabel(QtWidgets.QLabel):
         self.setFixedSize(1000,1000)
         self.set_image(self.frames[self.frame_displayed_index])
 
-        # numpy array of binary frames containing segmentation
-        self.segmented_frames = None
-
     def sizeHint(self):
         # TODO: set label minimum size
         return QtCore.QSize(512, 512)
@@ -68,25 +67,19 @@ class ImageLabel(QtWidgets.QLabel):
         # draw image first so that points will be on top of image
         painter.drawPixmap(self.rect(), self._displayed_pixmap)
 
-        # if exists, draw segmentation frame over image
-        if self.segmented_frames:
-            segmented_img = self.set_image(self.segmented_frames, True)
-            painter.drawPixmap(self.rect(), segmented_img)
-
         pen = QtGui.QPen()
-        pen.setWidth(10)
+        pen.setWidth(5)
         pen.setColor(QtGui.QColor('blue'))
         painter.setPen(pen)
         painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
         for pos in self.chosen_points[self.frame_displayed_index]:
             painter.drawPoint(pos)
 
-    def set_image(self, img_numpy_array, get_image_only=False):
+    def set_image(self, img_numpy_array):
+
         image = qimage2ndarray.array2qimage(img_numpy_array)
         if image.isNull():
             image = QtGui.QImage('images\\unavailable.jpg')
-        if get_image_only:
-            return image
         qimg = QtGui.QPixmap.fromImage(image)
         self._displayed_pixmap = QtGui.QPixmap(qimg)
         # scale image to fit label
@@ -120,6 +113,7 @@ class ImageLabel(QtWidgets.QLabel):
             self.frame_displayed_index = len(self.frames) - 1
 
         # set new image and change frame number label
+
         self.set_image(self.frames[self.frame_displayed_index])
         self._parent.frame_number.setText(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
 
@@ -158,7 +152,7 @@ class ImageDisplay(QtWidgets.QWidget):
         # user explanation and label of frame number
         text_layout = QtWidgets.QHBoxLayout()
         user_initial_explanation = QtWidgets.QLabel(
-            'Scroll through frames, and mark four corners of the brain.')
+            'Scroll through frames, and several points inside the brain.')
         user_initial_explanation.setStyleSheet('color: black; font-size: 18pt; '
                                                'font-family: Courier;')
         self.frame_number = QtWidgets.QLabel(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
@@ -245,7 +239,6 @@ class ImageDisplay(QtWidgets.QWidget):
 
             # run segmentation algorithm in separate thread so that gui does not freeze
             self._segmentation_array = segment3d_itk.segmentation_3d(self.frames, seeds) * 255
-            self._image_label.segmented_frames = self._segmentation_array
 
             self._remove_progress_bar()
 
@@ -253,13 +246,44 @@ class ImageDisplay(QtWidgets.QWidget):
                 self._segment_button.setEnabled(True)
                 return
 
+            self._image_label.frames = _overlap_images(self.frames, self._segmentation_array)
+
             # set images to image label
-            self._image_label.frames = self._segmentation_array
             self._image_label.frame_displayed_index = 0
-            self._image_label.set_image(self._segmentation_array[0])
+            self._image_label.set_image(self._image_label.frames[0])
             self._image_label.update()
         except Exception as ex:
             print(ex, type(ex))
+
+
+def _overlap_images(background_img_list, mask_img_list):
+    '''
+    Color mask in background image.
+    :param background_img_list: [numpy.ndarray] main image to be in background, shape: num_images, x, y
+    :param mask_img_list: [numpy.ndarray] binary image, display only white over image1
+    :return: numpy.ndarray
+    '''
+    if background_img_list.shape != mask_img_list.shape:
+        return mask_img_list
+    colored = []
+    for img, mask in zip(background_img_list, mask_img_list):
+        # add RGB channels
+        color_img = np.dstack((img,) * 3).astype(np.float64)
+        mask_img = np.dstack((mask,) * 3).astype(np.float64)
+        mask_img_orig = np.array(mask_img)
+
+        # place original image over mask where there is no segmentation
+        mask_img[np.where(mask_img_orig != 255)] = color_img[np.where(mask_img_orig != 255)]
+
+        # color mask in red  TODO fix, doesn't work
+        mask_img[np.where(mask_img_orig == 255), 0] = 255
+        mask_img[np.where(mask_img_orig == 255), 1] = 255
+        mask_img[np.where(mask_img_orig == 255), 2] = 255
+
+        alpha = 0.6
+        added_image = cv2.addWeighted(color_img, alpha, mask_img, 1-alpha, gamma=0)
+        colored.append(added_image)
+    return colored
 
 
 class ChosenPointsLabel(QtWidgets.QLabel):

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Main File to run program.
 # User can open empty session and then load files,
 # or specify files straight from command line.
