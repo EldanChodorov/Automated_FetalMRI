@@ -130,19 +130,10 @@ def close_holes_opening_closing(data_array):
                                                      majorityThreshold=1,
                                                      backgroundValue=0,
                                                      foregroundValue=LABEL_SEGMENTED_COLOR)
-    fixed_again_image = sitk.VotingBinaryHoleFilling(image1=fixed_again_image, radius=[2, 2, 2],
-                                                     majorityThreshold=1,
-                                                     backgroundValue=0,
-                                                     foregroundValue=LABEL_SEGMENTED_COLOR)
-    fixed_again_image = sitk.VotingBinaryHoleFilling(image1=fixed_again_image, radius=[2, 2, 2],
-                                                     majorityThreshold=1,
-                                                     backgroundValue=0,
-                                                     foregroundValue=LABEL_SEGMENTED_COLOR)
-    fixed_again_image = sitk.VotingBinaryHoleFilling(image1=fixed_again_image, radius=[2, 2, 2],
-                                                     majorityThreshold=1,
-                                                     backgroundValue=0,
                                                      foregroundValue=LABEL_SEGMENTED_COLOR)
     print('lala2')
+    return fixed_again_image
+
     return fixed_again_image
 
 
