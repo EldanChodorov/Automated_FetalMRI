@@ -1,3 +1,6 @@
 *.xml
 *.pyc
 *.iml
+*.dcm
+*.txt
+*.log
