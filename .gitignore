@@ -1,6 +1,9 @@
 *.xml
 *.pyc
 *.iml
+*.dcm
+*.txt
+*.log
 images*
 __pycache__*
 .idea*
