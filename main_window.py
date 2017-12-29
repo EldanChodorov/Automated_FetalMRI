@@ -4,6 +4,8 @@ import os
 from workspace import WorkSpace
 import dicom2nifti
 import shutil
+import numpy as np
+import nibabel as nib
 
 class MainWindow(QtWidgets.QMainWindow):
     '''
@@ -113,15 +115,14 @@ class MainWindow(QtWidgets.QMainWindow):
         # Workspace menu
         workspace_menu = main_menu.addMenu('&Workspace')
 
-        save_work_action = QtWidgets.QAction('&Save Workspace', self)
+        save_work_action = QtWidgets.QAction('&Save Segmentation', self)
         save_work_action.setShortcut('Ctrl+S')
-        save_work_action.setStatusTip('Save opened workspace')
-        save_work_action.triggered.connect(self._save_workspace)
+        save_work_action.triggered.connect(self._save_segmentation)
 
-        open_work_action = QtWidgets.QAction('Open Previous Workspace', self)
+        open_work_action = QtWidgets.QAction('Open Segmentation', self)
         open_work_action.setShortcut('Ctrl+Shift+W')
-        open_work_action.setStatusTip('Open previous workspace')
-        open_work_action.triggered.connect(self._open_previous_workspace)
+        open_work_action.setStatusTip('Open previous segmentation')
+        open_work_action.triggered.connect(self._open_segmentation)
 
         workspace_menu.addAction(save_work_action)
         workspace_menu.addAction(open_work_action)
@@ -190,8 +191,35 @@ class MainWindow(QtWidgets.QMainWindow):
                     self._source = None
             self._open_workspace()
 
-    def _save_workspace(self):
-        print('''Implement _save_workspace''')
+    def _save_segmentation(self):
+        try:
+            file_dialog = QtWidgets.QFileDialog()
+            options = QtWidgets.QFileDialog.Options()
+            options |= QtWidgets.QFileDialog.DontUseNativeDialog
+            fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "QFileDialog.getSaveFileName()", "",
+                                        "All Files (*);;Text Files (*.txt)", options=options)
+            print(fileName)
+            if fileName and self._workspace:
+                self._workspace.image_display.save_segmentation(fileName)
+        except Exception as ex:
+            print(ex, type(ex))
 
-    def _open_previous_workspace(self):
-        print('''Implement _open_workspace''')
+    def _user_choose_file(self):
+        file_dialog = QtWidgets.QFileDialog()
+        if not file_dialog.exec_():
+            raise ValueError("Error in File Dialog.")
+
+        chosen_files = file_dialog.selectedFiles()
+        if chosen_files:
+            # user can choose only one file at a time
+            return chosen_files[0]
+
+    def _open_segmentation(self):
+        nifti_path = self._user_choose_file()
+        if not nifti_path.endswith('.nii') and not nifti_path.endswith('.nii.gz'):
+            print("Must choose Nifti format file.")
+            return
+        segmentation = np.array(nib.load(nifti_path).get_data())
+        print('Segmentation shape', segmentation.shape)
+        if self._workspace:
+            self._workspace.image_display.set_segmentation(segmentation)

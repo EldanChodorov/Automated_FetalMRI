@@ -7,6 +7,42 @@ import qimage2ndarray
 from skimage import color
 import cv2
 import segment3d_itk
+import nibabel as nib
+
+
+USE_PAINTBRUSH = 1
+USE_SQUARE = 2
+USE_ERASER = 3
+
+
+def overlap_images(background_img_list, mask_img_list):
+    '''
+    Color mask in background image.
+    :param background_img_list: [numpy.ndarray] main image to be in background, shape: num_images, x, y
+    :param mask_img_list: [numpy.ndarray] binary image, display only white over image1
+    :return: numpy.ndarray
+    '''
+    if background_img_list.shape != mask_img_list.shape:
+        return mask_img_list
+    colored = []
+    for img, mask in zip(background_img_list, mask_img_list):
+        # add RGB channels
+        color_img = np.dstack((img,) * 3).astype(np.float64)
+        mask_img = np.dstack((mask,) * 3).astype(np.float64)
+        mask_img_orig = np.array(mask_img)
+
+        # place original image over mask where there is no segmentation
+        mask_img[np.where(mask_img_orig != 255)] = color_img[np.where(mask_img_orig != 255)]
+
+        # color mask in red  TODO fix, doesn't work
+        mask_img[np.where(mask_img_orig == 255), 0] = 255
+        mask_img[np.where(mask_img_orig == 255), 1] = 255
+        mask_img[np.where(mask_img_orig == 255), 2] = 255
+
+        alpha = 0.6
+        added_image = cv2.addWeighted(color_img, alpha, mask_img, 1-alpha, gamma=0)
+        colored.append(added_image)
+    return colored
 
 
 class ImageLabel(QtWidgets.QLabel):
@@ -40,19 +76,36 @@ class ImageLabel(QtWidgets.QLabel):
         self.setFixedSize(1000,1000)
         self.set_image(self.frames[self.frame_displayed_index])
 
+        # decide what to do with point clicks (paint/square/erase)
+        self._tool_chosen = USE_PAINTBRUSH
+
+    @QtCore.pyqtSlot(int)
+    def update_tool_in_use(self, tool_chosen):
+        self._tool_chosen = tool_chosen
+
     def sizeHint(self):
         # TODO: set label minimum size
         return QtCore.QSize(512, 512)
 
-    def mouseReleaseEvent(self, cursor_event):
-        pos = cursor_event.pos()
-        self.chosen_points[self.frame_displayed_index].append(pos)
-
-        # signal to parent so that will add button of point chosen
-        self.point_chosen.emit((self.frame_displayed_index, pos))
+    def mouseMoveEvent(self, QMouseEvent):
+        pos = QMouseEvent.pos()
+        if self._tool_chosen == USE_PAINTBRUSH:
+            self.chosen_points[self.frame_displayed_index].append(pos)
+        elif self._tool_chosen == USE_ERASER:
+            orig_x = pos.x()
+            orig_y = pos.y()
+            for i in range(-5, 5):
+                for j in range(-5, 5):
+                    pos.setX(orig_x+i)
+                    pos.setY(orig_y+i)
+                    if pos in self.chosen_points[self.frame_displayed_index]:
+                        self.chosen_points[self.frame_displayed_index].remove(pos)
 
         # update so that paintEvent will be called
         self.update()
+
+    def mouseReleaseEvent(self, cursor_event):
+        self.mouseMoveEvent(cursor_event)
 
     def label_to_image_pos(self, label_pos):
         # image is of size 512x512 pixels
@@ -127,6 +180,7 @@ class ImageDisplay(QtWidgets.QWidget):
         :param frames: array data of shape (num_images, x, y) 
         :param nifti_obj: [Nifti]
         '''
+        print('Shape of mri scan', frames.shape)
         QtWidgets.QWidget.__init__(self)
 
         # normalize images
@@ -189,11 +243,11 @@ class ImageDisplay(QtWidgets.QWidget):
                              'border-style: outset;'
         self._segment_button.setStyleSheet(button_style_sheet)
 
-        chosen_points_label = ChosenPointsLabel()
-        self._image_label.point_chosen.connect(lambda t: chosen_points_label.add_point(t[0], t[1]))
+        self.tool_kit = ToolKit()
+        self.tool_kit.tool_chosen.connect(self._image_label.update_tool_in_use)
 
         bottom_layout.addStretch()
-        bottom_layout.addWidget(chosen_points_label)
+        bottom_layout.addLayout(self.tool_kit)
         bottom_layout.addStretch()
         bottom_layout.addWidget(self._segment_button)
         bottom_layout.addStretch()
@@ -246,75 +300,49 @@ class ImageDisplay(QtWidgets.QWidget):
                 self._segment_button.setEnabled(True)
                 return
 
-            self._image_label.frames = _overlap_images(self.frames, self._segmentation_array)
+            self.set_segmentation(self._segmentation_array)
 
-            # set images to image label
-            self._image_label.frame_displayed_index = 0
-            self._image_label.set_image(self._image_label.frames[0])
-            self._image_label.update()
         except Exception as ex:
             print(ex, type(ex))
 
+    def set_segmentation(self, segmentation_array):
+        ''' Set given segmentation on top of scan image.'''
+        self._image_label.frames = overlap_images(self.frames, segmentation_array)
 
-def _overlap_images(background_img_list, mask_img_list):
-    '''
-    Color mask in background image.
-    :param background_img_list: [numpy.ndarray] main image to be in background, shape: num_images, x, y
-    :param mask_img_list: [numpy.ndarray] binary image, display only white over image1
-    :return: numpy.ndarray
-    '''
-    if background_img_list.shape != mask_img_list.shape:
-        return mask_img_list
-    colored = []
-    for img, mask in zip(background_img_list, mask_img_list):
-        # add RGB channels
-        color_img = np.dstack((img,) * 3).astype(np.float64)
-        mask_img = np.dstack((mask,) * 3).astype(np.float64)
-        mask_img_orig = np.array(mask_img)
+        # set images to image label
+        self._image_label.frame_displayed_index = 0
+        self._image_label.set_image(self._image_label.frames[0])
+        self._image_label.update()
 
-        # place original image over mask where there is no segmentation
-        mask_img[np.where(mask_img_orig != 255)] = color_img[np.where(mask_img_orig != 255)]
-
-        # color mask in red  TODO fix, doesn't work
-        mask_img[np.where(mask_img_orig == 255), 0] = 255
-        mask_img[np.where(mask_img_orig == 255), 1] = 255
-        mask_img[np.where(mask_img_orig == 255), 2] = 255
-
-        alpha = 0.6
-        added_image = cv2.addWeighted(color_img, alpha, mask_img, 1-alpha, gamma=0)
-        colored.append(added_image)
-    return colored
+    def save_segmentation(self, path):
+        nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
+        nib.save(nifti, path)
 
 
-class ChosenPointsLabel(QtWidgets.QLabel):
+class ToolKit(QtWidgets.QHBoxLayout):
 
-    def __init__(self):
-        QtWidgets.QLabel.__init__(self)
+    # signal that a new tool was chosen
+    tool_chosen = QtCore.pyqtSignal(int)
 
-        # dict with key=(frame, x, y), value=(button layout)
-        self._button_layouts = {}
+    def __init__(self, parent=None):
 
-        self._layout = QtWidgets.QHBoxLayout()
-        # self._scroll_area = QtWidgets.QScrollArea()
-        # self._scroll_layout = QtWidgets.QHBoxLayout()
-        # self._scroll_area.setLayout(self._scroll_layout)
-        self.setLayout(self._layout)
-
-    @QtCore.pyqtSlot()
-    def add_point(self, frame, pos):
-        ''' Add button to label representing a point at QPos, from frame index.'''
-        # TODO: points are not being added, fix.
+        QtWidgets.QHBoxLayout.__init__(self, parent)
         try:
-            # point was already added
-            if (frame, pos.y(), pos.x()) in self._button_layouts:
-                return
-            new_label = QtWidgets.QLabel('Frame #{}\n({},{})'.format(frame, pos.y(), pos.x()))
-            remove_button = QtWidgets.QPushButton('Remove Point')
-            new_layout = QtWidgets.QVBoxLayout()
-            new_layout.addWidget(new_label)
-            new_layout.addWidget(remove_button)
-            self._layout.addLayout(new_layout)
-            self._button_layouts[(frame, pos.y(), pos.x())] = new_layout
-            self.update()
+
+            paintbrush_button = QtWidgets.QPushButton()
+            paintbrush_button.setIcon(QtGui.QIcon('images/paintbrush.png'))
+            paintbrush_button.clicked.connect(lambda: self.tool_chosen.emit(USE_PAINTBRUSH))
+            self.addWidget(paintbrush_button)
+
+            square_button = QtWidgets.QPushButton()
+            square_button.setIcon(QtGui.QIcon('images/square.png'))
+            square_button.clicked.connect(lambda: self.tool_chosen.emit(USE_SQUARE))
+            self.addWidget(square_button)
+
+            eraser_button = QtWidgets.QPushButton()
+            eraser_button.setIcon(QtGui.QIcon('images/eraser.jpg'))
+            eraser_button.clicked.connect(lambda: self.tool_chosen.emit(USE_ERASER))
+            self.addWidget(eraser_button)
+
         except Exception as ex:
-            print(ex, type(ex))
+            print(ex)

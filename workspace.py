@@ -41,14 +41,15 @@ class WorkSpace(QtWidgets.QWidget):
 
         main_layout = QtWidgets.QVBoxLayout()
 
-        image_display = ImageDisplay(self._array_data, self._nifti)
+        self.image_display = ImageDisplay(self._array_data, self._nifti)
 
         image_display_layout = QtWidgets.QHBoxLayout()
         image_display_layout.addStretch()
-        image_display_layout.addWidget(image_display)
+        image_display_layout.addWidget(self.image_display)
         image_display_layout.addStretch()
 
         main_layout.addStretch()
         main_layout.addLayout(image_display_layout)
         main_layout.addStretch()
         self.setLayout(main_layout)
+
