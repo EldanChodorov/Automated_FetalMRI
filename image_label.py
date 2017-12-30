@@ -13,6 +13,7 @@ import nibabel as nib
 USE_PAINTBRUSH = 1
 USE_SQUARE = 2
 USE_ERASER = 3
+ERASER_WIDTH = 15
 
 
 def overlap_images(background_img_list, mask_img_list):
@@ -94,8 +95,8 @@ class ImageLabel(QtWidgets.QLabel):
         elif self._tool_chosen == USE_ERASER:
             orig_x = pos.x()
             orig_y = pos.y()
-            for i in range(-5, 5):
-                for j in range(-5, 5):
+            for i in range(-ERASER_WIDTH, ERASER_WIDTH):
+                for j in range(-ERASER_WIDTH, ERASER_WIDTH):
                     pos.setX(orig_x+i)
                     pos.setY(orig_y+i)
                     if pos in self.chosen_points[self.frame_displayed_index]:
