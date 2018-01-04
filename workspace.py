@@ -7,8 +7,7 @@ from threading import Thread
 from collections import defaultdict
 import numpy as np
 from threading import Thread
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 import qimage2ndarray
 from skimage import color
 import cv2
@@ -76,13 +75,20 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._image_label = ImageLabel(self.frames, self)
         self.ImageLayout.addWidget(self._image_label)
 
-        self._connect_buttons()
+        self._init_ui()
 
-    def _connect_buttons(self):
+    def _init_ui(self):
+
+        self.setAutoFillBackground(True)
+        self.setStyleSheet('background-color: rgb(110, 137, 152)')
+
+        # connect buttons
         self.perform_seg_btn.clicked.connect(self._perform_segmentation_wrapper)
+        self.save_seg_btn.clicked.connect(self.save_segmentation)
         self.paintbrush_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_PAINTBRUSH))
         self.eraser_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_ERASER))
         self.square_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_SQUARE))
+
 
     def _perform_segmentation_wrapper(self):
         # setup progress bar
@@ -131,6 +137,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                 self.perform_seg_btn.setEnabled(True)
                 return
 
+            self.save_seg_btn.setEnabled(True)
             self.set_segmentation(self._segmentation_array)
 
         except Exception as ex:
@@ -145,12 +152,18 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._image_label.set_image(self._image_label.frames[0])
         self._image_label.update()
 
-    def save_segmentation(self, path):
-        nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
-        nib.save(nifti, path)
-
-
-
+    def save_segmentation(self):
+        try:
+            file_dialog = QtWidgets.QFileDialog()
+            options = QtWidgets.QFileDialog.Options()
+            options |= QtWidgets.QFileDialog.DontUseNativeDialog
+            fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "QFileDialog.getSaveFileName()", "",
+                                        "All Files (*);;Text Files (*.txt)", options=options)
+            if fileName:
+                nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
+                nib.save(nifti, fileName)
+        except Exception as ex:
+            print(ex, type(ex))
 
 
 def overlap_images(background_img_list, mask_img_list):

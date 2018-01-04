@@ -151,7 +151,10 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         Open workspace window with selected scans, set workspace to be central widget.
         '''
         if self._source:
-            self._workspace = WorkSpace(self._source, self)
+            try:
+                self._workspace = WorkSpace(self._source, self)
+            except Exception as ex:
+                print(ex)
             self.setCentralWidget(self._workspace)
 
     def _create_local_nifti(self, directory):
@@ -205,17 +208,8 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
             self._open_workspace()
 
     def _save_segmentation(self):
-        try:
-            file_dialog = QtWidgets.QFileDialog()
-            options = QtWidgets.QFileDialog.Options()
-            options |= QtWidgets.QFileDialog.DontUseNativeDialog
-            fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "QFileDialog.getSaveFileName()", "",
-                                        "All Files (*);;Text Files (*.txt)", options=options)
-            print(fileName)
-            if fileName and self._workspace:
-                self._workspace.image_display.save_segmentation(fileName)
-        except Exception as ex:
-            print(ex, type(ex))
+        if self._workspace:
+            self._workspace.save_segmentation()
 
     def _user_choose_file(self):
         file_dialog = QtWidgets.QFileDialog()

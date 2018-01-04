@@ -77,7 +77,7 @@ class ImageLabel(QtWidgets.QLabel):
 
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFixedSize(1000,1000)
+        self.setFixedSize(512, 512)
         self.set_image(self.frames[self.frame_displayed_index])
 
         # decide what to do with point clicks (paint/square/erase)
@@ -86,7 +86,6 @@ class ImageLabel(QtWidgets.QLabel):
 
     @QtCore.pyqtSlot(int)
     def _update_tool_in_use(self, tool_chosen):
-        print('update tool chosen', tool_chosen)
         self._tool_chosen = tool_chosen
 
     def sizeHint(self):
