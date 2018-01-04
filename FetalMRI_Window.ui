@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1218</width>
+    <height>833</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color:rgb(4, 51, 57)</string>
+  </property>
+  <widget class="QWidget" name="CentralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QWidget" name="mainWidget" native="true">
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(4, 51, 57);</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <spacer name="verticalSpacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="title">
+               <property name="styleSheet">
+                <string notr="true">font: italic 23pt &quot;MV Boli&quot;;
+color: rgb(255, 255, 255);</string>
+               </property>
+               <property name="text">
+                <string>Fetal MRI Seg Tool</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="logo">
+               <property name="maximumSize">
+                <size>
+                 <width>299</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(4, 51, 57);</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="pixmap">
+                <pixmap>images/brain_bgnd.jpg</pixmap>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0">
+           <item>
+            <widget class="QPushButton" name="load_nii_btn">
+             <property name="styleSheet">
+              <string notr="true">font: 75 13pt&quot;Nirmala UI Semilight&quot;;
+color: rgb(207, 241, 242);
+background-color: rgb(102, 132, 140);
+border-color: rgb(209, 238, 242);</string>
+             </property>
+             <property name="text">
+              <string>Load Nifti File</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="load_dir_btn">
+             <property name="styleSheet">
+              <string notr="true">font: 75 13pt&quot;Nirmala UI Semilight&quot;;
+color: rgb(207, 241, 242);
+background-color: rgb(102, 132, 140);
+border-color: rgb(209, 238, 242);</string>
+             </property>
+             <property name="text">
+              <string>Load Dicom Directory</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1218</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color:rgb(195, 223, 226)</string>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="styleSheet">
+     <string notr="true">background-color:rgb(195, 223, 226)</string>
+    </property>
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen_Nifti_File"/>
+    <addaction name="actionOpen_Directory"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuWorkspace">
+    <property name="styleSheet">
+     <string notr="true">background-color:rgb(195, 223, 226)</string>
+    </property>
+    <property name="title">
+     <string>Workspace</string>
+    </property>
+    <addaction name="actionSave_Segmentation"/>
+    <addaction name="actionOpen_Segmentation"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuWorkspace"/>
+   <addaction name="menuView"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <action name="actionFile">
+   <property name="text">
+    <string>File</string>
+   </property>
+  </action>
+  <action name="actionOpen_Nifti_File">
+   <property name="text">
+    <string>Open Nifti File</string>
+   </property>
+  </action>
+  <action name="actionOpen_Directory">
+   <property name="text">
+    <string>Open Directory</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionSave_Segmentation">
+   <property name="text">
+    <string>Save Segmentation</string>
+   </property>
+  </action>
+  <action name="actionOpen_Segmentation">
+   <property name="text">
+    <string>Open Segmentation</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

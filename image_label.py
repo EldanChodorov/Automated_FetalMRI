@@ -56,7 +56,7 @@ class ImageLabel(QtWidgets.QLabel):
         :param frames: [numpy.ndarray] list of images
         :param image_display: [ImageDisplay]
         '''
-        QtWidgets.QLabel.__init__(self)
+        QtWidgets.QLabel.__init__(self, image_display_parent)
 
         # ImageDisplay holding this ImageLabel instance
         self._parent = image_display_parent
@@ -70,6 +70,9 @@ class ImageLabel(QtWidgets.QLabel):
         # dict of frame#: points chosen manually by user per each frame
         self.chosen_points = defaultdict(list)
 
+        # if using square tool, store here first corner clicked with mouse
+        self._square_corner = None
+
         self._zoom = 1.0
 
         self.setContentsMargins(0, 0, 0, 0)
@@ -79,9 +82,11 @@ class ImageLabel(QtWidgets.QLabel):
 
         # decide what to do with point clicks (paint/square/erase)
         self._tool_chosen = USE_PAINTBRUSH
+        self._parent.tool_chosen.connect(self._update_tool_in_use)
 
     @QtCore.pyqtSlot(int)
-    def update_tool_in_use(self, tool_chosen):
+    def _update_tool_in_use(self, tool_chosen):
+        print('update tool chosen', tool_chosen)
         self._tool_chosen = tool_chosen
 
     def sizeHint(self):
@@ -105,8 +110,42 @@ class ImageLabel(QtWidgets.QLabel):
         # update so that paintEvent will be called
         self.update()
 
+    def mousePressEvent(self, QMouseEvent):
+        if self._tool_chosen == USE_SQUARE:
+            self._square_corner = QMouseEvent.pos()
+
+    def _handle_square_clicked(self, corner1, corner2):
+        '''Calculate all points inside square.'''
+        first_x, first_y = corner1.x(), corner1.y()
+        second_x, second_y = corner2.x(), corner2.y()
+        if first_x == second_x or first_y == second_y:
+            return
+
+        if first_x < second_x:
+            start_x, end_x = first_x, second_x
+        else:
+            start_x, end_x = second_x, first_x
+        if first_y < second_y:
+            start_y, end_y = first_y, second_y
+        else:
+            start_y, end_y = second_y, first_y
+        for x in range(start_x, end_x):
+            self.chosen_points[self.frame_displayed_index].append(QtCore.QPoint(x, start_y))
+            self.chosen_points[self.frame_displayed_index].append(QtCore.QPoint(x, end_y))
+        for y in range(start_y, end_y):
+            self.chosen_points[self.frame_displayed_index].append(QtCore.QPoint(start_x, y))
+            self.chosen_points[self.frame_displayed_index].append(QtCore.QPoint(end_x, y))
+
     def mouseReleaseEvent(self, cursor_event):
-        self.mouseMoveEvent(cursor_event)
+        if self._tool_chosen == USE_SQUARE and self._square_corner:
+            # using square tool
+            self._handle_square_clicked(self._square_corner, cursor_event.pos())
+            self._square_corner = None
+            self.update()
+        else:
+            # using eraser or paintbrush tool
+            self.mouseMoveEvent(cursor_event)
+            # update() is called in mouseMoveEvent
 
     def label_to_image_pos(self, label_pos):
         # image is of size 512x512 pixels
@@ -176,13 +215,12 @@ class ImageLabel(QtWidgets.QLabel):
 
 class ImageDisplay(QtWidgets.QWidget):
 
-    def __init__(self, frames, nifti_obj):
+    def __init__(self, frames, nifti_obj, parent=None):
         '''
         :param frames: array data of shape (num_images, x, y) 
         :param nifti_obj: [Nifti]
         '''
-        print('Shape of mri scan', frames.shape)
-        QtWidgets.QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self, parent)
 
         # normalize images
         self.frames = (frames.astype(np.float64) / np.max(frames)) * 255
@@ -205,25 +243,25 @@ class ImageDisplay(QtWidgets.QWidget):
         self._main_layout = QtWidgets.QVBoxLayout()
 
         # user explanation and label of frame number
-        text_layout = QtWidgets.QHBoxLayout()
-        user_initial_explanation = QtWidgets.QLabel(
-            'Scroll through frames, and several points inside the brain.')
-        user_initial_explanation.setStyleSheet('color: black; font-size: 18pt; '
-                                               'font-family: Courier;')
-        self.frame_number = QtWidgets.QLabel(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
-        self.frame_number.setStyleSheet('color: solid purple;'
-                                         'font-weight: bold; font-size: 18pt; '
-                                         'font-family: Courier;  border-style : outset;'
-                                         'border-width 2px; border-radius: 10px; border-color: beige;'
-                                         'min-width: 10em; padding: 6px')
-        text_layout.addWidget(user_initial_explanation)
-        text_layout.addWidget(self.frame_number)
+        # text_layout = QtWidgets.QHBoxLayout()
+        # user_initial_explanation = QtWidgets.QLabel(
+        #     'Scroll through frames, and several points inside the brain.')
+        # user_initial_explanation.setStyleSheet('color: black; font-size: 18pt; '
+        #                                        'font-family: Courier;')
+        # self.frame_number = QtWidgets.QLabel(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
+        # self.frame_number.setStyleSheet('color: solid purple;'
+        #                                  'font-weight: bold; font-size: 18pt; '
+        #                                  'font-family: Courier;  border-style : outset;'
+        #                                  'border-width 2px; border-radius: 10px; border-color: beige;'
+        #                                  'min-width: 10em; padding: 6px')
+        # text_layout.addWidget(user_initial_explanation)
+        # text_layout.addWidget(self.frame_number)
 
         self._main_layout.setContentsMargins(0,0,0,0)
 
-        self._main_layout.addStretch()
-        self._main_layout.addLayout(text_layout)
-        self._main_layout.addStretch()
+        # self._main_layout.addStretch()
+        # self._main_layout.addLayout(text_layout)
+        # self._main_layout.addStretch()
 
         # Label with ImageDisplay
         self._image_label = ImageLabel(self.frames, self)
@@ -233,27 +271,27 @@ class ImageDisplay(QtWidgets.QWidget):
         self._main_layout.addStretch()
 
         # bottom layout with 'segment' button
-        bottom_layout = QtWidgets.QHBoxLayout()
-        self._segment_button = QtWidgets.QPushButton('Perform Segmentation')
-        self._segment_button.setIcon(QtGui.QIcon('images/buttons_PNG103.png'))
-        self._segment_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self._segment_button.resize(200, 20)
-        self._segment_button.clicked.connect(self._perform_segmentation_wrapper)
-        button_style_sheet = 'background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;' \
-                             'border-radius: 15px; border-color: black; border-width: 3px; ' \
-                             'border-style: outset;'
-        self._segment_button.setStyleSheet(button_style_sheet)
+        # bottom_layout = QtWidgets.QHBoxLayout()
+        # self._segment_button = QtWidgets.QPushButton('Perform Segmentation')
+        # self._segment_button.setIcon(QtGui.QIcon('images/buttons_PNG103.png'))
+        # self._segment_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        # self._segment_button.resize(200, 20)
+        # self._segment_button.clicked.connect(self._perform_segmentation_wrapper)
+        # button_style_sheet = 'background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;' \
+        #                      'border-radius: 15px; border-color: black; border-width: 3px; ' \
+        #                      'border-style: outset;'
+        # self._segment_button.setStyleSheet(button_style_sheet)
+        #
+        # self.tool_kit = ToolKit()
+        # self.tool_kit.tool_chosen.connect(self._image_label.update_tool_in_use)
+        #
+        # bottom_layout.addStretch()
+        # bottom_layout.addLayout(self.tool_kit)
+        # bottom_layout.addStretch()
+        # bottom_layout.addWidget(self._segment_button)
+        # bottom_layout.addStretch()
 
-        self.tool_kit = ToolKit()
-        self.tool_kit.tool_chosen.connect(self._image_label.update_tool_in_use)
-
-        bottom_layout.addStretch()
-        bottom_layout.addLayout(self.tool_kit)
-        bottom_layout.addStretch()
-        bottom_layout.addWidget(self._segment_button)
-        bottom_layout.addStretch()
-
-        self._main_layout.addLayout(bottom_layout)
+        # self._main_layout.addLayout(bottom_layout)
         self.setLayout(self._main_layout)
 
     def _perform_segmentation_wrapper(self):
@@ -293,7 +331,10 @@ class ImageDisplay(QtWidgets.QWidget):
                         seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
 
             # run segmentation algorithm in separate thread so that gui does not freeze
+            import time
+            a = time.time()
             self._segmentation_array = segment3d_itk.segmentation_3d(self.frames, seeds) * 255
+            print(time.time() - a)
 
             self._remove_progress_bar()
 

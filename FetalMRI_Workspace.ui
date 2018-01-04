@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>workspace</class>
+ <widget class="QWidget" name="workspace">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1309</width>
+    <height>742</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(110, 137, 152)</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="MainLayout" stretch="0,0,1,0,0">
+     <property name="leftMargin">
+      <number>13</number>
+     </property>
+     <item>
+      <layout class="QHBoxLayout" name="intro_layout">
+       <item>
+        <widget class="QLabel" name="user_initial_explanation">
+         <property name="minimumSize">
+          <size>
+           <width>820</width>
+           <height>278</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">text-decoration: underline;
+font: 75 11pt underline &quot;MS UI Gothic&quot;;</string>
+         </property>
+         <property name="text">
+          <string>Scroll through frames, and pick 3 points in first and last frame [INSIDE THE BRAIN].</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="frame_number">
+         <property name="minimumSize">
+          <size>
+           <width>42</width>
+           <height>278</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
+color: rgb(255, 255, 255);
+font-family: Courier;</string>
+         </property>
+         <property name="text">
+          <string>0/0</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="image_layout">
+       <item>
+        <layout class="QVBoxLayout" name="ImageLayout">
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QFrame" name="tool_kit">
+         <property name="styleSheet">
+          <string notr="true">border-color: rgb(0, 85, 127);
+background-color: rgb(237, 240, 247);
+border-radius: 15px; border-width: 3px; border-style: outset</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="paintbrush_btn">
+            <property name="styleSheet">
+             <string notr="true">background-color:'white'; 
+color: black; 
+border-radius: 8px; border-color: black; border-width: 1px; 
+border-style: outset;</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="eraser_btn">
+            <property name="styleSheet">
+             <string notr="true">background-color:'white'; 
+color: black; 
+border-radius: 12px; border-color: black; border-width: 1px;
+border-style: outset;</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="square_btn">
+            <property name="styleSheet">
+             <string notr="true">background-color:'white'; 
+color: black; 
+border-radius: 12px; border-color: black; border-width: 1px;
+border-style: outset;</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>images/square.png</normaloff>images/square.png</iconset>
+            </property>
+           </widget>
+          </item>
+         </layout>
+         <zorder>paintbrush_btn</zorder>
+         <zorder>eraser_btn</zorder>
+         <zorder>square_btn</zorder>
+         <zorder>user_initial_explanation</zorder>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="seg_btns_layout">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="save_seg_btn">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
+border-radius: 15px; border-color: black; border-width: 3px; 
+border-style: outset;</string>
+           </property>
+           <property name="text">
+            <string>Save Segmentation</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="perform_seg_btn">
+           <property name="styleSheet">
+            <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
+border-radius: 15px; border-color: black; border-width: 3px; 
+border-style: outset;</string>
+           </property>
+           <property name="text">
+            <string>Perform Segmentation</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+  <zorder>square_btn</zorder>
+  <zorder>verticalLayoutWidget</zorder>
+  <zorder>horizontalSpacer_2</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

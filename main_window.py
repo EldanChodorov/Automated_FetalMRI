@@ -6,8 +6,10 @@ import dicom2nifti
 import shutil
 import numpy as np
 import nibabel as nib
+import FetalMRI_mainwindow
 
-class MainWindow(QtWidgets.QMainWindow):
+
+class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
     '''
     Main window display of the program. Displays upon startup. 
     User can load directory from this window and open the workspace window.
@@ -16,73 +18,84 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, data_dir_path):
 
         QtWidgets.QMainWindow.__init__(self)
+        FetalMRI_mainwindow.Ui_MainWindow.__init__(self)
+
+        # defined in FetalMRI_design.Ui_MainWindow
+        self.setupUi(self)
+
+        # setup customary design options
         self.init_ui()
 
         # path to directory holding scans
         self._source = data_dir_path
 
     def init_ui(self):
-        self.setGeometry(100, 50, 1500, 900)
+        # self.setGeometry(100, 50, 1500, 900)
         self.setWindowTitle('Fetal Brain Seg Tool')
         self.setWindowIcon(QtGui.QIcon('images/buttons_PNG103.png'))
-        self._set_menus()
+
+        # connect buttons
+        self.load_nii_btn.clicked.connect(self._load_source)
+        self.load_dir_btn.clicked.connect(lambda: self._load_source(True))
+
+        # self._set_menus()
 
         # main startup window layout
-        main_widget = QtWidgets.QWidget()
-        main_layout = QtWidgets.QVBoxLayout()
+        # main_widget = QtWidgets.QWidget()
+        # main_layout = QtWidgets.QVBoxLayout()
         # main_widget.setStyleSheet('border-image: url(images/brain_bgnd.jpg)')
-        main_widget.setStyleSheet('background-color: #c6d8ec;')
+        # main_widget.setStyleSheet('background-color: #c6d8ec;')
 
         # main logo on display
-        main_logo_layout = QtWidgets.QHBoxLayout()
-        main_logo = QtWidgets.QLabel()
-        main_logo.setText('Fetal MRI Seg Tool')
-        logo_style_sheet = 'background-color:#9db8e1; color: black; font-weight: regular; font-size: 22pt;'\
-                            'border-radius: 25px; border-color: gray; border-width: 6px; '\
-                            'border-style: outset;'
-        main_logo.setStyleSheet(logo_style_sheet)
-        main_logo.setAlignment(QtCore.Qt.AlignCenter)
-        main_logo.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        main_logo.resize(800, 800)
+        # main_logo_layout = QtWidgets.QHBoxLayout()
+        # main_logo = QtWidgets.QLabel()
+        # main_logo.setText('Fetal MRI Seg Tool')
+        # logo_style_sheet = 'background-color:#9db8e1; color: black; font-weight: regular; font-size: 22pt;'\
+        #                     'border-radius: 25px; border-color: gray; border-width: 6px; '\
+        #                     'border-style: outset;'
+        # main_logo.setStyleSheet(logo_style_sheet)
+        # main_logo.setAlignment(QtCore.Qt.AlignCenter)
+        # main_logo.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # main_logo.resize(800, 800)
 
-        main_logo_layout.addStretch()
-        main_logo_layout.addWidget(main_logo)
-        main_logo_layout.addStretch()
-        main_layout.addStretch()
-        main_layout.addLayout(main_logo_layout)
-        main_layout.addStretch()
+        # main_logo_layout.addStretch()
+        # main_logo_layout.addWidget(main_logo)
+        # main_logo_layout.addStretch()
+        # main_layout.addStretch()
+        # main_layout.addLayout(main_logo_layout)
+        # main_layout.addStretch()
 
         # buttons
-        button_style_sheet = 'background-color:#b1c7e7; color: black; font-weight: regular; font-size: 12pt;'\
-                              'border-radius: 20px; border-color: gray; border-width: 3px; '\
-                              'border-style: outset;'
+        # button_style_sheet = 'background-color:#b1c7e7; color: black; font-weight: regular; font-size: 12pt;'\
+        #                       'border-radius: 20px; border-color: gray; border-width: 3px; '\
+        #                       'border-style: outset;'
 
-        dir_open_button = QtWidgets.QPushButton('Load Scans From Directory')
-        dir_open_button.setIcon(QtGui.QIcon('images/buttons_PNG103.png'))
-        dir_open_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        dir_open_button.resize(400,20)
-        dir_open_button.clicked.connect(lambda: self._load_source(True))
-        dir_open_button.setStyleSheet(button_style_sheet)
+        # dir_open_button = QtWidgets.QPushButton('Load Scans From Directory')
+        # dir_open_button.setIcon(QtGui.QIcon('images/buttons_PNG103.png'))
+        # dir_open_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # dir_open_button.resize(400,20)
+        # dir_open_button.clicked.connect(lambda: self._load_source(True))
+        # dir_open_button.setStyleSheet(button_style_sheet)
 
-        nii_open_button = QtWidgets.QPushButton('Load Nifti File')
-        nii_open_button.setIcon(QtGui.QIcon('images/buttons_PNG103.png'))
-        nii_open_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        nii_open_button.resize(400,20)
-        nii_open_button.clicked.connect(self._load_source)
-        nii_open_button.setStyleSheet(button_style_sheet)
+        # nii_open_button = QtWidgets.QPushButton('Load Nifti File')
+        # nii_open_button.setIcon(QtGui.QIcon('images/buttons_PNG103.png'))
+        # nii_open_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # nii_open_button.resize(400,20)
+        # nii_open_button.clicked.connect(self._load_source)
+        # nii_open_button.setStyleSheet(button_style_sheet)
 
-        open_layout = QtWidgets.QHBoxLayout()
-        open_layout.addStretch()
-        open_layout.addWidget(dir_open_button)
-        open_layout.addStretch()
-        open_layout.addWidget(nii_open_button)
-        open_layout.addStretch()
+        # open_layout = QtWidgets.QHBoxLayout()
+        # open_layout.addStretch()
+        # open_layout.addWidget(dir_open_button)
+        # open_layout.addStretch()
+        # open_layout.addWidget(nii_open_button)
+        # open_layout.addStretch()
 
-        main_layout.addLayout(open_layout)
-        main_layout.addStretch()
+        # main_layout.addLayout(open_layout)
+        # main_layout.addStretch()
 
-        main_widget.setLayout(main_layout)
-        self.setCentralWidget(main_widget)
+        # main_widget.setLayout(main_layout)
+        # self.setCentralWidget(main_widget)
 
     def _set_menus(self):
 
