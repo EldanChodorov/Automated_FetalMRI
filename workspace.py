@@ -76,6 +76,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._image_label = ImageLabel(self.frames, self)
         self.ImageLayout.addWidget(self._image_label)
 
+        self._connect_buttons()
+
     def _connect_buttons(self):
         self.perform_seg_btn.clicked.connect(self._perform_segmentation_wrapper)
         self.paintbrush_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_PAINTBRUSH))
@@ -83,7 +85,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.square_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_SQUARE))
 
     def _perform_segmentation_wrapper(self):
-
         # setup progress bar
         self._progress_bar = QtWidgets.QProgressBar(self)
         # TODO: text is not displaying, fix.
@@ -92,19 +93,19 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._progress_bar.setMinimum(0)
         self._progress_bar.setMaximum(0)
         self._progress_bar.resize(60, 20)
-        self._main_layout.addStretch()
-        self._main_layout.addWidget(self._progress_bar)
-        self._main_layout.addStretch()
+        self.MainLayout.addStretch()
+        self.MainLayout.addWidget(self._progress_bar)
+        self.MainLayout.addStretch()
 
         # disable button so that only one segmentation will run at each time
         # TODO: re-enable when loading or rechoosing points
-        self._segment_button.setEnabled(False)
+        self.perform_seg_btn.setEnabled(False)
 
         # run perform_segmentation from thread so that progress bar will run in background
         self._segmentation_thread.start()
 
     def _remove_progress_bar(self):
-        self._main_layout.removeWidget(self._progress_bar)
+        self.MainLayout.removeWidget(self._progress_bar)
         self._progress_bar.deleteLater()
 
     def _perform_segmentation(self):
@@ -127,7 +128,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self._remove_progress_bar()
 
             if self._segmentation_array is None:
-                self._segment_button.setEnabled(True)
+                self.perform_seg_btn.setEnabled(True)
                 return
 
             self.set_segmentation(self._segmentation_array)
