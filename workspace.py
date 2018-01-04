@@ -79,6 +79,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.setAutoFillBackground(True)
         self.setStyleSheet('background-color: rgb(110, 137, 152)')
 
+        # set sizes
+        # self.initial_into.setGeometry()
+
         # connect buttons
         self.perform_seg_btn.clicked.connect(self._perform_segmentation_wrapper)
         self.save_seg_btn.clicked.connect(self.save_segmentation)
@@ -86,7 +89,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.eraser_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_ERASER))
         self.outer_square_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_OUTER_SQUARE))
         self.inner_square_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_INNER_SQUARE))
-
 
     def _perform_segmentation_wrapper(self):
         # setup progress bar

@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>913</width>
+    <width>1186</width>
     <height>883</height>
    </rect>
   </property>
@@ -24,145 +24,134 @@
   </property>
   <layout class="QGridLayout" name="gridLayout_2" rowstretch="0">
    <item row="0" column="0">
-    <layout class="QVBoxLayout" name="MainLayout" stretch="0,1,0">
+    <layout class="QVBoxLayout" name="MainLayout" stretch="1,0">
      <property name="leftMargin">
       <number>13</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="initial_into">
-       <item>
-        <widget class="QLabel" name="user_explanation">
-         <property name="styleSheet">
-          <string notr="true">text-decoration: underline;
-font: 75 11pt underline &quot;MS UI Gothic&quot;;
-</string>
-         </property>
-         <property name="text">
-          <string>Scroll through frames, and pick 3 points in first and last frame [INSIDE THE BRAIN].</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="frame_number">
-         <property name="minimumSize">
-          <size>
-           <width>42</width>
-           <height>278</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>70</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
-color: rgb(255, 255, 255);
-font-family: Courier;</string>
-         </property>
-         <property name="text">
-          <string>20/20</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
       <layout class="QHBoxLayout" name="ImageLayout" stretch="0">
        <item>
-        <widget class="QFrame" name="tool_kit">
-         <property name="styleSheet">
-          <string notr="true">border-color: rgb(0, 85, 127);
+        <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
+         <item>
+          <widget class="QFrame" name="tool_kit">
+           <property name="styleSheet">
+            <string notr="true">border-color: rgb(0, 85, 127);
 background-color: rgb(237, 240, 247);
 border-radius: 15px; border-width: 3px; border-style: outset</string>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="4" column="0">
-           <widget class="QPushButton" name="inner_square_btn">
-            <property name="toolTip">
-             <string>Mark middle first and last frame with square CONTAINED in brain.</string>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">background-color:'white'; 
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QGridLayout" name="gridLayout">
+            <item row="4" column="0">
+             <widget class="QPushButton" name="inner_square_btn">
+              <property name="toolTip">
+               <string>Mark middle first and last frame with square CONTAINED in brain.</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:'white'; 
 color: black; 
 border-radius: 12px; border-color: purple; border-width:3px;
 border-style: outset;</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>images/purple_square.png</normaloff>images/purple_square.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QPushButton" name="paintbrush_btn">
-            <property name="styleSheet">
-             <string notr="true">background-color:'white'; 
-color: black; 
-border-radius: 8px; border-color: black; border-width: 1px; 
-border-style: outset;</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QPushButton" name="outer_square_btn">
-            <property name="toolTip">
-             <string>Mark middle frame with square ENCLOSING brain.</string>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">background-color:'white'; 
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>images/purple_square.png</normaloff>images/purple_square.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QPushButton" name="outer_square_btn">
+              <property name="toolTip">
+               <string>Mark middle frame with square ENCLOSING brain.</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:'white'; 
 color: black; 
 border-radius: 12px; border-color: red; border-width: 3px;
 border-style: outset;</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>images/red_square.png</normaloff>images/red_square.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="eraser_btn">
-            <property name="styleSheet">
-             <string notr="true">background-color:'white'; 
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>images/red_square.png</normaloff>images/red_square.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QPushButton" name="paintbrush_btn">
+              <property name="styleSheet">
+               <string notr="true">background-color:'white'; 
+color: black; 
+border-radius: 8px; border-color: black; border-width: 1px; 
+border-style: outset;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QPushButton" name="eraser_btn">
+              <property name="styleSheet">
+               <string notr="true">background-color:'white'; 
 color: black; 
 border-radius: 12px; border-color: black; border-width: 1px;
 border-style: outset;</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="frame_number">
+           <property name="minimumSize">
+            <size>
+             <width>42</width>
+             <height>278</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
+color: rgb(255, 255, 255);
+font-family: Courier;
+background-color: rgb(4, 51, 57);</string>
+           </property>
+           <property name="text">
+            <string>20/20</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>

@@ -12,7 +12,7 @@ class Ui_workspace(object):
     def setupUi(self, workspace):
         workspace.setObjectName("workspace")
         workspace.setEnabled(True)
-        workspace.resize(913, 883)
+        workspace.resize(1186, 883)
         workspace.setAutoFillBackground(True)
         workspace.setStyleSheet("background-color: rgb(110, 137, 152)")
         self.gridLayout_2 = QtWidgets.QGridLayout(workspace)
@@ -20,26 +20,10 @@ class Ui_workspace(object):
         self.MainLayout = QtWidgets.QVBoxLayout()
         self.MainLayout.setContentsMargins(13, -1, -1, -1)
         self.MainLayout.setObjectName("MainLayout")
-        self.initial_into = QtWidgets.QHBoxLayout()
-        self.initial_into.setObjectName("initial_into")
-        self.user_explanation = QtWidgets.QLabel(workspace)
-        self.user_explanation.setStyleSheet("text-decoration: underline;\n"
-"font: 75 11pt underline \"MS UI Gothic\";\n"
-"")
-        self.user_explanation.setObjectName("user_explanation")
-        self.initial_into.addWidget(self.user_explanation)
-        self.frame_number = QtWidgets.QLabel(workspace)
-        self.frame_number.setMinimumSize(QtCore.QSize(42, 278))
-        self.frame_number.setMaximumSize(QtCore.QSize(70, 16777215))
-        self.frame_number.setAutoFillBackground(False)
-        self.frame_number.setStyleSheet("font: 75 12pt \"MS Shell Dlg 2\";\n"
-"color: rgb(255, 255, 255);\n"
-"font-family: Courier;")
-        self.frame_number.setObjectName("frame_number")
-        self.initial_into.addWidget(self.frame_number)
-        self.MainLayout.addLayout(self.initial_into)
         self.ImageLayout = QtWidgets.QHBoxLayout()
         self.ImageLayout.setObjectName("ImageLayout")
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setObjectName("verticalLayout")
         self.tool_kit = QtWidgets.QFrame(workspace)
         self.tool_kit.setStyleSheet("border-color: rgb(0, 85, 127);\n"
 "background-color: rgb(237, 240, 247);\n"
@@ -60,28 +44,28 @@ class Ui_workspace(object):
         self.inner_square_btn.setIcon(icon)
         self.inner_square_btn.setObjectName("inner_square_btn")
         self.gridLayout.addWidget(self.inner_square_btn, 4, 0, 1, 1)
-        self.paintbrush_btn = QtWidgets.QPushButton(self.tool_kit)
-        self.paintbrush_btn.setStyleSheet("background-color:\'white\'; \n"
-"color: black; \n"
-"border-radius: 8px; border-color: black; border-width: 1px; \n"
-"border-style: outset;")
-        self.paintbrush_btn.setText("")
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("images/paintbrush.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.paintbrush_btn.setIcon(icon1)
-        self.paintbrush_btn.setObjectName("paintbrush_btn")
-        self.gridLayout.addWidget(self.paintbrush_btn, 0, 0, 1, 1)
         self.outer_square_btn = QtWidgets.QPushButton(self.tool_kit)
         self.outer_square_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: black; \n"
 "border-radius: 12px; border-color: red; border-width: 3px;\n"
 "border-style: outset;")
         self.outer_square_btn.setText("")
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("images/red_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.outer_square_btn.setIcon(icon2)
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("images/red_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.outer_square_btn.setIcon(icon1)
         self.outer_square_btn.setObjectName("outer_square_btn")
         self.gridLayout.addWidget(self.outer_square_btn, 3, 0, 1, 1)
+        self.paintbrush_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.paintbrush_btn.setStyleSheet("background-color:\'white\'; \n"
+"color: black; \n"
+"border-radius: 8px; border-color: black; border-width: 1px; \n"
+"border-style: outset;")
+        self.paintbrush_btn.setText("")
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap("images/paintbrush.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.paintbrush_btn.setIcon(icon2)
+        self.paintbrush_btn.setObjectName("paintbrush_btn")
+        self.gridLayout.addWidget(self.paintbrush_btn, 0, 0, 1, 1)
         self.eraser_btn = QtWidgets.QPushButton(self.tool_kit)
         self.eraser_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: black; \n"
@@ -93,7 +77,19 @@ class Ui_workspace(object):
         self.eraser_btn.setIcon(icon3)
         self.eraser_btn.setObjectName("eraser_btn")
         self.gridLayout.addWidget(self.eraser_btn, 2, 0, 1, 1)
-        self.ImageLayout.addWidget(self.tool_kit)
+        self.verticalLayout.addWidget(self.tool_kit)
+        self.frame_number = QtWidgets.QLabel(workspace)
+        self.frame_number.setMinimumSize(QtCore.QSize(42, 278))
+        self.frame_number.setMaximumSize(QtCore.QSize(70, 16777215))
+        self.frame_number.setAutoFillBackground(False)
+        self.frame_number.setStyleSheet("font: 75 12pt \"MS Shell Dlg 2\";\n"
+"color: rgb(255, 255, 255);\n"
+"font-family: Courier;\n"
+"background-color: rgb(4, 51, 57);")
+        self.frame_number.setObjectName("frame_number")
+        self.verticalLayout.addWidget(self.frame_number)
+        self.verticalLayout.setStretch(0, 1)
+        self.ImageLayout.addLayout(self.verticalLayout)
         self.MainLayout.addLayout(self.ImageLayout)
         self.seg_btns_layout = QtWidgets.QHBoxLayout()
         self.seg_btns_layout.setObjectName("seg_btns_layout")
@@ -116,7 +112,7 @@ class Ui_workspace(object):
         self.horizontalLayout_2.addWidget(self.perform_seg_btn)
         self.seg_btns_layout.addLayout(self.horizontalLayout_2)
         self.MainLayout.addLayout(self.seg_btns_layout)
-        self.MainLayout.setStretch(1, 1)
+        self.MainLayout.setStretch(0, 1)
         self.gridLayout_2.addLayout(self.MainLayout, 0, 0, 1, 1)
 
         self.retranslateUi(workspace)
@@ -125,10 +121,9 @@ class Ui_workspace(object):
     def retranslateUi(self, workspace):
         _translate = QtCore.QCoreApplication.translate
         workspace.setWindowTitle(_translate("workspace", "Form"))
-        self.user_explanation.setText(_translate("workspace", "Scroll through frames, and pick 3 points in first and last frame [INSIDE THE BRAIN]."))
-        self.frame_number.setText(_translate("workspace", "20/20"))
         self.inner_square_btn.setToolTip(_translate("workspace", "Mark middle first and last frame with square CONTAINED in brain."))
         self.outer_square_btn.setToolTip(_translate("workspace", "Mark middle frame with square ENCLOSING brain."))
+        self.frame_number.setText(_translate("workspace", "20/20"))
         self.save_seg_btn.setText(_translate("workspace", "Save Segmentation"))
         self.perform_seg_btn.setText(_translate("workspace", "Perform Segmentation"))
 

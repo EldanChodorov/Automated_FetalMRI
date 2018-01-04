@@ -77,7 +77,9 @@ class ImageLabel(QtWidgets.QLabel):
 
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFixedSize(512, 512)
+        self.setFixedSize(1000, 1000)
+        self.setMinimumSize(1000, 1000)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.set_image(self.frames[self.frame_displayed_index])
 
         # decide what to do with point clicks (paint/square/erase)
@@ -90,7 +92,7 @@ class ImageLabel(QtWidgets.QLabel):
 
     def sizeHint(self):
         # TODO: set label minimum size
-        return QtCore.QSize(512, 512)
+        return QtCore.QSize(1000, 1000)
 
     def mouseMoveEvent(self, QMouseEvent):
         pos = QMouseEvent.pos()
@@ -110,6 +112,7 @@ class ImageLabel(QtWidgets.QLabel):
         self.update()
 
     def mousePressEvent(self, QMouseEvent):
+        print(self.size())
         if self._tool_chosen in [USE_OUTER_SQUARE, USE_INNER_SQUARE]:
             self._square_corner = QMouseEvent.pos()
 
