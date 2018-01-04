@@ -1,8 +1,7 @@
 from collections import defaultdict
 import numpy as np
 from threading import Thread
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 import qimage2ndarray
 from skimage import color
 import cv2
@@ -11,8 +10,9 @@ import nibabel as nib
 
 
 USE_PAINTBRUSH = 1
-USE_SQUARE = 2
-USE_ERASER = 3
+USE_OUTER_SQUARE = 2
+USE_INNER_SQUARE = 3
+USE_ERASER = 4
 ERASER_WIDTH = 15
 
 
@@ -77,7 +77,7 @@ class ImageLabel(QtWidgets.QLabel):
 
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFixedSize(1000,1000)
+        self.setFixedSize(512, 512)
         self.set_image(self.frames[self.frame_displayed_index])
 
         # decide what to do with point clicks (paint/square/erase)
@@ -86,7 +86,6 @@ class ImageLabel(QtWidgets.QLabel):
 
     @QtCore.pyqtSlot(int)
     def _update_tool_in_use(self, tool_chosen):
-        print('update tool chosen', tool_chosen)
         self._tool_chosen = tool_chosen
 
     def sizeHint(self):
@@ -111,7 +110,7 @@ class ImageLabel(QtWidgets.QLabel):
         self.update()
 
     def mousePressEvent(self, QMouseEvent):
-        if self._tool_chosen == USE_SQUARE:
+        if self._tool_chosen in [USE_OUTER_SQUARE, USE_INNER_SQUARE]:
             self._square_corner = QMouseEvent.pos()
 
     def _handle_square_clicked(self, corner1, corner2):
@@ -137,7 +136,7 @@ class ImageLabel(QtWidgets.QLabel):
             self.chosen_points[self.frame_displayed_index].append(QtCore.QPoint(end_x, y))
 
     def mouseReleaseEvent(self, cursor_event):
-        if self._tool_chosen == USE_SQUARE and self._square_corner:
+        if self._tool_chosen in [USE_OUTER_SQUARE, USE_INNER_SQUARE] and self._square_corner:
             # using square tool
             self._handle_square_clicked(self._square_corner, cursor_event.pos())
             self._square_corner = None
@@ -360,31 +359,3 @@ class ImageDisplay(QtWidgets.QWidget):
         nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
         nib.save(nifti, path)
 
-
-class ToolKit(QtWidgets.QHBoxLayout):
-
-    # signal that a new tool was chosen
-    tool_chosen = QtCore.pyqtSignal(int)
-
-    def __init__(self, parent=None):
-
-        QtWidgets.QHBoxLayout.__init__(self, parent)
-        try:
-
-            paintbrush_button = QtWidgets.QPushButton()
-            paintbrush_button.setIcon(QtGui.QIcon('images/paintbrush.png'))
-            paintbrush_button.clicked.connect(lambda: self.tool_chosen.emit(USE_PAINTBRUSH))
-            self.addWidget(paintbrush_button)
-
-            square_button = QtWidgets.QPushButton()
-            square_button.setIcon(QtGui.QIcon('images/square.png'))
-            square_button.clicked.connect(lambda: self.tool_chosen.emit(USE_SQUARE))
-            self.addWidget(square_button)
-
-            eraser_button = QtWidgets.QPushButton()
-            eraser_button.setIcon(QtGui.QIcon('images/eraser.jpg'))
-            eraser_button.clicked.connect(lambda: self.tool_chosen.emit(USE_ERASER))
-            self.addWidget(eraser_button)
-
-        except Exception as ex:
-            print(ex)
