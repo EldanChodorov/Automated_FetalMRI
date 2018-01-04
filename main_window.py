@@ -38,6 +38,8 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.load_nii_btn.clicked.connect(self._load_source)
         self.load_dir_btn.clicked.connect(lambda: self._load_source(True))
 
+        self._connect_menus()
+
         # self._set_menus()
 
         # main startup window layout
@@ -97,54 +99,28 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         # main_widget.setLayout(main_layout)
         # self.setCentralWidget(main_widget)
 
-    def _set_menus(self):
-
-        self.statusBar()
-        main_menu = self.menuBar()
-        main_menu.setStyleSheet('background-color:#bbb7c5;')
+    def _connect_menus(self):
 
         # File menu
-        file_menu = main_menu.addMenu('&File')
+        self.actionOpen_Nifti_File.setShortcut('Ctrl+o')
+        self.actionOpen_Nifti_File.setStatusTip('Open Nii File')
+        self.actionOpen_Nifti_File.triggered.connect(self._load_source)
 
-        open_nii_action = QtWidgets.QAction('&Open Nii File', self)
-        open_nii_action.setShortcut('Ctrl+o')
-        open_nii_action.setStatusTip('Open Nii File')
-        open_nii_action.triggered.connect(self._load_source)
+        self.actionOpen_Directory.setShortcut('Ctrl+d')
+        self.actionOpen_Directory.setStatusTip('Open directory of dicoms')
+        self.actionOpen_Directory.triggered.connect(lambda: self._load_source(True))
 
-        open_dir_action = QtWidgets.QAction('Open &Directory', self)
-        open_dir_action.setShortcut('Ctrl+d')
-        open_dir_action.setStatusTip('Open directory of dicoms')
-        open_dir_action.triggered.connect(lambda: self._load_source(True))
-
-        exit_action = QtWidgets.QAction('&Exit', self)
-        exit_action.setShortcut('Ctrl+Q')
-        exit_action.setStatusTip('Exit')
-        exit_action.triggered.connect(self.close)
-
-        file_menu.addAction(open_nii_action)
-        file_menu.addAction(open_dir_action)
-        file_menu.addAction(exit_action)
+        self.actionExit.setShortcut('Ctrl+Q')
+        self.actionExit.setStatusTip('Exit')
+        self.actionExit.triggered.connect(self.close)
 
         # Workspace menu
-        workspace_menu = main_menu.addMenu('&Workspace')
+        self.actionSave_Segmentation.setShortcut('Ctrl+S')
+        self.actionSave_Segmentation.triggered.connect(self._save_segmentation)
 
-        save_work_action = QtWidgets.QAction('&Save Segmentation', self)
-        save_work_action.setShortcut('Ctrl+S')
-        save_work_action.triggered.connect(self._save_segmentation)
-
-        open_work_action = QtWidgets.QAction('Open Segmentation', self)
-        open_work_action.setShortcut('Ctrl+Shift+W')
-        open_work_action.setStatusTip('Open previous segmentation')
-        open_work_action.triggered.connect(self._open_segmentation)
-
-        workspace_menu.addAction(save_work_action)
-        workspace_menu.addAction(open_work_action)
-
-        view_menu = main_menu.addMenu('&View')
-
-        tools_menu = main_menu.addMenu('&Tools')
-
-        help_menu = main_menu.addMenu('&Help')
+        self.actionOpen_Segmentation.setShortcut('Ctrl+Shift+W')
+        self.actionOpen_Segmentation.setStatusTip('Open previous segmentation')
+        self.actionOpen_Segmentation.triggered.connect(self._open_segmentation)
 
     def _open_workspace(self):
         '''

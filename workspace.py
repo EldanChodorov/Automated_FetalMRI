@@ -15,11 +15,7 @@ import segment3d_itk
 import nibabel as nib
 from image_label import ImageDisplay, ImageLabel
 
-
-USE_PAINTBRUSH = 1
-USE_SQUARE = 2
-USE_ERASER = 3
-ERASER_WIDTH = 15
+from image_label import (USE_PAINTBRUSH, USE_INNER_SQUARE, USE_OUTER_SQUARE, USE_ERASER)
 
 
 class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
@@ -71,8 +67,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._segmentation_thread = Thread(target=self._perform_segmentation)
         self._segmentation_thread.setDaemon(True)
 
-        # Label with ImageDisplay
+        # Label with ImageLabel
         self._image_label = ImageLabel(self.frames, self)
+        self.ImageLayout.addStretch(1)
         self.ImageLayout.addWidget(self._image_label)
 
         self._init_ui()
@@ -87,7 +84,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.save_seg_btn.clicked.connect(self.save_segmentation)
         self.paintbrush_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_PAINTBRUSH))
         self.eraser_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_ERASER))
-        self.square_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_SQUARE))
+        self.outer_square_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_OUTER_SQUARE))
+        self.inner_square_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_INNER_SQUARE))
 
 
     def _perform_segmentation_wrapper(self):

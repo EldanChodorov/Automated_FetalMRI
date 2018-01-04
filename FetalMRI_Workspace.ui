@@ -72,7 +72,7 @@ font-family: Courier;</string>
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="ImageLayout" stretch="0,0">
+      <layout class="QHBoxLayout" name="ImageLayout" stretch="0">
        <item>
         <widget class="QFrame" name="tool_kit">
          <property name="styleSheet">
@@ -88,7 +88,7 @@ border-radius: 15px; border-width: 3px; border-style: outset</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
           <item row="4" column="0">
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="inner_square_btn">
             <property name="toolTip">
              <string>Mark middle first and last frame with square CONTAINED in brain.</string>
             </property>
@@ -103,7 +103,7 @@ border-style: outset;</string>
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../.designer/backup/images/purple_square.png</normaloff>../../../../.designer/backup/images/purple_square.png</iconset>
+              <normaloff>images/purple_square.png</normaloff>images/purple_square.png</iconset>
             </property>
            </widget>
           </item>
@@ -120,12 +120,12 @@ border-style: outset;</string>
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../.designer/backup/images/paintbrush.png</normaloff>../../../../.designer/backup/images/paintbrush.png</iconset>
+              <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
             </property>
            </widget>
           </item>
           <item row="3" column="0">
-           <widget class="QPushButton" name="square_btn">
+           <widget class="QPushButton" name="outer_square_btn">
             <property name="toolTip">
              <string>Mark middle frame with square ENCLOSING brain.</string>
             </property>
@@ -140,7 +140,7 @@ border-style: outset;</string>
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../.designer/backup/images/red_square.png</normaloff>../../../../.designer/backup/images/red_square.png</iconset>
+              <normaloff>images/red_square.png</normaloff>images/red_square.png</iconset>
             </property>
            </widget>
           </item>
@@ -157,25 +157,12 @@ border-style: outset;</string>
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../.designer/backup/images/erase.jpg</normaloff>../../../../.designer/backup/images/erase.jpg</iconset>
+              <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </item>
