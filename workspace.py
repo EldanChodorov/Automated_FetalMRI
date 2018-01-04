@@ -122,7 +122,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             # run segmentation algorithm in separate thread so that gui does not freeze
             import time
             a = time.time()
-            self._segmentation_array = segment3d_itk.segmentation_3d(self.frames, seeds) * 255
+            self._segmentation_array = self.frames
+            self._segmentation_array[:10, :100, :10] = np.max(self.frames)
+            # self._segmentation_array = segment3d_itk.segmentation_3d(self.frames, seeds) * 255
             print(time.time() - a)
 
             self._remove_progress_bar()

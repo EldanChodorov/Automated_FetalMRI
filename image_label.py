@@ -51,15 +51,15 @@ class ImageLabel(QtWidgets.QLabel):
     # emits (frame idx, pos) of point chosen from images
     point_chosen = QtCore.pyqtSignal(tuple)
 
-    def __init__(self, frames, image_display_parent):
+    def __init__(self, frames, workspace_parent):
         '''
         :param frames: [numpy.ndarray] list of images
-        :param image_display: [ImageDisplay]
+        :param image_display: [WorkSpace]
         '''
-        QtWidgets.QLabel.__init__(self, image_display_parent)
+        QtWidgets.QLabel.__init__(self, workspace_parent)
 
         # ImageDisplay holding this ImageLabel instance
-        self._parent = image_display_parent
+        self._parent = workspace_parent
 
         # numpy array, list of images
         self.frames = frames
