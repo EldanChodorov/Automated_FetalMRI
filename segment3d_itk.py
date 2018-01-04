@@ -9,9 +9,15 @@ from skimage import measure
 # import sitk_show
 from sklearn.cluster import KMeans
 import chan_vese
+from multiprocessing import Pool, Lock
+# from segmentation_code import chan_vese_3d
 
 MORPH_NUM_ITERS = 3
 LABEL_SEGMENTED_COLOR = 1
+
+# global dictionary to hold segmentations performed by threads
+segmentations_container = dict()
+segmentations_lock = Lock()
 
 
 def sitk_show(img, title=None, margin=0.05, dpi=40):
@@ -29,7 +35,7 @@ def sitk_show(img, title=None, margin=0.05, dpi=40):
     if title:
         plt.title(title)
 
-    plt.show()
+    # plt.show()
 
 
 def remove_keymap_conflicts(new_keys_set):
@@ -125,15 +131,10 @@ def close_holes_opening_closing(data_array):
     # data_array = nd.morphology.binary_dilation(data_array, iterations=1).astype(np.int32)
 
     # fixed_image = sitk.GetImageFromArray(data_array)
-    print('lala')
     fixed_again_image = sitk.VotingBinaryHoleFilling(image1=data_array, radius=[3, 3, 3],
                                                      majorityThreshold=1,
                                                      backgroundValue=0,
                                                      foregroundValue=LABEL_SEGMENTED_COLOR)
-                                                     foregroundValue=LABEL_SEGMENTED_COLOR)
-    print('lala2')
-    return fixed_again_image
-
     return fixed_again_image
 
 
@@ -205,6 +206,30 @@ def cut_image_out(image, seed_list):
     return new_cut_imag
 
 
+def worker_chanvese(index, cur_img, cur_mask):
+    '''
+    Worker method for threading, performs chan vese.
+    Save fixed segmentation_mat in global variable.
+    :param index: [int] index of slice performing on
+    :param cur_img: image to perform algorithm on
+    :param cur_mask: mask for chan vese algorithm
+    '''
+    print('start %d' % index)
+    if np.any(cur_mask == 1):
+        result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1000, display=False, alpha=0.1)
+        segmentation_mat = result
+    else:
+        segmentation_mat = cur_mask
+
+    print('finish %d' % index)
+    return (segmentation_mat, index)
+    # # store in global container
+    # segmentations_lock.acquire()
+    # global segmentations_container
+    # segmentations_container[index] = segmentation_mat
+    # segmentations_lock.release()
+
+
 def segmentation_3d(array_data, seed_list):
     '''
     :param array_data: [numpy array] shape: (frame_num, x, y)
@@ -220,29 +245,28 @@ def segmentation_3d(array_data, seed_list):
             zero_mat[seed[1], seed[2], seed[0]] = 1
         image_data = measure.regionprops(zero_mat.astype(np.int32))
         BB_object = image_data[0].bbox
-        CH_object = morphology.convex_hull_image(image_data)
+        # CH_object = morphology.convex_hull_image(image_data)
         zero_mat[BB_object[0]:BB_object[3], BB_object[1]:BB_object[4], BB_object[2]:BB_object[5]] = 1
-        max_cut = np.argmax(np.sum(zero_mat,axis=1))
-        # sitk_image = sitk.GetImageFromArray(array_data) # (x, y,frame_num)
-        # intens_list = [array_data[seed[1], seed[2], seed[0]] for seed in seed_list]
 
-        # smoothing of the image while it keeps edges and borders
-        # sitk_image = sitk.CurvatureFlow(image1=sitk_image, timeStep=0.12, numberOfIterations=5)
-        # upper_int, lower_int = np.min(intens_list), np.max(intens_list)
-
-        # Attempt several segmentation techniques
+        images = []
+        masks = []
 
         for j in range(num_frame):
-            cur_img = array_data[:, :, j]
-            cur_mask = zero_mat[:, :, j]
-            if np.any(cur_mask == 1):
-                result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1000, display=True,
-                                                  alpha=0.1)
-                print(j)
-                seg_mat[:, :, j] = result
-            else:
-                seg_mat[:, :, j] = cur_mask
-        exit()
+            images.append(array_data[:, :, j])
+            masks.append(zero_mat[:, :, j])
+
+        pool = Pool()
+        results = pool.starmap(worker_chanvese, zip(range(num_frame), images, masks))
+        pool.close()
+        pool.join()
+        print('pool done.')
+
+        assert len(results) == num_frame
+
+        # extract segmentation slices and place into one matrix
+        for mat, idx in results:
+            seg_mat[:, :, idx] = mat
+
         sitk_image = sitk.GetImageFromArray(seg_mat)  # (x, y,frame_num)
 
         segmented_image_to_use = get_intrinsic_component(sitk_image, seed_list)
@@ -255,39 +279,37 @@ def segmentation_3d(array_data, seed_list):
         closed_holes_image = sitk.GetArrayFromImage(segmented_image_to_use)
         display_image = closed_holes_image.transpose(get_display_axis(np.argmin(closed_holes_image.shape)))
         multi_slice_viewer(display_image)
-        plt.show()
+        # plt.show()
         img = nib.Nifti1Image(closed_holes_image, np.eye(4))
         nib.save(img, 'result_seg\\new_result_chan_vase9.nii.gz')
 
-        cut_out_image = array_data * closed_holes_image
+        # cut_out_image = array_data * closed_holes_image
         # bins = int(np.max(cut_out_image)) - int(np.min(cut_out_image)) + 1
 
-        d, h, w = cut_out_image.shape
-        regulize_data = (cut_out_image.flatten()).reshape((d * h * w, 1))
-        kmean = KMeans(n_clusters=3).fit(regulize_data)
-        lable = kmean.predict(regulize_data).reshape((d, h, w))
-        print(np.min(lable))
-        print(np.max(lable))
-        hist = np.bincount(cut_out_image.flatten().astype(np.int32))
-        plt.scatter(range(len(hist) - 1), hist[1:])
-        lable_ramove = 1 if hist[1] < hist[2] else 2
-        lable[np.where(lable == lable_ramove)] = 0
-        lable[np.where(lable > 0)] = 1
-        convex_image = morphology.convex_hull_image(lable).astype(np.int32)
-        residual_image = convex_image - lable
-        display_image = lable.transpose(get_display_axis(np.argmin(lable.shape)))
-        multi_slice_viewer(display_image)
+        # d, h, w = cut_out_image.shape
+        # regulize_data = (cut_out_image.flatten()).reshape((d * h * w, 1))
+        # kmean = KMeans(n_clusters=3).fit(regulize_data)
+        # lable = kmean.predict(regulize_data).reshape((d, h, w))
+        # hist = np.bincount(cut_out_image.flatten().astype(np.int32))
+        # plt.scatter(range(len(hist) - 1), hist[1:])
+        # lable_ramove = 1 if hist[1] < hist[2] else 2
+        # lable[np.where(lable == lable_ramove)] = 0
+        # lable[np.where(lable > 0)] = 1
+        # convex_image = morphology.convex_hull_image(lable).astype(np.int32)
+        # residual_image = convex_image - lable
+        # display_image = lable.transpose(get_display_axis(np.argmin(lable.shape)))
+        # multi_slice_viewer(display_image)
 
+        #
+        # img = nib.Nifti1Image(residual_image, np.eye(4))
+        # nib.save(img, 'result_seg\\residual_convex_im9.nii.gz')
 
-        img = nib.Nifti1Image(residual_image, np.eye(4))
-        nib.save(img, 'result_seg\\residual_convex_im9.nii.gz')
-
-        img = nib.Nifti1Image(lable, np.eye(4))
-        nib.save(img, 'result_seg\\new_result9.nii.gz')
+        # img = nib.Nifti1Image(lable, np.eye(4))
+        # nib.save(img, 'result_seg\\new_result9.nii.gz')
         # final_array = sitk.GetArrayFromImage(lable * 100)
-        final_array = lable.transpose(2, 0, 1)
-        plt.show()
-        return final_array
+        # final_array = lable.transpose(2, 0, 1)
+        # plt.show()
+        return closed_holes_image.transpose(2, 0, 1)
 
     except Exception as ex:
         print('segmentation', type(ex), ex)
@@ -327,17 +349,11 @@ def segmentation_3d_1(array_data, seed_list):
         # bins = int(np.max(cut_out_image)) - int(np.min(cut_out_image)) + 1
         hist = np.bincount(cut_out_image.flatten().astype(np.int32))
         plt.scatter(range(len(hist)), hist)
-        plt.show()
+        # plt.show()
         d, h, w = cut_out_image.shape
         regulize_data = (cut_out_image.flatten()).reshape((d * h * w, 1))
         kmean = KMeans(n_clusters=3).fit(regulize_data)
         lable = kmean.predict(regulize_data).reshape((d, h, w))
-        print(np.min(lable))
-        print(np.max(lable))
-
-        display_image = lable.transpose(get_display_axis(np.argmin(lable.shape)))
-        multi_slice_viewer(display_image)
-        plt.show()
 
         # final_array = sitk.GetArrayFromImage(lable * 100)
         final_array = lable.transpose(2, 0, 1)
@@ -349,22 +365,68 @@ def segmentation_3d_1(array_data, seed_list):
         return None
 
 
+def segmentation_3d_3d(array_data, seed_list):
+    '''
+    :param array_data: [numpy array] shape: (frame_num, x, y)
+    :param seed_list: list of tuples (frame_num, x, y)
+    :return: np array of 3d segmentation (frame_num,X,Y)
+    '''
+    try:
+        num_frame, x, y = array_data.shape
+        array_data = array_data.transpose(1, 2, 0)
+        zero_mat = np.zeros(array_data.shape)
+        seg_mat = np.zeros(array_data.shape)
+        for seed in seed_list:
+            zero_mat[seed[1], seed[2], seed[0]] = 1
+        image_data = measure.regionprops(zero_mat.astype(np.int32))
+        BB_object = image_data[0].bbox
+        # CH_object = morphology.convex_hull_image(image_data)
+        zero_mat[BB_object[0]:BB_object[3], BB_object[1]:BB_object[4], BB_object[2]:BB_object[5]] = 1
+
+        result_3d = chan_vese_3d.chanvese3d(I=array_data, init_mask=zero_mat, max_its=1000, display=False,
+                                                  alpha=0.1)
+
+        sitk_image_3d = sitk.GetImageFromArray(result_3d)  # (x, y,frame_num)
+
+        segmented_image_to_use_3d = get_intrinsic_component(sitk_image_3d, seed_list)
+        display_image = segmented_image_to_use_3d.transpose(get_display_axis(np.argmin(segmented_image_to_use_3d.shape)))
+        multi_slice_viewer(display_image)
+        # plt.show()
+        img = nib.Nifti1Image(segmented_image_to_use_3d, np.eye(4))
+        nib.save(img, 'result_seg\\new_result_chan_vase_3d.nii.gz')
+        for j in range(num_frame):
+            cur_img = array_data[:, :, j]
+            cur_mask = zero_mat[:, :, j]
+            if np.any(cur_mask == 1):
+                result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1000, display=True,
+                                                  alpha=0.1)
+                seg_mat[:, :, j] = result
+            else:
+                seg_mat[:, :, j] = cur_mask
+        sitk_image = sitk.GetImageFromArray(seg_mat)  # (x, y,frame_num)
+
+        segmented_image_to_use = get_intrinsic_component(sitk_image, seed_list)
+
+        # vector_segmented_image = segmentation_sitk_vector_confidence(sitk_image, seed_list)
 
 
-    # if __name__ == '__main__':
-    #     nifti_path = 'C:\\Users\\Eldan\\Dropbox\\University\\Final  Project - joint dir\\engineer\\Final ' \
-    #                  'Project\\FetalBrainSegTool\\Nifti Files\\St08_Se09_Sag  T2 FRFSE ARC\\9_fetal.nii.gz'
-    #     nifti_path = 'C:\\Users\\Eldan\\Dropbox\\University\\Final  Project - joint dir\\engineer\\Final ' \
-    #            'Project\\FetalBrainSegToolNifti Files\\5_fetal.nii.gz'
-    #     nifti_path='C:\\Users\\Eldan\\Documents\\Final Project\\FetalBrainSegToolNifti Files\\5_fetal.nii.gz'
-    #
-    #
-    #     # array_data_sitk = sitk.GetImageFromArray(array_data)
-    #     list_seeds = [(5,230,230),(8,230,230),(10,230,230),(7,230,230)]
-    #
-    #     segmentation_3d(nifti,list_seeds)
-    nifti_path = 'C:\\Users\\Keren Meron\\Documents\\School Work\\Fetal MRI\\FetalBrainSegTool\\Nifti ' \
-                 'Files\\St08_Se04_Cor  T2 FRFSE ARC\\4_fetal.nii.gz'
-    nifti = nib.load(nifti_path)
-    array_data = nifti.get_data()
-    segmentation_graph_cut(array_data, None)
+        # segmented_array = sitk.GetArrayFromImage(segmented_image_to_use)
+        # closed_holes_image = close_holes_opening_closing(segmented_image_to_use)
+        closed_holes_image = sitk.GetArrayFromImage(segmented_image_to_use)
+        display_image = closed_holes_image.transpose(get_display_axis(np.argmin(closed_holes_image.shape)))
+        multi_slice_viewer(display_image)
+        # plt.show()
+        img = nib.Nifti1Image(closed_holes_image, np.eye(4))
+        nib.save(img, 'result_seg\\new_result_chan_vase_2d.nii.gz')
+
+        return closed_holes_image.transpose(2, 0, 1)
+
+    except Exception as ex:
+        print('segmentation', type(ex), ex)
+        return None
+
+
+
+if __name__ == '__main__':
+    pass
+#_chan_vase_2d
