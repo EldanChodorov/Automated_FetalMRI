@@ -1,3 +1,5 @@
+import time
+from skimage import feature
 import SimpleITK as sitk
 import nibabel as nib
 from matplotlib import pyplot as plt
@@ -151,9 +153,9 @@ def segmentation_sitk_vector_confidence(sitk_image, seeds):
 def get_intrinsic_component(image, seed_list):
     data_array = sitk.GetArrayFromImage(image)
 
-    image1 = nd.morphology.binary_erosion(data_array, iterations=1).astype(np.int32)
+    image1 = nd.morphology.binary_erosion(data_array, iterations=2).astype(np.int32)
     image1 = find_conected_comp(image1, seed_list).astype(np.int)
-    image1 = nd.morphology.binary_dilation(image1, iterations=1).astype(np.int32)
+    image1 = nd.morphology.binary_dilation(image1, iterations=2).astype(np.int32)
 
     # display_image = image1.transpose(get_display_axis(np.argmin(image1.shape)))
     # multi_slice_viewer(display_image)
@@ -180,30 +182,33 @@ def find_conected_comp(seg_image, seed_list):
     return new_seg_imag
 
 
-def cut_image_out(image, seed_list):
-    seed_vector = np.array([[seed[1], seed[2]] for seed in seed_list]).reshape((len(seed_list), 2))
+def cut_image_out(image, BB_object):
+    '''
+
+    :param image:
+    :param bounding_box_list: array of four corners of the bbx
+    :return:
+    '''
+    # seed_vector = np.array([[seed[1], seed[2]] for seed in dict_bounding_box['outside']])
+
     x_size = image.shape[0]
     y_size = image.shape[1]
-    r_bot = np.max(seed_vector[:, 0])
-    r_top = np.min(seed_vector[:, 0])
-    c_right = np.max(seed_vector[:, 1])
-    c_left = np.min(seed_vector[:, 1])
 
-    r_points_dis = r_bot - r_top
-    c_points_dis = c_right - c_left
-    r_bot_cut = r_bot + int((x_size / 3 - r_points_dis) / 2) if r_bot + (x_size / 2 - r_points_dis) / 2 < \
+    r_points_dis = BB_object[3] - BB_object[0]
+    c_points_dis = BB_object[4] -  BB_object[1]
+    r_bot_cut = BB_object[3] + int((x_size / 3 - r_points_dis) / 2) if BB_object[3] + (x_size / 2 - r_points_dis) / 2 < \
                                                                 x_size else x_size
-    r_top_cut = r_top - int((x_size / 3 - r_points_dis) / 2) if r_top - (x_size / 2 - r_points_dis) / 2 > 0 \
+    r_top_cut = BB_object[0] - int((x_size / 3 - r_points_dis) / 2) if BB_object[0] - (x_size / 2 - r_points_dis) / 2 > 0 \
         else 0
-    c_right_cut = c_right + int((y_size / 3 - c_points_dis) / 2) if c_right + (y_size / 2 - c_points_dis) / 2 \
+    c_right_cut = BB_object[4] + int((y_size / 3 - c_points_dis) / 2) if BB_object[4] + (y_size / 2 - c_points_dis) / 2 \
                                                                     < \
                                                                     y_size else y_size
-    c_left_cut = c_left - int((y_size / 3 - c_points_dis) / 2) if c_left - (y_size / 2 - c_points_dis) / 2 > 0 \
+    c_left_cut = BB_object[1] - int((y_size / 3 - c_points_dis) / 2) if BB_object[1] - (y_size / 2 - c_points_dis) / 2 > 0 \
         else 0
     new_cut_imag = np.zeros(image.shape)
     new_cut_imag[r_top_cut: r_bot_cut, c_left_cut:c_right_cut, :] = image[r_top_cut: r_bot_cut,
                                                                     c_left_cut:c_right_cut, :]
-    return new_cut_imag
+    return new_cut_imag,[r_bot_cut,r_top_cut,c_right_cut,c_left_cut]
 
 
 def worker_chanvese(index, cur_img, cur_mask):
@@ -245,19 +250,29 @@ def segmentation_3d(array_data, seed_list):
             zero_mat[seed[1], seed[2], seed[0]] = 1
         image_data = measure.regionprops(zero_mat.astype(np.int32))
         BB_object = image_data[0].bbox
+
         # CH_object = morphology.convex_hull_image(image_data)
         zero_mat[BB_object[0]:BB_object[3], BB_object[1]:BB_object[4], BB_object[2]:BB_object[5]] = 1
+        array_data, image_cut_out = cut_image_out(array_data,BB_object)
+        canny_image = []
+
+        # display_image = canny_image.transpose(get_display_axis(np.argmin(canny_image.shape)))
+        # multi_slice_viewer(display_image)
+        # plt.show()
 
         images = []
         masks = []
-
+        a = time.time()
         for j in range(num_frame):
             images.append(array_data[:, :, j])
             masks.append(zero_mat[:, :, j])
 
+
         pool = Pool()
         results = pool.starmap(worker_chanvese, zip(range(num_frame), images, masks))
         pool.close()
+        b = time.time()
+        print(b - a)
         pool.join()
         print('pool done.')
 
@@ -267,21 +282,31 @@ def segmentation_3d(array_data, seed_list):
         for mat, idx in results:
             seg_mat[:, :, idx] = mat
 
+
+
         sitk_image = sitk.GetImageFromArray(seg_mat)  # (x, y,frame_num)
 
         segmented_image_to_use = get_intrinsic_component(sitk_image, seed_list)
-
-        # vector_segmented_image = segmentation_sitk_vector_confidence(sitk_image, seed_list)
-
-
-        # segmented_array = sitk.GetArrayFromImage(segmented_image_to_use)
-        # closed_holes_image = close_holes_opening_closing(segmented_image_to_use)
         closed_holes_image = sitk.GetArrayFromImage(segmented_image_to_use)
-        display_image = closed_holes_image.transpose(get_display_axis(np.argmin(closed_holes_image.shape)))
+        array_data = array_data * closed_holes_image
+        for j in range(num_frame):
+            canny_image.append(feature.canny(array_data[:, :, j], sigma=5).astype(np.int32) * 255)
+        canny_image = np.array(canny_image)
+        display_image = canny_image.transpose(get_display_axis(np.argmin(canny_image.shape)))
         multi_slice_viewer(display_image)
-        # plt.show()
-        img = nib.Nifti1Image(closed_holes_image, np.eye(4))
-        nib.save(img, 'result_seg\\new_result_chan_vase9.nii.gz')
+        plt.show()
+
+        canny_blobs,num_connected = measure.label(canny_image,return_num=True)
+        print(num_connected)
+        cannny_regionprops = measure.regionprops(canny_blobs)
+        area_size = np.array([region.area for region in cannny_regionprops])
+        max_region = np.argmax(area_size)
+        print(max_region)
+        clean_canny = np.zeros(canny_image.shape)
+        clean_canny[np.where(canny_image == max_region + 1)] = 1
+        display_image = clean_canny.transpose(get_display_axis(np.argmin(clean_canny.shape)))
+        multi_slice_viewer(display_image)
+        plt.show()
 
         # cut_out_image = array_data * closed_holes_image
         # bins = int(np.max(cut_out_image)) - int(np.min(cut_out_image)) + 1
@@ -309,7 +334,9 @@ def segmentation_3d(array_data, seed_list):
         # final_array = sitk.GetArrayFromImage(lable * 100)
         # final_array = lable.transpose(2, 0, 1)
         # plt.show()
-        return closed_holes_image.transpose(2, 0, 1)
+        # clean_canny
+        # closed_holes_image
+        return clean_canny.transpose(2, 0, 1)
 
     except Exception as ex:
         print('segmentation', type(ex), ex)
@@ -426,6 +453,15 @@ def segmentation_3d_3d(array_data, seed_list):
         return None
 
 
+def confidance_evaluation(alg_seg, gt_seg):
+    union_seg = alg_seg + gt_seg
+    union_seg[np.where(union_seg  > 0 )] = 1
+    union_num = np.count_nonzero(union_seg)
+
+    intersection_seg = alg_seg * gt_seg
+    intersection_num = np.count_nonzero(intersection_seg)
+
+    return intersection_num / union_num
 
 if __name__ == '__main__':
     pass
