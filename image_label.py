@@ -82,6 +82,9 @@ class ImageLabel(QtWidgets.QLabel):
         # store image size, changed upon zoom
         self._image_size = self._initial_image_size()
 
+        # alpha channel of painter
+        self._alpha_channel = 255
+
         # set view size
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
@@ -156,6 +159,21 @@ class ImageLabel(QtWidgets.QLabel):
             self.mouseMoveEvent(cursor_event)
             # update() is called in mouseMoveEvent
 
+    def image_to_QPoint(self, image):
+        '''
+        Translate binary image to list of white points.
+        :param image: [numpy.ndarray] of zeros and ones.
+        :return: [list of QPoints] resembling turned on pixels
+        '''
+        ones_indices = np.argwhere(image == 1)  # Nx2
+        transformed = np.zeros(ones_indices.shape)
+        transformed[:, 0] = (ones_indices[:, 0] / image.shape[0]) * self.height()
+        transformed[:, 1] = (ones_indices[:, 1] / image.shape[1]) * self.width()
+        points = []
+        for i in range(transformed.shape[0]):
+            points.append(QtCore.QPoint(transformed[i, 0], transformed[i, 1]))
+        return points
+
     def label_to_image_pos(self, label_pos):
         # image is of size 512x512 pixels
         label_x, label_y = float(label_pos.x()), float(label_pos.y())
@@ -174,21 +192,21 @@ class ImageLabel(QtWidgets.QLabel):
             pen.setWidth(self.paintbrush_size)
 
             # inner squares
-            pen.setColor(QtGui.QColor('purple'))
+            pen.setColor(QtGui.QColor(138, 43, 226, self._alpha_channel))
             painter.setPen(pen)
             for square in self.shapes.inner_squares[self.frame_displayed_index]:
                 for point in square.points:
                     painter.drawPoint(point)
 
             # outer squares
-            pen.setColor(QtGui.QColor('red'))
+            pen.setColor(QtGui.QColor(255, 0, 0, self._alpha_channel))
             painter.setPen(pen)
             for square in self.shapes.outer_squares[self.frame_displayed_index]:
                 for point in square.points:
                     painter.drawPoint(point)
 
             # points
-            pen.setColor(QtGui.QColor('blue'))
+            pen.setColor(QtGui.QColor(0, 0, 255, self._alpha_channel))
             painter.setPen(pen)
             for point in self.shapes.chosen_points[self.frame_displayed_index]:
                 painter.drawPoint(point)

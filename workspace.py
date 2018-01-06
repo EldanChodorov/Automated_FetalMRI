@@ -251,15 +251,21 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                                      'save segmentation.')
 
     def save_segmentation(self):
-        file_dialog = QtWidgets.QFileDialog()
-        options = QtWidgets.QFileDialog.Options()
-        # options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save segmentation", "",
-                                    "Nifti Files (*.nii, *.nii.gz)", options=options)
-        if fileName:
-            nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
-            nib.save(nifti, fileName)
-            print('Segmentation saved to %s' % fileName)
+        if np.count_nonzero(self._segmentation_array) == 0:
+            print('No segmentation!')
+            return
+        try:
+            file_dialog = QtWidgets.QFileDialog()
+            options = QtWidgets.QFileDialog.Options()
+            options |= QtWidgets.QFileDialog.DontUseNativeDialog
+            fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save segmentation", "",
+                                        "Nifti Files (*.nii, *.nii.gz)", options=options)
+            if fileName:
+                nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
+                nib.save(nifti, fileName)
+                print('Segmentation saved to %s' % fileName)
+        except Exception as ex:
+            print(ex)
 
     def _histogram_equalization(self, frames):
         '''
