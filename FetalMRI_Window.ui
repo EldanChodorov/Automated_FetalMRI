@@ -41,7 +41,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap>images/brain_large.jpg</pixmap>
+                  <pixmap>../../../../.designer/backup/images/brain_large.jpg</pixmap>
                  </property>
                 </widget>
                </item>
@@ -64,7 +64,7 @@
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap>images/casmip.png</pixmap>
+                  <pixmap>../../../../.designer/backup/images/casmip.png</pixmap>
                  </property>
                 </widget>
                </item>
@@ -188,6 +188,9 @@ border-color: rgb(209, 238, 242);</string>
     </property>
     <addaction name="actionSave_Segmentation"/>
     <addaction name="actionOpen_Segmentation"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_Points"/>
+    <addaction name="actionLoad_Points"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -198,6 +201,7 @@ border-color: rgb(209, 238, 242);</string>
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionProcess_Ready_Files"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -232,18 +236,57 @@ border-color: rgb(209, 238, 242);</string>
    </property>
   </action>
   <action name="actionSave_Segmentation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Save Segmentation</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionOpen_Segmentation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Open Segmentation</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+W</string>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
     <string>About SegTool</string>
+   </property>
+  </action>
+  <action name="actionSave_Points">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save Points</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionLoad_Points">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Load Points</string>
+   </property>
+  </action>
+  <action name="actionProcess_Ready_Files">
+   <property name="text">
+    <string>Process Ready Files</string>
+   </property>
+   <property name="whatsThis">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load and perform segmentation on directory containing Nifti files that have been preprocessed (marked with borders).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
  </widget>

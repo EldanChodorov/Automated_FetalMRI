@@ -33,17 +33,30 @@ class Ui_workspace(object):
         self.tool_kit.setObjectName("tool_kit")
         self.gridLayout = QtWidgets.QGridLayout(self.tool_kit)
         self.gridLayout.setObjectName("gridLayout")
-        self.paintbrush_btn = QtWidgets.QPushButton(self.tool_kit)
-        self.paintbrush_btn.setStyleSheet("background-color:\'white\'; \n"
+        self.outer_square_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.outer_square_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: black; \n"
-"border-radius: 8px; border-color: black; border-width: 3px; \n"
+"border-radius: 12px; border-color: red; border-width: 3px;\n"
 "border-style: outset;")
-        self.paintbrush_btn.setText("")
+        self.outer_square_btn.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("images/paintbrush.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.paintbrush_btn.setIcon(icon)
-        self.paintbrush_btn.setObjectName("paintbrush_btn")
-        self.gridLayout.addWidget(self.paintbrush_btn, 0, 0, 1, 1)
+        icon.addPixmap(QtGui.QPixmap("images/red_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.outer_square_btn.setIcon(icon)
+        self.outer_square_btn.setObjectName("outer_square_btn")
+        self.gridLayout.addWidget(self.outer_square_btn, 5, 0, 1, 1)
+        self.inner_square_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.inner_square_btn.setStyleSheet("background-color:\'white\'; \n"
+"color: black; \n"
+"border-radius: 12px; border-color: purple; border-width:3px;\n"
+"border-style: outset;")
+        self.inner_square_btn.setText("")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("images/purple_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.inner_square_btn.setIcon(icon1)
+        self.inner_square_btn.setObjectName("inner_square_btn")
+        self.gridLayout.addWidget(self.inner_square_btn, 6, 0, 1, 1)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
         self.eraser_btn = QtWidgets.QPushButton(self.tool_kit)
         self.eraser_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: black; \n"
@@ -51,33 +64,74 @@ class Ui_workspace(object):
 "border-style: outset;\n"
 "")
         self.eraser_btn.setText("")
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("images/erase.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.eraser_btn.setIcon(icon1)
-        self.eraser_btn.setObjectName("eraser_btn")
-        self.gridLayout.addWidget(self.eraser_btn, 2, 0, 1, 1)
-        self.outer_square_btn = QtWidgets.QPushButton(self.tool_kit)
-        self.outer_square_btn.setStyleSheet("background-color:\'white\'; \n"
-"color: black; \n"
-"border-radius: 12px; border-color: red; border-width: 3px;\n"
-"border-style: outset;")
-        self.outer_square_btn.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("images/red_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.outer_square_btn.setIcon(icon2)
-        self.outer_square_btn.setObjectName("outer_square_btn")
-        self.gridLayout.addWidget(self.outer_square_btn, 3, 0, 1, 1)
-        self.inner_square_btn = QtWidgets.QPushButton(self.tool_kit)
-        self.inner_square_btn.setStyleSheet("background-color:\'white\'; \n"
+        icon2.addPixmap(QtGui.QPixmap("images/erase.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.eraser_btn.setIcon(icon2)
+        self.eraser_btn.setObjectName("eraser_btn")
+        self.horizontalLayout.addWidget(self.eraser_btn)
+        self.eraser_size1_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.eraser_size1_btn.setStyleSheet("background-color: rgb(231, 248, 243);\n"
+"color: rgb(0, 0, 0);\n"
+"border-radius: 4px; border-color: black; border-width: 2px; \n"
+"border-style: outset;\n"
+"font: 8pt \"MS Shell Dlg 2\";")
+        self.eraser_size1_btn.setObjectName("eraser_size1_btn")
+        self.horizontalLayout.addWidget(self.eraser_size1_btn)
+        self.eraser_size2_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.eraser_size2_btn.setStyleSheet("background-color: rgb(231, 248, 243);\n"
+"color: rgb(0, 0, 0);\n"
+"border-radius: 4px; border-color: black; border-width: 2px; \n"
+"border-style: outset;\n"
+"font: 10pt \"MS Shell Dlg 2\";")
+        self.eraser_size2_btn.setObjectName("eraser_size2_btn")
+        self.horizontalLayout.addWidget(self.eraser_size2_btn)
+        self.eraser_size3_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.eraser_size3_btn.setStyleSheet("background-color: rgb(231, 248, 243);\n"
+"color: rgb(0, 0, 0);\n"
+"border-radius: 4px; border-color: black; border-width: 2px; \n"
+"border-style: outset;\n"
+"font: 12pt \"MS Shell Dlg 2\";")
+        self.eraser_size3_btn.setObjectName("eraser_size3_btn")
+        self.horizontalLayout.addWidget(self.eraser_size3_btn)
+        self.gridLayout.addLayout(self.horizontalLayout, 4, 0, 1, 1)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.paintbrush_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.paintbrush_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: black; \n"
-"border-radius: 12px; border-color: purple; border-width:3px;\n"
+"border-radius: 8px; border-color: black; border-width: 3px; \n"
 "border-style: outset;")
-        self.inner_square_btn.setText("")
+        self.paintbrush_btn.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap("images/purple_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.inner_square_btn.setIcon(icon3)
-        self.inner_square_btn.setObjectName("inner_square_btn")
-        self.gridLayout.addWidget(self.inner_square_btn, 4, 0, 1, 1)
+        icon3.addPixmap(QtGui.QPixmap("images/paintbrush.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.paintbrush_btn.setIcon(icon3)
+        self.paintbrush_btn.setObjectName("paintbrush_btn")
+        self.horizontalLayout_3.addWidget(self.paintbrush_btn)
+        self.paintbrush_size1_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.paintbrush_size1_btn.setStyleSheet("background-color: rgb(231, 248, 243);\n"
+"color: rgb(0, 0, 0);\n"
+"border-radius: 4px; border-color: black; border-width: 2px; \n"
+"border-style: outset;\n"
+"font: 8pt \"MS Shell Dlg 2\";")
+        self.paintbrush_size1_btn.setObjectName("paintbrush_size1_btn")
+        self.horizontalLayout_3.addWidget(self.paintbrush_size1_btn)
+        self.paintbrush_size2_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.paintbrush_size2_btn.setStyleSheet("background-color: rgb(231, 248, 243);\n"
+"color: rgb(0, 0, 0);\n"
+"border-radius: 4px; border-color: black; border-width: 2px; \n"
+"border-style: outset;\n"
+"font: 10pt \"MS Shell Dlg 2\";")
+        self.paintbrush_size2_btn.setObjectName("paintbrush_size2_btn")
+        self.horizontalLayout_3.addWidget(self.paintbrush_size2_btn)
+        self.paintbrush_size3_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.paintbrush_size3_btn.setStyleSheet("background-color: rgb(231, 248, 243);\n"
+"color: rgb(0, 0, 0);\n"
+"border-radius: 4px; border-color: black; border-width: 2px; \n"
+"border-style: outset;\n"
+"font: 12pt \"MS Shell Dlg 2\";")
+        self.paintbrush_size3_btn.setObjectName("paintbrush_size3_btn")
+        self.horizontalLayout_3.addWidget(self.paintbrush_size3_btn)
+        self.gridLayout.addLayout(self.horizontalLayout_3, 1, 0, 1, 1)
         self.toolkitLayout.addWidget(self.tool_kit)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.toolkitLayout.addItem(spacerItem)
@@ -100,12 +154,21 @@ class Ui_workspace(object):
         self.ImageLayout.addLayout(self.toolkitLayout)
         self.performSegBtnsLayout = QtWidgets.QVBoxLayout()
         self.performSegBtnsLayout.setObjectName("performSegBtnsLayout")
+        self.instructions = QtWidgets.QLabel(workspace)
+        self.instructions.setStyleSheet("background-color: rgb(56, 112, 83);\n"
+" color: white; font-weight: regular; font-size: 12pt;\n"
+"border-radius: 15px; border-color: black; border-width: 3px; \n"
+"border-style: outset;\n"
+"")
+        self.instructions.setObjectName("instructions")
+        self.performSegBtnsLayout.addWidget(self.instructions)
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.performSegBtnsLayout.addItem(spacerItem1)
         self.perform_seg_btn = QtWidgets.QPushButton(workspace)
         self.perform_seg_btn.setStyleSheet("background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;\n"
 "border-radius: 15px; border-color: black; border-width: 3px; \n"
-"border-style: outset;")
+"border-style: outset;\n"
+"")
         self.perform_seg_btn.setObjectName("perform_seg_btn")
         self.performSegBtnsLayout.addWidget(self.perform_seg_btn)
         self.save_seg_btn = QtWidgets.QPushButton(workspace)
@@ -130,14 +193,6 @@ class Ui_workspace(object):
 "border-style: outset;")
         self.contrast_view_btn.setObjectName("contrast_view_btn")
         self.performSegBtnsLayout.addWidget(self.contrast_view_btn)
-        self.instructions = QtWidgets.QLabel(workspace)
-        self.instructions.setStyleSheet("background-color: rgb(56, 112, 83);\n"
-" color: white; font-weight: regular; font-size: 12pt;\n"
-"border-radius: 15px; border-color: black; border-width: 3px; \n"
-"border-style: outset;\n"
-"")
-        self.instructions.setObjectName("instructions")
-        self.performSegBtnsLayout.addWidget(self.instructions)
         spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.performSegBtnsLayout.addItem(spacerItem3)
         self.ImageLayout.addLayout(self.performSegBtnsLayout)
@@ -151,15 +206,23 @@ class Ui_workspace(object):
     def retranslateUi(self, workspace):
         _translate = QtCore.QCoreApplication.translate
         workspace.setWindowTitle(_translate("workspace", "Form"))
-        self.paintbrush_btn.setToolTip(_translate("workspace", "<html><head/><body><p>Use paintbrush to mark points on image.</p></body></html>"))
-        self.eraser_btn.setToolTip(_translate("workspace", "<html><head/><body><p>Use eraser to remove points or parts of segmentation.</p></body></html>"))
         self.outer_square_btn.setToolTip(_translate("workspace", "Mark middle frame with square ENCLOSING brain."))
         self.inner_square_btn.setToolTip(_translate("workspace", "Mark middle first and last frame with square CONTAINED in brain."))
+        self.eraser_btn.setToolTip(_translate("workspace", "<html><head/><body><p>Use eraser to remove points or parts of segmentation.</p></body></html>"))
+        self.eraser_size1_btn.setText(_translate("workspace", "1"))
+        self.eraser_size2_btn.setText(_translate("workspace", "2"))
+        self.eraser_size3_btn.setText(_translate("workspace", "3"))
+        self.paintbrush_btn.setToolTip(_translate("workspace", "<html><head/><body><p>Use paintbrush to mark points on image.</p></body></html>"))
+        self.paintbrush_size1_btn.setText(_translate("workspace", "1"))
+        self.paintbrush_size2_btn.setText(_translate("workspace", "2"))
+        self.paintbrush_size3_btn.setText(_translate("workspace", "3"))
         self.frame_number.setText(_translate("workspace", "<html><head/><body><p align=\"right\">20/20</p></body></html>"))
+        self.instructions.setToolTip(_translate("workspace", "<html><head/><body><pre style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;\"><span style=\" font-family:\'Courier New\'; font-size:9pt; font-weight:600; color:#008080;\">In the first and last frame: draw a purple square inside the brain area.<br/>In the middle frame: draw a red square around [enclosing] the brain area.<br/>Finally: press \'Perform Segmentation\'.</span></pre></body></html>"))
+        self.instructions.setStatusTip(_translate("workspace", "<html><head/><body><pre style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;\"><span style=\" font-family:\'Courier New\'; font-size:9pt; font-weight:600; color:#008080;\">In the first and last frame: draw a purple square inside the brain area.<br/>In the middle frame: draw a red square around [enclosing] the brain area.<br/>Finally: press \'Perform Segmentation\'.</span></pre></body></html>"))
+        self.instructions.setWhatsThis(_translate("workspace", "<html><head/><body><p>In the first and last frame: draw a purple square inside the brain area.</p><p>In the middle frame: draw a red square around [enclosing] the brain area.</p><p>Finally: press \'Perform Segmentation\'.</p></body></html>"))
+        self.instructions.setText(_translate("workspace", "<html><head/><body><p align=\"center\">Stage 1: Boundary Marking</p><p align=\"center\">(hover for instructions)</p></body></html>"))
         self.perform_seg_btn.setText(_translate("workspace", "Perform Segmentation"))
         self.save_seg_btn.setText(_translate("workspace", "Save Segmentation"))
         self.standard_view_btn.setText(_translate("workspace", "Standard View"))
         self.contrast_view_btn.setText(_translate("workspace", "Contrast View"))
-        self.instructions.setToolTip(_translate("workspace", "<html><head/><body><pre style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;\"><span style=\" font-family:\'Courier New\'; font-size:9pt; font-weight:600; color:#008080;\">In the first and last frame: draw a purple square inside the brain area.<br/>In the middle frame: draw a red square around [enclosing] the brain area.<br/>Finally: press \'Perform Segmentation\'.</span></pre></body></html>"))
-        self.instructions.setText(_translate("workspace", "<html><head/><body><p align=\"center\">Instructions</p></body></html>"))
 

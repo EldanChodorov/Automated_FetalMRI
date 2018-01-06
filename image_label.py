@@ -8,7 +8,8 @@ import cv2
 import segment3d_itk
 import nibabel as nib
 from Shapes import Shapes
-from consts import OUTER_SQUARE, INNER_SQUARE, USE_ERASER, USE_PAINTBRUSH, MIN_ZOOM
+from consts import OUTER_SQUARE, INNER_SQUARE, USE_ERASER, USE_PAINTBRUSH, MIN_ZOOM, \
+    BRUSH_WIDTH_MEDIUM, BRUSH_WIDTH_SMALL, BRUSH_WIDTH_LARGE
 
 
 def overlap_images(background_img_list, mask_img_list):
@@ -55,11 +56,17 @@ class ImageLabel(QtWidgets.QLabel):
         self._parent = workspace_parent
 
         # Shapes holds all geometric points marked on screen by user
-        self._shapes = Shapes()
+        self.shapes = Shapes()
+
+        # size of brushes
+        self.paintbrush_size = BRUSH_WIDTH_MEDIUM
+        self.eraser_size = BRUSH_WIDTH_MEDIUM
 
         # numpy array, list of images
         self.standard_frames = frames
         self.contrasted_frames = contrasted_frames
+
+        self._original_cursor = self.cursor()
 
         # contains the set of images which will be displayed
         self.frames = self.standard_frames
@@ -102,7 +109,23 @@ class ImageLabel(QtWidgets.QLabel):
 
     @QtCore.pyqtSlot(int)
     def _update_tool_in_use(self, tool_chosen):
-        self._tool_chosen = tool_chosen
+        try:
+            self._tool_chosen = tool_chosen
+            if self._tool_chosen == USE_ERASER:
+                self._update_eraser_icon()
+            else:
+                self.setCursor(self._original_cursor)
+        except Exception as ex:
+            print(ex)
+
+    def _update_eraser_icon(self):
+        # display eraser icon in place of mouse cursor
+        cursor = QtGui.QPixmap('images/erase_icon.png')
+        if self.eraser_size == BRUSH_WIDTH_SMALL:
+            cursor = cursor.scaled(5, 5, QtCore.Qt.KeepAspectRatio)
+        elif self.eraser_size == BRUSH_WIDTH_LARGE:
+            cursor = cursor.scaled(15, 15, QtCore.Qt.KeepAspectRatio)
+        self.setCursor(QtGui.QCursor(cursor))
 
     def sizeHint(self):
         # TODO: set label minimum size
@@ -111,9 +134,9 @@ class ImageLabel(QtWidgets.QLabel):
     def mouseMoveEvent(self, QMouseEvent):
         pos = QMouseEvent.pos()
         if self._tool_chosen == USE_PAINTBRUSH:
-            self._shapes.add_point(self.frame_displayed_index, pos)
+            self.shapes.add_point(self.frame_displayed_index, pos)
         elif self._tool_chosen == USE_ERASER:
-            self._shapes.remove_points(pos, self.frame_displayed_index)
+            self.shapes.remove_points(pos, self.frame_displayed_index)
 
         # update so that paintEvent will be called
         self.update()
@@ -123,11 +146,9 @@ class ImageLabel(QtWidgets.QLabel):
             self._square_corner = QMouseEvent.pos()
 
     def mouseReleaseEvent(self, cursor_event):
-        print(self._tool_chosen, OUTER_SQUARE, INNER_SQUARE)
         if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE] and self._square_corner:
-            print('square')
             # using square tool
-            self._shapes.add_square(self.frame_displayed_index, self._square_corner, cursor_event.pos(), self._tool_chosen)
+            self.shapes.add_square(self.frame_displayed_index, self._square_corner, cursor_event.pos(), self._tool_chosen)
             self._square_corner = None
             self.update()
         else:
@@ -150,29 +171,31 @@ class ImageLabel(QtWidgets.QLabel):
             painter.drawPixmap(self.rect(), self._displayed_pixmap)
 
             pen = QtGui.QPen()
-            pen.setWidth(5)
+            pen.setWidth(self.paintbrush_size)
 
             # inner squares
             pen.setColor(QtGui.QColor('purple'))
             painter.setPen(pen)
-            for square in self._shapes.inner_squares[self.frame_displayed_index]:
+            for square in self.shapes.inner_squares[self.frame_displayed_index]:
                 for point in square.points:
                     painter.drawPoint(point)
 
             # outer squares
             pen.setColor(QtGui.QColor('red'))
             painter.setPen(pen)
-            for square in self._shapes.outer_squares[self.frame_displayed_index]:
+            for square in self.shapes.outer_squares[self.frame_displayed_index]:
                 for point in square.points:
                     painter.drawPoint(point)
 
             # points
             pen.setColor(QtGui.QColor('blue'))
             painter.setPen(pen)
-            for point in self._shapes.chosen_points[self.frame_displayed_index]:
+            for point in self.shapes.chosen_points[self.frame_displayed_index]:
                 painter.drawPoint(point)
 
             # call update / setPalette(painter)
+
+
         except Exception as ex:
             print('paintEvent', ex)
 
@@ -242,4 +265,3 @@ class ImageLabel(QtWidgets.QLabel):
             self._parent.frame_number.setText(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
 
         self.update()
-

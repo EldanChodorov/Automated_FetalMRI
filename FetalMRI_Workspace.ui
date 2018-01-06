@@ -46,48 +46,7 @@ border-radius: 15px; border-width: 3px; border-style: outset</string>
             <enum>QFrame::Raised</enum>
            </property>
            <layout class="QGridLayout" name="gridLayout">
-            <item row="0" column="0">
-             <widget class="QPushButton" name="paintbrush_btn">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use paintbrush to mark points on image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">background-color:'white'; 
-color: black; 
-border-radius: 8px; border-color: black; border-width: 3px; 
-border-style: outset;</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QPushButton" name="eraser_btn">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use eraser to remove points or parts of segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">background-color:'white'; 
-color: black; 
-border-radius: 12px; border-color: black; border-width: 3px;
-border-style: outset;
-</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
+            <item row="5" column="0">
              <widget class="QPushButton" name="outer_square_btn">
               <property name="toolTip">
                <string>Mark middle frame with square ENCLOSING brain.</string>
@@ -107,7 +66,7 @@ border-style: outset;</string>
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
+            <item row="6" column="0">
              <widget class="QPushButton" name="inner_square_btn">
               <property name="toolTip">
                <string>Mark middle first and last frame with square CONTAINED in brain.</string>
@@ -126,6 +85,139 @@ border-style: outset;</string>
                 <normaloff>images/purple_square.png</normaloff>images/purple_square.png</iconset>
               </property>
              </widget>
+            </item>
+            <item row="4" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QPushButton" name="eraser_btn">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use eraser to remove points or parts of segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color:'white'; 
+color: black; 
+border-radius: 12px; border-color: black; border-width: 3px;
+border-style: outset;
+</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="eraser_size1_btn">
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(231, 248, 243);
+color: rgb(0, 0, 0);
+border-radius: 4px; border-color: black; border-width: 2px; 
+border-style: outset;
+font: 8pt &quot;MS Shell Dlg 2&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="eraser_size2_btn">
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(231, 248, 243);
+color: rgb(0, 0, 0);
+border-radius: 4px; border-color: black; border-width: 2px; 
+border-style: outset;
+font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="eraser_size3_btn">
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(231, 248, 243);
+color: rgb(0, 0, 0);
+border-radius: 4px; border-color: black; border-width: 2px; 
+border-style: outset;
+font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="1" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QPushButton" name="paintbrush_btn">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use paintbrush to mark points on image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color:'white'; 
+color: black; 
+border-radius: 8px; border-color: black; border-width: 3px; 
+border-style: outset;</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="paintbrush_size1_btn">
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(231, 248, 243);
+color: rgb(0, 0, 0);
+border-radius: 4px; border-color: black; border-width: 2px; 
+border-style: outset;
+font: 8pt &quot;MS Shell Dlg 2&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="paintbrush_size2_btn">
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(231, 248, 243);
+color: rgb(0, 0, 0);
+border-radius: 4px; border-color: black; border-width: 2px; 
+border-style: outset;
+font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="paintbrush_size3_btn">
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(231, 248, 243);
+color: rgb(0, 0, 0);
+border-radius: 4px; border-color: black; border-width: 2px; 
+border-style: outset;
+font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>
@@ -182,6 +274,29 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
        <item>
         <layout class="QVBoxLayout" name="performSegBtnsLayout">
          <item>
+          <widget class="QLabel" name="instructions">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;&quot;&gt;&lt;span style=&quot; font-family:'Courier New'; font-size:9pt; font-weight:600; color:#008080;&quot;&gt;In the first and last frame: draw a purple square inside the brain area.&lt;br/&gt;In the middle frame: draw a red square around [enclosing] the brain area.&lt;br/&gt;Finally: press 'Perform Segmentation'.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="statusTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;&quot;&gt;&lt;span style=&quot; font-family:'Courier New'; font-size:9pt; font-weight:600; color:#008080;&quot;&gt;In the first and last frame: draw a purple square inside the brain area.&lt;br/&gt;In the middle frame: draw a red square around [enclosing] the brain area.&lt;br/&gt;Finally: press 'Perform Segmentation'.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="whatsThis">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In the first and last frame: draw a purple square inside the brain area.&lt;/p&gt;&lt;p&gt;In the middle frame: draw a red square around [enclosing] the brain area.&lt;/p&gt;&lt;p&gt;Finally: press 'Perform Segmentation'.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(56, 112, 83);
+ color: white; font-weight: regular; font-size: 12pt;
+border-radius: 15px; border-color: black; border-width: 3px; 
+border-style: outset;
+</string>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Stage 1: Boundary Marking&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;(hover for instructions)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -199,7 +314,8 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
            <property name="styleSheet">
             <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
 border-radius: 15px; border-color: black; border-width: 3px; 
-border-style: outset;</string>
+border-style: outset;
+</string>
            </property>
            <property name="text">
             <string>Perform Segmentation</string>
@@ -258,23 +374,6 @@ border-style: outset;</string>
            </property>
            <property name="text">
             <string>Contrast View</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="instructions">
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;&quot;&gt;&lt;span style=&quot; font-family:'Courier New'; font-size:9pt; font-weight:600; color:#008080;&quot;&gt;In the first and last frame: draw a purple square inside the brain area.&lt;br/&gt;In the middle frame: draw a red square around [enclosing] the brain area.&lt;br/&gt;Finally: press 'Perform Segmentation'.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(56, 112, 83);
- color: white; font-weight: regular; font-size: 12pt;
-border-radius: 15px; border-color: black; border-width: 3px; 
-border-style: outset;
-</string>
-           </property>
-           <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Instructions&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>

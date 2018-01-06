@@ -4,8 +4,11 @@ These polygons may have missing points, if erased by user.
 '''
 
 from collections import defaultdict
-from PyQt5 import QtCore
-from consts import OUTER_SQUARE, INNER_SQUARE, ERASER_WIDTH
+import pickle
+import sys
+import os
+from PyQt5 import QtCore, QtWidgets
+from consts import OUTER_SQUARE, INNER_SQUARE, BRUSH_WIDTH_MEDIUM
 
 
 class Shapes:
@@ -19,6 +22,9 @@ class Shapes:
         # inner - contained in brain, outer - enclosing the brain
         self.inner_squares = defaultdict(list)
         self.outer_squares = defaultdict(list)
+
+        # size of brushes
+        self.eraser_width = BRUSH_WIDTH_MEDIUM
 
     def __repr__(self):
         return str(self.chosen_points) + '\n' + str(self.inner_squares) + '\n' + str(self.outer_squares)
@@ -61,8 +67,8 @@ class Shapes:
         '''
         orig_x = pos.x()
         orig_y = pos.y()
-        for i in range(-ERASER_WIDTH, ERASER_WIDTH):
-            for j in range(-ERASER_WIDTH, ERASER_WIDTH):
+        for i in range(-self.eraser_width, self.eraser_width):
+            for j in range(-self.eraser_width, self.eraser_width):
                 pos.setX(orig_x + i)
                 pos.setY(orig_y + j)
 
@@ -75,6 +81,28 @@ class Shapes:
                 for square in squares:
                     if pos in square.points:
                         square.points.remove(pos)
+
+    def save(self, original_nifti_path):
+        '''
+        Open dialog for user to pick directory in which to Shapes objects (points marked).
+        :param original_nifti_path: [str] path of nifti originally opened in workspace.
+        '''
+        print(original_nifti_path)
+        file_dialog = QtWidgets.QFileDialog()
+        file_dialog.setDefaultSuffix('.pickle')
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save points PICKLE file", "",
+                                    "Pickle Files (*.pickle)", options=options)
+        if file_name:
+            if not file_name.endswith('.pickle'):
+                file_name += '.pickle'
+            try:
+                with open(file_name, 'wb') as f:
+                    pickle.dump(self, f)
+                print('Points marked saved to %s' % file_name)
+            except pickle.PickleError:
+                print('Error saving file.')
 
 
 class Square:
@@ -127,15 +155,3 @@ class Square:
             self.points.append(QtCore.QPoint(start_x, y))
             self.points.append(QtCore.QPoint(end_x, y))
 
-
-if __name__ == '__main__':
-    sq1 = Square(QtCore.QPoint(0,0), QtCore.QPoint(4,4))
-    sq2 = Square(QtCore.QPoint(2,1), QtCore.QPoint(5,4))
-    sq3 = Square(QtCore.QPoint(5,5), QtCore.QPoint(6,7))
-    sh = Shapes()
-    sh.add_square(0, QtCore.QPoint(0,0), QtCore.QPoint(4,4), INNER_SQUARE)
-    sh.add_square(0, QtCore.QPoint(2,1), QtCore.QPoint(5,5), INNER_SQUARE)
-    sh.add_square(1, QtCore.QPoint(5,5), QtCore.QPoint(6,7), OUTER_SQUARE)
-    print(sh)
-    sh.remove_points(QtCore.QPoint(5,4), 0)
-    print(sh)

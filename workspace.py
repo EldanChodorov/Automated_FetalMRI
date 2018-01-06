@@ -1,21 +1,15 @@
+import cv2
+import pickle
+import numpy as np
 import nibabel as nib
-from PyQt5 import QtGui
-from PyQt5 import QtWidgets
-import numpy as np
-import FetalMRI_workspace
-from threading import Thread
-from collections import defaultdict
-import numpy as np
 from threading import Thread
 from PyQt5 import QtGui, QtCore, QtWidgets
-import qimage2ndarray
-from skimage import color
-import cv2
+import FetalMRI_workspace
 import segment3d_itk
-import nibabel as nib
-from image_label import ImageDisplay, ImageLabel
-
-from image_label import (USE_PAINTBRUSH, USE_INNER_SQUARE, USE_OUTER_SQUARE, USE_ERASER)
+from image_label import ImageLabel
+from Shapes import Shapes
+from consts import USE_PAINTBRUSH, INNER_SQUARE, OUTER_SQUARE, USE_ERASER,\
+    BRUSH_WIDTH_LARGE, BRUSH_WIDTH_MEDIUM, BRUSH_WIDTH_SMALL
 
 
 class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
@@ -34,8 +28,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         QtWidgets.QWidget.__init__(self, parent)
         FetalMRI_workspace.Ui_workspace.__init__(self)
 
+        self._nifti_path = nifti_path
+
         try:
-            self._nifti = nib.load(nifti_path)
+            self._nifti = nib.load(self._nifti_path)
         except FileNotFoundError:
             print('Error in path %s' % self._source)
             return
@@ -67,10 +63,21 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._segmentation_thread = Thread(target=self._perform_segmentation)
         self._segmentation_thread.setDaemon(True)
 
+        # TODO: perform in separate thread somehow
+        contrasted_frames = self._histogram_equalization(self.frames)
+
+        # store original stylesheets
+        self._base_tool_style = self.paintbrush_btn.styleSheet()
+        self._base_size_style = self.paintbrush_size1_btn.styleSheet()
+        self.tool_chosen.connect(self._emphasize_tool_button)
+
         # Label with ImageLabel
-        self._image_label = ImageLabel(self.frames, self)
-        self.ImageLayout.addStretch(1)
-        self.ImageLayout.addWidget(self._image_label)
+        try:
+            self._image_label = ImageLabel(self.frames, contrasted_frames, self)
+            self.MainLayout.addWidget(self._image_label)
+            self.MainLayout.addStretch(1)
+        except Exception as ex:
+            print('image label init', ex)
 
         self._init_ui()
 
@@ -80,15 +87,92 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.setStyleSheet('background-color: rgb(110, 137, 152)')
 
         # set sizes
-        # self.initial_into.setGeometry()
+        self.frame_number.setFixedSize(self.frame_number.width() + 2, self.frame_number.height())
 
         # connect buttons
         self.perform_seg_btn.clicked.connect(self._perform_segmentation_wrapper)
         self.save_seg_btn.clicked.connect(self.save_segmentation)
+        self.standard_view_btn.clicked.connect(lambda: self._contrast_button_clicked(False))
+        self.contrast_view_btn.clicked.connect(lambda: self._contrast_button_clicked(True))
+
+        # connect brushes buttons
         self.paintbrush_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_PAINTBRUSH))
+        self.paintbrush_size1_btn.clicked.connect(lambda: self._change_paintbrush_size(BRUSH_WIDTH_SMALL))
+        self.paintbrush_size2_btn.clicked.connect(lambda: self._change_paintbrush_size(BRUSH_WIDTH_MEDIUM))
+        self.paintbrush_size3_btn.clicked.connect(lambda: self._change_paintbrush_size(BRUSH_WIDTH_LARGE))
+
         self.eraser_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_ERASER))
-        self.outer_square_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_OUTER_SQUARE))
-        self.inner_square_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_INNER_SQUARE))
+        self.eraser_size1_btn.clicked.connect(lambda: self._change_eraser_size(BRUSH_WIDTH_SMALL))
+        self.eraser_size2_btn.clicked.connect(lambda: self._change_eraser_size(BRUSH_WIDTH_MEDIUM))
+        self.eraser_size3_btn.clicked.connect(lambda: self._change_eraser_size(BRUSH_WIDTH_LARGE))
+
+        self.outer_square_btn.clicked.connect(lambda: self.tool_chosen.emit(OUTER_SQUARE))
+        self.inner_square_btn.clicked.connect(lambda: self.tool_chosen.emit(INNER_SQUARE))
+
+        # set initially chosen buttons with different style
+        self.paintbrush_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
+        self.paintbrush_size2_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+        self.eraser_size2_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+
+    @QtCore.pyqtSlot(int)
+    def _emphasize_tool_button(self, tool_chosen):
+        # set all buttons to base style
+        self.paintbrush_btn.setStyleSheet(self._base_tool_style)
+        self.eraser_btn.setStyleSheet(self._base_tool_style)
+        self.inner_square_btn.setStyleSheet(self._base_tool_style)
+        self.outer_square_btn.setStyleSheet(self._base_tool_style)
+
+        # emphasize chosen tool button
+        if tool_chosen == USE_PAINTBRUSH:
+            self.paintbrush_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
+        elif tool_chosen == USE_ERASER:
+            self.eraser_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
+        elif tool_chosen == INNER_SQUARE:
+            self.inner_square_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
+        elif tool_chosen == OUTER_SQUARE:
+            self.outer_square_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
+
+    def _change_paintbrush_size(self, size):
+        self._image_label.paintbrush_size = size
+        self.tool_chosen.emit(USE_PAINTBRUSH)
+
+        self.paintbrush_size1_btn.setStyleSheet(self._base_size_style)
+        self.paintbrush_size2_btn.setStyleSheet(self._base_size_style)
+        self.paintbrush_size3_btn.setStyleSheet(self._base_size_style)
+
+        # emphasize border of chosen button
+        if size == BRUSH_WIDTH_SMALL:
+            self.paintbrush_size1_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+        elif size == BRUSH_WIDTH_MEDIUM:
+            self.paintbrush_size2_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+        else:
+            self.paintbrush_size3_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+
+    def _change_eraser_size(self, size):
+        self._image_label.eraser_size = size
+        self._image_label.shapes.eraser_width = size
+        self.tool_chosen.emit(USE_ERASER)
+
+        self.eraser_size1_btn.setStyleSheet(self._base_size_style)
+        self.eraser_size2_btn.setStyleSheet(self._base_size_style)
+        self.eraser_size3_btn.setStyleSheet(self._base_size_style)
+
+        # emphasize border of chosen button
+        if size == BRUSH_WIDTH_SMALL:
+            self.eraser_size1_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+        elif size == BRUSH_WIDTH_MEDIUM:
+            self.eraser_size2_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+        else:
+            self.eraser_size3_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+
+    def _contrast_button_clicked(self, contrast_view):
+        '''
+        Set whether frames shown are regular or contrasted.
+        :param contrast_view: [bool] if True, show contrasted frames, otherwise regular.
+        '''
+        self._image_label.change_view(contrast_view)
+        self.contrast_view_btn.setEnabled(not contrast_view)
+        self.standard_view_btn.setEnabled(contrast_view)
 
     def _perform_segmentation_wrapper(self):
         # setup progress bar
@@ -116,10 +200,15 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def _perform_segmentation(self):
         try:
-            if not self._image_label or not self._image_label.chosen_points:
+            if not self._image_label or not self._image_label.shapes.chosen_points:
                 return
+
+            # change stage title
+            self.instructions.setText('<html><head/><body><p align="center">Stage 2: Calculating Segmentation...</p><p '
+                                      'align="center">(please wait)</p></body></html>')
+
             seeds = []
-            for frame_idx, frame_points in self._image_label.chosen_points.items():
+            for frame_idx, frame_points in self._image_label.shapes.chosen_points.items():
                 if frame_points:
                     for pos in frame_points:
                         translated_pos = self._image_label.label_to_image_pos(pos)
@@ -135,6 +224,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
             if self._segmentation_array is None:
                 self.perform_seg_btn.setEnabled(True)
+                self.instructions.setText(
+                    '<html><head/><body><p align="center">Stage 1 [retry]: Boundary Marking...</p><p '
+                    'align="center">(hover for instructions)</p></body></html>')
                 return
 
             self.save_seg_btn.setEnabled(True)
@@ -152,18 +244,61 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._image_label.set_image(self._image_label.frames[0])
         self._image_label.update()
 
+        # update stage title text
+        self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
+                                  'align="center">(hover for instructions)</p></body></html>')
+        self.instructions.setToolTip('Use paintbrush and eraser to fix result segmentation.\nWhen finished, '
+                                     'save segmentation.')
+
     def save_segmentation(self):
-        try:
+        file_dialog = QtWidgets.QFileDialog()
+        options = QtWidgets.QFileDialog.Options()
+        # options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save segmentation", "",
+                                    "Nifti Files (*.nii, *.nii.gz)", options=options)
+        if fileName:
+            nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
+            nib.save(nifti, fileName)
+            print('Segmentation saved to %s' % fileName)
+
+    def _histogram_equalization(self, frames):
+        '''
+        Perform histogram equalization on the given images to improve contrast.
+        :param frames: [numpy.ndarray] list of images
+        :return: equalized frames, same type and shape of input.
+        '''
+        equalized_frames = np.zeros(frames.shape)
+        for i in range(frames.shape[0]):
+            hist, bins = np.histogram(frames[i].flatten(), bins=256, normed=True)
+            cdf = hist.cumsum()  # cumulative distribution function
+            cdf = 255 * cdf / cdf[-1]  # normalize
+
+            # use linear interpolation of cdf to find new pixel values
+            image_equalized = np.interp(frames[i].flatten(), bins[:-1], cdf)
+            equalized_frames[i] = image_equalized.reshape(frames[i].shape)
+
+        return equalized_frames
+
+    def save_points(self):
+        '''If exists, save current points that were marked on screen by user.'''
+        if self._image_label:
+            self._image_label.shapes.save(self._nifti_path)
+
+    def load_points(self):
+        '''Load a file containing points previously marked by user for current scans.'''
+        if self._image_label:
             file_dialog = QtWidgets.QFileDialog()
             options = QtWidgets.QFileDialog.Options()
             options |= QtWidgets.QFileDialog.DontUseNativeDialog
-            fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "QFileDialog.getSaveFileName()", "",
-                                        "All Files (*);;Text Files (*.txt)", options=options)
-            if fileName:
-                nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
-                nib.save(nifti, fileName)
-        except Exception as ex:
-            print(ex, type(ex))
+            chosen_file, _ = QtWidgets.QFileDialog.getOpenFileName(file_dialog, "Choose points PICKLE file", "",
+                                                  "Pickle Files (*.pickle)", options=options)
+            if chosen_file.endswith('.pickle'):
+                with open(chosen_file, 'rb') as f:
+                    loaded = pickle.load(f)
+                    if type(loaded) == Shapes:
+                        self._image_label.shapes = loaded
+                        return
+        print('Error in loading file.')
 
 
 def overlap_images(background_img_list, mask_img_list):

@@ -7,6 +7,7 @@ import shutil
 import numpy as np
 import nibabel as nib
 import FetalMRI_mainwindow
+import FetalMRI_About
 
 
 class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
@@ -28,6 +29,9 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
 
         # path to directory holding scans
         self._source = data_dir_path
+
+        # create local folder for files generated in any session
+        self._local_folder = None
 
     def init_ui(self):
         # self.setGeometry(100, 50, 1500, 900)
@@ -115,12 +119,20 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.actionExit.triggered.connect(self.close)
 
         # Workspace menu
-        self.actionSave_Segmentation.setShortcut('Ctrl+S')
         self.actionSave_Segmentation.triggered.connect(self._save_segmentation)
-
-        self.actionOpen_Segmentation.setShortcut('Ctrl+Shift+W')
-        self.actionOpen_Segmentation.setStatusTip('Open previous segmentation')
         self.actionOpen_Segmentation.triggered.connect(self._open_segmentation)
+
+        # Help menu
+        self.actionAbout.triggered.connect(self._about_dialog)
+
+    def _connect_workspace_opened(self):
+        '''Connect all actions that are valid only when workspace has been opened.'''
+        self.actionSave_Points.triggered.connect(self._workspace.save_points)
+        self.actionLoad_Points.triggered.connect(self._workspace.load_points)
+        self.actionSave_Segmentation.setEnabled(True)
+        self.actionOpen_Segmentation.setEnabled(True)
+        self.actionSave_Points.setEnabled(True)
+        self.actionLoad_Points.setEnabled(True)
 
     def _open_workspace(self):
         '''
@@ -129,27 +141,51 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         if self._source:
             try:
                 self._workspace = WorkSpace(self._source, self)
+                self._connect_workspace_opened()
             except Exception as ex:
                 print(ex)
             self.setCentralWidget(self._workspace)
 
-    def _create_local_nifti(self, directory):
+    def _create_local_folder(self, path):
         '''
-        Create nifti files from dicoms and save as .nii/.nii.gz file in a local folder.
+        Create local folder with unique name.
+        :param path: [str] create folder with this as base name.
+        :return: [str] full path of local folder
+        '''
+        if path.endswith('.gz'):
+            path = path[:-3]
+        if path.endswith('.nii'):
+            path = path[:-4]
+        local_folder = os.getcwd() + '\\Nifti Files\\' + os.path.basename(path)
+        if not os.path.isdir(local_folder):
+            try:
+                os.mkdir(local_folder)
+            except NotImplementedError:
+                # dir_fd not implemented on platform
+                print('Unable to create directory %s' % local_folder)
+                local_folder = ''
+        self._local_folder = local_folder
+        return local_folder
+
+    def _create_local_nifti_copy(self, nifti_path):
+        '''Create copy of nifti in local folder.'''
+        local_folder = self._create_local_folder(nifti_path)
+        base_name = os.path.basename(nifti_path)
+        dest = os.path.join(local_folder, base_name)
+        try:
+            shutil.copyfile(nifti_path, dest)
+        except IOError:
+            print('Permission denied.')
+
+    def _create_local_nifti_from_dicom(self, directory):
+        '''
+        Create nifti files from dicoms and save as a Nifti file in a local folder.
+        Will override existing nifti file.
         :param directory [str]: path to directory containing dicoms
         :return [str]: path to nifti file, if successfully created
         '''
-        local_folder = os.getcwd() + '\\Nifti Files\\' + os.path.basename(os.path.normpath(directory))
-        if os.path.isdir(local_folder):
-            # override and create a new nifti file, even if already exists under this name
-            shutil.rmtree(local_folder)
-        try:
-            os.mkdir(local_folder)
-        except:
-            print('Unable to create directory %s' %local_folder)
-            return
+        local_folder = self._create_local_folder(os.path.normpath(directory))
         dicom2nifti.convert_directory(self._source, local_folder)
-
         nii_files = os.listdir(local_folder)
         if nii_files:
             return local_folder + "\\" + nii_files[0]
@@ -177,10 +213,11 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
             # user can choose only one file at a time
             self._source = chosen_files[0]
             if dir_only:
-                self._source = self._create_local_nifti(self._source)
+                self._source = self._create_local_nifti_from_dicom(self._source)
             else:
                 if '.nii' not in self._source:
                     self._source = None
+                self._create_local_nifti_copy(self._source)
             self._open_workspace()
 
     def _save_segmentation(self):
@@ -188,14 +225,13 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
             self._workspace.save_segmentation()
 
     def _user_choose_file(self):
-        file_dialog = QtWidgets.QFileDialog()
-        if not file_dialog.exec_():
-            raise ValueError("Error in File Dialog.")
 
-        chosen_files = file_dialog.selectedFiles()
-        if chosen_files:
-            # user can choose only one file at a time
-            return chosen_files[0]
+        file_dialog = QtWidgets.QFileDialog()
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(file_dialog, "Open segmentation Nifti file", "",
+                                                             "Nifti Files (*.nii, *.nii.gz)", options=options)
+        return file_name
 
     def _open_segmentation(self):
         nifti_path = self._user_choose_file()
@@ -203,6 +239,14 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
             print("Must choose Nifti format file.")
             return
         segmentation = np.array(nib.load(nifti_path).get_data())
-        print('Segmentation shape', segmentation.shape)
         if self._workspace:
             self._workspace.image_display.set_segmentation(segmentation)
+
+    def _about_dialog(self):
+        '''Display the `About` dialog.'''
+        dialog = QtWidgets.QDialog(self)
+        dialog.ui = FetalMRI_About.Ui_Dialog()
+        dialog.ui.setupUi(dialog)
+        dialog.ui.okBtn.clicked.connect(dialog.close)
+        dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        dialog.exec_()
