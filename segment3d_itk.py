@@ -234,8 +234,8 @@ def worker_chanvese(index, cur_img, cur_mask):
     '''
     print('start %d' % index)
     if np.any(cur_mask == 1):
-        result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=True,
-                                          alpha=0.5,thresh=0)
+        result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=False,
+                                          alpha=0.3,thresh=0)
         segmentation_mat = result
     else:
         segmentation_mat = cur_mask
@@ -290,19 +290,19 @@ def segmentation_3d(array_data, seed_list):
         BB_object = image_data[0].bbox
         zero_mat, _ = flood_fill_hull(zero_mat)
         # CH_object = morphology.convex_hull_image(image_data)
-        small_image, X_top,X_size, Y_top, Y_size = cut_image_out(array_data,BB_object)
-        mask_image = np.zeros(small_image.shape)
+        small_image_1, X_top,X_size, Y_top, Y_size = cut_image_out(array_data,BB_object)
+        mask_image = np.zeros(small_image_1.shape)
         mask_image[BB_object[0]- X_top:BB_object[3]-X_top, BB_object[1]-Y_top:BB_object[4]-Y_top, BB_object[
             2]:BB_object[5]] = zero_mat[BB_object[0]:BB_object[3], BB_object[1]:BB_object[4], BB_object[2]:BB_object[5]]
 
 
-        seg_mat = np.zeros(small_image.shape)
+        seg_mat = np.zeros(small_image_1.shape)
         images = []
         masks = []
         a = time.time()
-        sitk_image = sitk.GetImageFromArray(small_image)
-        sitk_image = sitk.CurvatureFlow(image1=sitk_image, timeStep=0.5, numberOfIterations=1)
-        small_image = sitk.GetArrayFromImage(sitk_image)
+        sitk_image = sitk.GetImageFromArray(small_image_1)
+        sitk_image_1 = sitk.CurvatureFlow(image1=sitk_image, timeStep=0.4, numberOfIterations=1)
+        small_image = sitk.GetArrayFromImage(sitk_image_1)
         # seg_mat, _, _ = chan_vese_3d.chanvese3d(I=small_image, init_mask=mask_image, max_its=300,
         #                                        display=False,
         #                                   alpha=0.3,thresh=0)
@@ -372,30 +372,35 @@ def segmentation_3d(array_data, seed_list):
         multi_slice_viewer(display_image)
         plt.show()
 
-        intensty = small_image[np.where(lables == 1)]
+        intensty = small_image_1[np.where(lables == 1)]
         avg_color = np.average(intensty).astype(np.int32)
         print('avg_color',avg_color)
         std = np.std(intensty).astype(np.int32)
 
-        avg_colores = np.linspace(avg_color-int(3*std),avg_color+int(3*std),6 * std).astype(np.int32)
+        avg_colores = range(avg_color-2*int(std),avg_color+int(std/2))
         print(avg_colores)
-        convex_labe,_ = flood_fill_hull(lables)
+        convex_labe , _ = flood_fill_hull(lables)
 
         display_image = convex_labe.transpose(get_display_axis(np.argmin(convex_labe.shape)))
         multi_slice_viewer(display_image)
         plt.show()
 
-        smaller_images = np.zeros(small_image.shape)
+        smaller_images = np.zeros(small_image_1.shape)
         smaller_images[np.where(convex_labe == 1)] = small_image[np.where(convex_labe == 1)]
+
+        # display_image = smaller_images.transpose(get_display_axis(np.argmin(smaller_images.shape)))
+        # multi_slice_viewer(display_image)
+        # plt.show()
+        smaller_images = smaller_images.astype(np.int32)
         for color in avg_colores:
             lables[np.where(smaller_images == color)] = 1
-
+        print('after new colors')
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
         multi_slice_viewer(display_image)
         plt.show()
-        
-        mask = np.ones((5,5))
-        lables = nd.morphology.binary_fill_holes(lables,structure=mask)
+
+        mask = np.ones((5,5,5))
+        # lables = nd.morphology.binary_fill_holes(lables,structure=mask)
 
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
         multi_slice_viewer(display_image)
