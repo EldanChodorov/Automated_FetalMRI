@@ -20,18 +20,18 @@
    <bool>true</bool>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(110, 137, 152)</string>
+   <string notr="true"/>
   </property>
   <layout class="QGridLayout" name="gridLayout_2" rowstretch="0">
-   <item row="0" column="0">
-    <layout class="QVBoxLayout" name="MainLayout" stretch="1,0">
+   <item row="0" column="2">
+    <layout class="QHBoxLayout" name="MainLayout" stretch="0">
      <property name="leftMargin">
       <number>13</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="ImageLayout" stretch="0">
+      <layout class="QHBoxLayout" name="ImageLayout" stretch="0,1">
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
+        <layout class="QVBoxLayout" name="toolkitLayout" stretch="1,0,0">
          <item>
           <widget class="QFrame" name="tool_kit">
            <property name="styleSheet">
@@ -46,15 +46,15 @@ border-radius: 15px; border-width: 3px; border-style: outset</string>
             <enum>QFrame::Raised</enum>
            </property>
            <layout class="QGridLayout" name="gridLayout">
-            <item row="4" column="0">
-             <widget class="QPushButton" name="inner_square_btn">
+            <item row="0" column="0">
+             <widget class="QPushButton" name="paintbrush_btn">
               <property name="toolTip">
-               <string>Mark middle first and last frame with square CONTAINED in brain.</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use paintbrush to mark points on image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true">background-color:'white'; 
 color: black; 
-border-radius: 12px; border-color: purple; border-width:3px;
+border-radius: 8px; border-color: black; border-width: 3px; 
 border-style: outset;</string>
               </property>
               <property name="text">
@@ -62,7 +62,28 @@ border-style: outset;</string>
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>images/purple_square.png</normaloff>images/purple_square.png</iconset>
+                <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QPushButton" name="eraser_btn">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use eraser to remove points or parts of segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:'white'; 
+color: black; 
+border-radius: 12px; border-color: black; border-width: 3px;
+border-style: outset;
+</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
               </property>
              </widget>
             </item>
@@ -86,12 +107,15 @@ border-style: outset;</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="0">
-             <widget class="QPushButton" name="paintbrush_btn">
+            <item row="4" column="0">
+             <widget class="QPushButton" name="inner_square_btn">
+              <property name="toolTip">
+               <string>Mark middle first and last frame with square CONTAINED in brain.</string>
+              </property>
               <property name="styleSheet">
                <string notr="true">background-color:'white'; 
 color: black; 
-border-radius: 8px; border-color: black; border-width: 1px; 
+border-radius: 12px; border-color: purple; border-width:3px;
 border-style: outset;</string>
               </property>
               <property name="text">
@@ -99,24 +123,7 @@ border-style: outset;</string>
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QPushButton" name="eraser_btn">
-              <property name="styleSheet">
-               <string notr="true">background-color:'white'; 
-color: black; 
-border-radius: 12px; border-color: black; border-width: 1px;
-border-style: outset;</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
+                <normaloff>images/purple_square.png</normaloff>images/purple_square.png</iconset>
               </property>
              </widget>
             </item>
@@ -124,43 +131,7 @@ border-style: outset;</string>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="frame_number">
-           <property name="minimumSize">
-            <size>
-             <width>42</width>
-             <height>278</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>70</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
-color: rgb(255, 255, 255);
-font-family: Courier;
-background-color: rgb(4, 51, 57);</string>
-           </property>
-           <property name="text">
-            <string>20/20</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="seg_btns_layout">
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <spacer name="horizontalSpacer_3">
+          <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -171,6 +142,69 @@ background-color: rgb(4, 51, 57);</string>
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
+           <item>
+            <widget class="QLabel" name="frame_number">
+             <property name="minimumSize">
+              <size>
+               <width>42</width>
+               <height>278</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>70</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
+color: rgb(255, 255, 255);
+font-family: Courier;
+background-color: rgb(4, 51, 57);
+border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
+</string>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;20/20&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="performSegBtnsLayout">
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="perform_seg_btn">
+           <property name="styleSheet">
+            <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
+border-radius: 15px; border-color: black; border-width: 3px; 
+border-style: outset;</string>
+           </property>
+           <property name="text">
+            <string>Perform Segmentation</string>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="save_seg_btn">
@@ -188,16 +222,74 @@ border-style: outset;</string>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="perform_seg_btn">
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="standard_view_btn">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
-            <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
+            <string notr="true">background-color:rgb(145, 0, 109); color: white; font-weight: regular; font-size: 12pt;
 border-radius: 15px; border-color: black; border-width: 3px; 
 border-style: outset;</string>
            </property>
            <property name="text">
-            <string>Perform Segmentation</string>
+            <string>Standard View</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="contrast_view_btn">
+           <property name="styleSheet">
+            <string notr="true">background-color:rgb(145, 0, 109); color: white; font-weight: regular; font-size: 12pt;
+border-radius: 15px; border-color: black; border-width: 3px; 
+border-style: outset;</string>
+           </property>
+           <property name="text">
+            <string>Contrast View</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="instructions">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;&quot;&gt;&lt;span style=&quot; font-family:'Courier New'; font-size:9pt; font-weight:600; color:#008080;&quot;&gt;In the first and last frame: draw a purple square inside the brain area.&lt;br/&gt;In the middle frame: draw a red square around [enclosing] the brain area.&lt;br/&gt;Finally: press 'Perform Segmentation'.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(56, 112, 83);
+ color: white; font-weight: regular; font-size: 12pt;
+border-radius: 15px; border-color: black; border-width: 3px; 
+border-style: outset;
+</string>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Instructions&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>

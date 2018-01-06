@@ -7,13 +7,8 @@ from skimage import color
 import cv2
 import segment3d_itk
 import nibabel as nib
-
-
-USE_PAINTBRUSH = 1
-USE_OUTER_SQUARE = 2
-USE_INNER_SQUARE = 3
-USE_ERASER = 4
-ERASER_WIDTH = 15
+from Shapes import Shapes
+from consts import OUTER_SQUARE, INNER_SQUARE, USE_ERASER, USE_PAINTBRUSH, MIN_ZOOM
 
 
 def overlap_images(background_img_list, mask_img_list):
@@ -48,33 +43,39 @@ def overlap_images(background_img_list, mask_img_list):
 
 class ImageLabel(QtWidgets.QLabel):
 
-    # emits (frame idx, pos) of point chosen from images
-    point_chosen = QtCore.pyqtSignal(tuple)
-
-    def __init__(self, frames, workspace_parent):
+    def __init__(self, frames, contrasted_frames, workspace_parent):
         '''
         :param frames: [numpy.ndarray] list of images
-        :param image_display: [WorkSpace]
+        :param contrasted_frames: [numpy.ndarray] list of images, after histogram equalization
+        :param workspace_parent: [WorkSpace]
         '''
         QtWidgets.QLabel.__init__(self, workspace_parent)
 
-        # ImageDisplay holding this ImageLabel instance
+        # Workspace holding this ImageLabel instance
         self._parent = workspace_parent
 
+        # Shapes holds all geometric points marked on screen by user
+        self._shapes = Shapes()
+
         # numpy array, list of images
-        self.frames = frames
+        self.standard_frames = frames
+        self.contrasted_frames = contrasted_frames
+
+        # contains the set of images which will be displayed
+        self.frames = self.standard_frames
 
         # index of current frame displayed
         self.frame_displayed_index = 0
 
-        # dict of frame#: points chosen manually by user per each frame
-        self.chosen_points = defaultdict(list)
-
         # if using square tool, store here first corner clicked with mouse
         self._square_corner = None
 
-        self._zoom = 1.0
+        self._zoom = MIN_ZOOM
 
+        # store image size, changed upon zoom
+        self._image_size = self._initial_image_size()
+
+        # set view size
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
         self.setFixedSize(1000, 1000)
@@ -85,6 +86,19 @@ class ImageLabel(QtWidgets.QLabel):
         # decide what to do with point clicks (paint/square/erase)
         self._tool_chosen = USE_PAINTBRUSH
         self._parent.tool_chosen.connect(self._update_tool_in_use)
+
+    @QtCore.pyqtSlot(bool)
+    def change_view(self, contrast_view):
+        '''
+        Set whether frames shown are regular or contrasted.
+        :param contrast_view: [bool] if True, show contrasted frames.
+        '''
+        if contrast_view:
+            self.frames = self.contrasted_frames
+        else:
+            self.frames = self.standard_frames
+
+        self.set_image(self.frames[self.frame_displayed_index])
 
     @QtCore.pyqtSlot(int)
     def _update_tool_in_use(self, tool_chosen):
@@ -97,51 +111,23 @@ class ImageLabel(QtWidgets.QLabel):
     def mouseMoveEvent(self, QMouseEvent):
         pos = QMouseEvent.pos()
         if self._tool_chosen == USE_PAINTBRUSH:
-            self.chosen_points[self.frame_displayed_index].append(pos)
+            self._shapes.add_point(self.frame_displayed_index, pos)
         elif self._tool_chosen == USE_ERASER:
-            orig_x = pos.x()
-            orig_y = pos.y()
-            for i in range(-ERASER_WIDTH, ERASER_WIDTH):
-                for j in range(-ERASER_WIDTH, ERASER_WIDTH):
-                    pos.setX(orig_x+i)
-                    pos.setY(orig_y+i)
-                    if pos in self.chosen_points[self.frame_displayed_index]:
-                        self.chosen_points[self.frame_displayed_index].remove(pos)
+            self._shapes.remove_points(pos, self.frame_displayed_index)
 
         # update so that paintEvent will be called
         self.update()
 
     def mousePressEvent(self, QMouseEvent):
-        print(self.size())
-        if self._tool_chosen in [USE_OUTER_SQUARE, USE_INNER_SQUARE]:
+        if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE]:
             self._square_corner = QMouseEvent.pos()
 
-    def _handle_square_clicked(self, corner1, corner2):
-        '''Calculate all points inside square.'''
-        first_x, first_y = corner1.x(), corner1.y()
-        second_x, second_y = corner2.x(), corner2.y()
-        if first_x == second_x or first_y == second_y:
-            return
-
-        if first_x < second_x:
-            start_x, end_x = first_x, second_x
-        else:
-            start_x, end_x = second_x, first_x
-        if first_y < second_y:
-            start_y, end_y = first_y, second_y
-        else:
-            start_y, end_y = second_y, first_y
-        for x in range(start_x, end_x):
-            self.chosen_points[self.frame_displayed_index].append(QtCore.QPoint(x, start_y))
-            self.chosen_points[self.frame_displayed_index].append(QtCore.QPoint(x, end_y))
-        for y in range(start_y, end_y):
-            self.chosen_points[self.frame_displayed_index].append(QtCore.QPoint(start_x, y))
-            self.chosen_points[self.frame_displayed_index].append(QtCore.QPoint(end_x, y))
-
     def mouseReleaseEvent(self, cursor_event):
-        if self._tool_chosen in [USE_OUTER_SQUARE, USE_INNER_SQUARE] and self._square_corner:
+        print(self._tool_chosen, OUTER_SQUARE, INNER_SQUARE)
+        if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE] and self._square_corner:
+            print('square')
             # using square tool
-            self._handle_square_clicked(self._square_corner, cursor_event.pos())
+            self._shapes.add_square(self.frame_displayed_index, self._square_corner, cursor_event.pos(), self._tool_chosen)
             self._square_corner = None
             self.update()
         else:
@@ -157,208 +143,103 @@ class ImageLabel(QtWidgets.QLabel):
         return QtCore.QPoint(image_x, image_y)
 
     def paintEvent(self, paint_event):
-        painter = QtGui.QPainter(self)
+        try:
+            painter = QtGui.QPainter(self)
 
-        # draw image first so that points will be on top of image
-        painter.drawPixmap(self.rect(), self._displayed_pixmap)
+            # draw image first so that points will be on top of image
+            painter.drawPixmap(self.rect(), self._displayed_pixmap)
 
-        pen = QtGui.QPen()
-        pen.setWidth(5)
-        pen.setColor(QtGui.QColor('blue'))
-        painter.setPen(pen)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        for pos in self.chosen_points[self.frame_displayed_index]:
-            painter.drawPoint(pos)
+            pen = QtGui.QPen()
+            pen.setWidth(5)
+
+            # inner squares
+            pen.setColor(QtGui.QColor('purple'))
+            painter.setPen(pen)
+            for square in self._shapes.inner_squares[self.frame_displayed_index]:
+                for point in square.points:
+                    painter.drawPoint(point)
+
+            # outer squares
+            pen.setColor(QtGui.QColor('red'))
+            painter.setPen(pen)
+            for square in self._shapes.outer_squares[self.frame_displayed_index]:
+                for point in square.points:
+                    painter.drawPoint(point)
+
+            # points
+            pen.setColor(QtGui.QColor('blue'))
+            painter.setPen(pen)
+            for point in self._shapes.chosen_points[self.frame_displayed_index]:
+                painter.drawPoint(point)
+
+            # call update / setPalette(painter)
+        except Exception as ex:
+            print('paintEvent', ex)
+
+    def _initial_image_size(self):
+        ''':return Original size of images.'''
+        image = qimage2ndarray.array2qimage(self.frames[0])
+        if image.isNull():
+            image = QtGui.QImage('images\\unavailable.jpg')
+        qimg = QtGui.QPixmap.fromImage(image)
+        return QtGui.QPixmap(qimg).size()
 
     def set_image(self, img_numpy_array):
 
         image = qimage2ndarray.array2qimage(img_numpy_array)
         if image.isNull():
             image = QtGui.QImage('images\\unavailable.jpg')
+        image = image.scaled(self._image_size)
         qimg = QtGui.QPixmap.fromImage(image)
         self._displayed_pixmap = QtGui.QPixmap(qimg)
         # scale image to fit label
-        self._displayed_pixmap.scaled(self.width(), self.height(), QtCore.Qt.KeepAspectRatio)
+        self._displayed_pixmap.scaled(image.width(), image.height(), QtCore.Qt.KeepAspectRatio)
         self.setAlignment(QtCore.Qt.AlignCenter)
         self.setScaledContents(True)
         self.setMinimumSize(512, 512)
         self.show()
-
-    def wheelEvent(self, event):
-        '''Change frames when user uses wheel scroll.'''
-        modifiers = QtWidgets.QApplication.keyboardModifiers()
-        if modifiers == QtCore.Qt.ControlModifier:
-            print('control modifier')
-            self._zoom = self._zoom + event.angleDelta().y() / 1200.0
-            if self._zoom < 0:
-                self._zoom = 0
-            # self._img_pixmap = QtGui.QPixmap(self._img_pixmap, )
-            # TODO: reset pixmap with zoom. maybe easier to use qgraphicsview instead of label/widget?
-
-        direction_forwards = event.angleDelta().y() > 0
-        if direction_forwards:
-            self.frame_displayed_index += 1
-        else:
-            self.frame_displayed_index -= 1
-
-        # interpolate to start/end if reached end/start
-        if self.frame_displayed_index >= len(self.frames):
-            self.frame_displayed_index = 0
-        elif self.frame_displayed_index < 0:
-            self.frame_displayed_index = len(self.frames) - 1
-
-        # set new image and change frame number label
-
-        self.set_image(self.frames[self.frame_displayed_index])
-        self._parent.frame_number.setText(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
-
         self.update()
 
-
-class ImageDisplay(QtWidgets.QWidget):
-
-    def __init__(self, frames, nifti_obj, parent=None):
-        '''
-        :param frames: array data of shape (num_images, x, y) 
-        :param nifti_obj: [Nifti]
-        '''
-        QtWidgets.QWidget.__init__(self, parent)
-
-        # normalize images
-        self.frames = (frames.astype(np.float64) / np.max(frames)) * 255
-
-        # index of current frame displayed
-        self.frame_displayed_index = 0
-
-        self._nifti = nifti_obj
-
-        # numpy array of frames with segmentation as binary images
-        self._segmentation_array = None
-
-        self._init_ui()
-
-        # perform segmentation algorithm in separate thread so that gui is not frozen
-        self._segmentation_thread = Thread(target=self._perform_segmentation)
-        self._segmentation_thread.setDaemon(True)
-
-    def _init_ui(self):
-        self._main_layout = QtWidgets.QVBoxLayout()
-
-        # user explanation and label of frame number
-        # text_layout = QtWidgets.QHBoxLayout()
-        # user_initial_explanation = QtWidgets.QLabel(
-        #     'Scroll through frames, and several points inside the brain.')
-        # user_initial_explanation.setStyleSheet('color: black; font-size: 18pt; '
-        #                                        'font-family: Courier;')
-        # self.frame_number = QtWidgets.QLabel(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
-        # self.frame_number.setStyleSheet('color: solid purple;'
-        #                                  'font-weight: bold; font-size: 18pt; '
-        #                                  'font-family: Courier;  border-style : outset;'
-        #                                  'border-width 2px; border-radius: 10px; border-color: beige;'
-        #                                  'min-width: 10em; padding: 6px')
-        # text_layout.addWidget(user_initial_explanation)
-        # text_layout.addWidget(self.frame_number)
-
-        self._main_layout.setContentsMargins(0,0,0,0)
-
-        # self._main_layout.addStretch()
-        # self._main_layout.addLayout(text_layout)
-        # self._main_layout.addStretch()
-
-        # Label with ImageDisplay
-        self._image_label = ImageLabel(self.frames, self)
-
-        self._main_layout.addWidget(self._image_label)
-
-        self._main_layout.addStretch()
-
-        # bottom layout with 'segment' button
-        # bottom_layout = QtWidgets.QHBoxLayout()
-        # self._segment_button = QtWidgets.QPushButton('Perform Segmentation')
-        # self._segment_button.setIcon(QtGui.QIcon('images/buttons_PNG103.png'))
-        # self._segment_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        # self._segment_button.resize(200, 20)
-        # self._segment_button.clicked.connect(self._perform_segmentation_wrapper)
-        # button_style_sheet = 'background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;' \
-        #                      'border-radius: 15px; border-color: black; border-width: 3px; ' \
-        #                      'border-style: outset;'
-        # self._segment_button.setStyleSheet(button_style_sheet)
-        #
-        # self.tool_kit = ToolKit()
-        # self.tool_kit.tool_chosen.connect(self._image_label.update_tool_in_use)
-        #
-        # bottom_layout.addStretch()
-        # bottom_layout.addLayout(self.tool_kit)
-        # bottom_layout.addStretch()
-        # bottom_layout.addWidget(self._segment_button)
-        # bottom_layout.addStretch()
-
-        # self._main_layout.addLayout(bottom_layout)
-        self.setLayout(self._main_layout)
-
-    def _perform_segmentation_wrapper(self):
-
-        # setup progress bar
-        self._progress_bar = QtWidgets.QProgressBar(self)
-        # TODO: text is not displaying, fix.
-        self._progress_bar.setFormat('Segmentation running...')
-        self._progress_bar.setTextVisible(True)
-        self._progress_bar.setMinimum(0)
-        self._progress_bar.setMaximum(0)
-        self._progress_bar.resize(60, 20)
-        self._main_layout.addStretch()
-        self._main_layout.addWidget(self._progress_bar)
-        self._main_layout.addStretch()
-
-        # disable button so that only one segmentation will run at each time
-        # TODO: re-enable when loading or rechoosing points
-        self._segment_button.setEnabled(False)
-
-        # run perform_segmentation from thread so that progress bar will run in background
-        self._segmentation_thread.start()
-
-    def _remove_progress_bar(self):
-        self._main_layout.removeWidget(self._progress_bar)
-        self._progress_bar.deleteLater()
-
-    def _perform_segmentation(self):
+    def _zoom_image(self, zoom_factor):
         try:
-            if not self._image_label or not self._image_label.chosen_points:
-                return
-            seeds = []
-            for frame_idx, frame_points in self._image_label.chosen_points.items():
-                if frame_points:
-                    for pos in frame_points:
-                        translated_pos = self._image_label.label_to_image_pos(pos)
-                        seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
+            self._zoom = self._zoom + zoom_factor / 1200.0
+            if self._zoom < MIN_ZOOM:
+                self._zoom = MIN_ZOOM
 
-            # run segmentation algorithm in separate thread so that gui does not freeze
-            import time
-            a = time.time()
-            self._segmentation_array = segment3d_itk.segmentation_3d(self.frames, seeds) * 255
-            print(time.time() - a)
-
-            self._remove_progress_bar()
-
-            if self._segmentation_array is None:
-                self._segment_button.setEnabled(True)
-                return
-
-            self.set_segmentation(self._segmentation_array)
-
+            image_size = self._displayed_pixmap.size()
+            image_size.setWidth(image_size.width() * 0.9)
+            image_size.setHeight(image_size.height() * 0.9)
+            self._image_size = image_size
+            self._displayed_pixmap = self._displayed_pixmap.scaled(image_size, QtCore.Qt.KeepAspectRatio)
+            print(self._displayed_pixmap.size(), self._zoom)
         except Exception as ex:
-            print(ex, type(ex))
+            print(ex)
 
-    def set_segmentation(self, segmentation_array):
-        ''' Set given segmentation on top of scan image.'''
-        self._image_label.frames = overlap_images(self.frames, segmentation_array)
+    def wheelEvent(self, event):
+        '''Change frames when user uses wheel scroll, or zoom in if CTRL is pressed.'''
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
 
-        # set images to image label
-        self._image_label.frame_displayed_index = 0
-        self._image_label.set_image(self._image_label.frames[0])
-        self._image_label.update()
+        # zoom in\out of images
+        if modifiers == QtCore.Qt.ControlModifier:
+            self._zoom_image(event.angleDelta().y())
 
-    def save_segmentation(self, path):
-        nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
-        nib.save(nifti, path)
+        # scroll through images
+        else:
+            direction_forwards = event.angleDelta().y() > 0
+            if direction_forwards:
+                self.frame_displayed_index += 1
+            else:
+                self.frame_displayed_index -= 1
+
+            # interpolate to start/end if reached end/start
+            if self.frame_displayed_index >= len(self.frames):
+                self.frame_displayed_index = 0
+            elif self.frame_displayed_index < 0:
+                self.frame_displayed_index = len(self.frames) - 1
+
+            # set new image and change frame number label
+            self.set_image(self.frames[self.frame_displayed_index])
+            self._parent.frame_number.setText(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
+
+        self.update()
 

@@ -31,6 +31,46 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
+              <layout class="QVBoxLayout" name="verticalLayout_5">
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgba(4, 51, 57, 20)</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="pixmap">
+                  <pixmap>images/brain_large.jpg</pixmap>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="pixmap">
+                  <pixmap>images/casmip.png</pixmap>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
               <spacer name="verticalSpacer">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
@@ -46,30 +86,11 @@
              <item>
               <widget class="QLabel" name="title">
                <property name="styleSheet">
-                <string notr="true">font: italic 23pt &quot;MV Boli&quot;;
+                <string notr="true">font: italic 30pt &quot;MV Boli&quot;;
 color: rgb(255, 255, 255);</string>
                </property>
                <property name="text">
                 <string>Fetal MRI Seg Tool</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="logo">
-               <property name="maximumSize">
-                <size>
-                 <width>299</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background-color: rgb(4, 51, 57);</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="pixmap">
-                <pixmap>images/brain_bgnd.jpg</pixmap>
                </property>
               </widget>
              </item>
@@ -182,6 +203,7 @@ border-color: rgb(209, 238, 242);</string>
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuWorkspace"/>
@@ -217,6 +239,11 @@ border-color: rgb(209, 238, 242);</string>
   <action name="actionOpen_Segmentation">
    <property name="text">
     <string>Open Segmentation</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About SegTool</string>
    </property>
   </action>
  </widget>
