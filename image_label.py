@@ -159,19 +159,19 @@ class ImageLabel(QtWidgets.QLabel):
             self.mouseMoveEvent(cursor_event)
             # update() is called in mouseMoveEvent
 
-    def image_to_QPoint(self, image):
+    def _image_to_QPoint(self, image):
         '''
         Translate binary image to list of white points.
-        :param image: [numpy.ndarray] of zeros and ones.
-        :return: [list of QPoints] resembling turned on pixels
+        :param image: [numpy.ndarray] binary image, shape (num_images, x, y)
+        :return: [default dict of lists of QPoints] translated 1 pixels from image
         '''
-        ones_indices = np.argwhere(image == 1)  # Nx2
-        transformed = np.zeros(ones_indices.shape)
-        transformed[:, 0] = (ones_indices[:, 0] / image.shape[0]) * self.height()
-        transformed[:, 1] = (ones_indices[:, 1] / image.shape[1]) * self.width()
-        points = []
-        for i in range(transformed.shape[0]):
-            points.append(QtCore.QPoint(transformed[i, 0], transformed[i, 1]))
+        indices = np.where(image == 1)
+        transformed_x = (indices[1] / image.shape[1]) * self.width()
+        transformed_y = (indices[0] / image.shape[0]) * self.height()
+
+        points = defaultdict(list)
+        for frame, x, y in zip(indices[0], transformed_x, transformed_y):
+            points[frame].append(QtCore.QPoint(x, y))
         return points
 
     def label_to_image_pos(self, label_pos):
@@ -180,6 +180,16 @@ class ImageLabel(QtWidgets.QLabel):
         image_x = (label_x / self.width()) * 512
         image_y = (label_y / self.height()) * 512
         return QtCore.QPoint(image_x, image_y)
+
+    def set_segmentation(self, segmentation_array):
+        '''
+        Draw transparent points of segmentation on top of image.
+        :param segmentation_array: [numpy.ndarray] binary image
+        '''
+        marked_points = self._image_to_QPoint(segmentation_array)
+        for frame_num, points_list in marked_points.items():
+            self.shapes.add_points(frame_num, points_list)
+        self.update()
 
     def paintEvent(self, paint_event):
         try:

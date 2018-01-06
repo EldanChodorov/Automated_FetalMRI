@@ -237,7 +237,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def set_segmentation(self, segmentation_array):
         ''' Set given segmentation on top of scan image.'''
-        self._image_label.frames = overlap_images(self.frames, segmentation_array)
+        # self._image_label.frames = overlap_images(self.frames, segmentation_array)
+        self._image_label.set_segmentation(segmentation_array)
 
         # set images to image label
         self._image_label.frame_displayed_index = 0

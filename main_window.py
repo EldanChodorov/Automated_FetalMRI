@@ -234,13 +234,16 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         return file_name
 
     def _open_segmentation(self):
-        nifti_path = self._user_choose_file()
-        if not nifti_path.endswith('.nii') and not nifti_path.endswith('.nii.gz'):
-            print("Must choose Nifti format file.")
-            return
-        segmentation = np.array(nib.load(nifti_path).get_data())
-        if self._workspace:
-            self._workspace.image_display.set_segmentation(segmentation)
+        try:
+            nifti_path = self._user_choose_file()
+            if not nifti_path.endswith('.nii') and not nifti_path.endswith('.nii.gz'):
+                print("Must choose Nifti format file.")
+                return
+            segmentation = np.array(nib.load(nifti_path).get_data())
+            if self._workspace:
+                self._workspace.set_segmentation(segmentation)
+        except Exception as ex:
+            print('open_segmentation error:', ex)
 
     def _about_dialog(self):
         '''Display the `About` dialog.'''
