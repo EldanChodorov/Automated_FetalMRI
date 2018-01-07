@@ -6,6 +6,7 @@ from threading import Thread
 from PyQt5 import QtGui, QtCore, QtWidgets
 import FetalMRI_workspace
 import segment3d_itk
+from skimage.exposure import equalize_adapthist
 from image_label import ImageLabel
 from Shapes import Shapes
 from consts import USE_PAINTBRUSH, INNER_SQUARE, OUTER_SQUARE, USE_ERASER,\
@@ -215,10 +216,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                         seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
 
             # run segmentation algorithm in separate thread so that gui does not freeze
-            import time
-            a = time.time()
             self._segmentation_array = segment3d_itk.segmentation_3d(self.frames, seeds) * 255
-            print(time.time() - a)
 
             self._remove_progress_bar()
 
@@ -243,7 +241,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # set images to image label
         self._image_label.frame_displayed_index = 0
         self._image_label.set_image(self._image_label.frames[0])
-        self._image_label.update()
+        # self._image_label.update()
 
         # update stage title text
         self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
@@ -274,15 +272,16 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         :param frames: [numpy.ndarray] list of images
         :return: equalized frames, same type and shape of input.
         '''
-        equalized_frames = np.zeros(frames.shape)
-        for i in range(frames.shape[0]):
-            hist, bins = np.histogram(frames[i].flatten(), bins=256, normed=True)
-            cdf = hist.cumsum()  # cumulative distribution function
-            cdf = 255 * cdf / cdf[-1]  # normalize
-
-            # use linear interpolation of cdf to find new pixel values
-            image_equalized = np.interp(frames[i].flatten(), bins[:-1], cdf)
-            equalized_frames[i] = image_equalized.reshape(frames[i].shape)
+        equalized_frames = equalize_adapthist(frames)
+        # equalized_frames = np.zeros(frames.shape)
+        # for i in range(frames.shape[0]):
+        #     hist, bins = np.histogram(frames[i].flatten(), bins=256, normed=True)
+        #     cdf = hist.cumsum()  # cumulative distribution function
+        #     cdf = 255 * cdf / cdf[-1]  # normalize
+        #
+        #     # use linear interpolation of cdf to find new pixel values
+        #     image_equalized = np.interp(frames[i].flatten(), bins[:-1], cdf)
+        #     equalized_frames[i] = image_equalized.reshape(frames[i].shape)
 
         return equalized_frames
 

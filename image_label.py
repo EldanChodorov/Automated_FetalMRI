@@ -162,12 +162,12 @@ class ImageLabel(QtWidgets.QLabel):
     def _image_to_QPoint(self, image):
         '''
         Translate binary image to list of white points.
-        :param image: [numpy.ndarray] binary image, shape (num_images, x, y)
+        :param image: [numpy.ndarray] binary image, shape (num_images, row, col)
         :return: [default dict of lists of QPoints] translated 1 pixels from image
         '''
-        indices = np.where(image == 1)
-        transformed_x = (indices[1] / image.shape[1]) * self.width()
-        transformed_y = (indices[0] / image.shape[0]) * self.height()
+        indices = np.where((image == 1) | (image == 255))
+        transformed_x = (indices[2] / image.shape[2]) * self.width()
+        transformed_y = (indices[1] / image.shape[1]) * self.height()
 
         points = defaultdict(list)
         for frame, x, y in zip(indices[0], transformed_x, transformed_y):
@@ -189,7 +189,6 @@ class ImageLabel(QtWidgets.QLabel):
         marked_points = self._image_to_QPoint(segmentation_array)
         for frame_num, points_list in marked_points.items():
             self.shapes.add_points(frame_num, points_list)
-        self.update()
 
     def paintEvent(self, paint_event):
         try:
@@ -218,6 +217,7 @@ class ImageLabel(QtWidgets.QLabel):
             # points
             pen.setColor(QtGui.QColor(0, 0, 255, self._alpha_channel))
             painter.setPen(pen)
+            print(len(self.shapes.chosen_points[self.frame_displayed_index]))
             for point in self.shapes.chosen_points[self.frame_displayed_index]:
                 painter.drawPoint(point)
 
