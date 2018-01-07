@@ -234,7 +234,7 @@ def worker_chanvese(index, cur_img, cur_mask):
     '''
     print('start %d' % index)
     if np.any(cur_mask == 1):
-        result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=False,
+        result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=True,
                                           alpha=0.3,thresh=0)
         segmentation_mat = result
     else:
@@ -255,7 +255,7 @@ def kmeans_clean_up(cut_out_image):
     print('the min ', np.min(regulize_data))
     min = np.min(regulize_data) if np.min(regulize_data) > 0 else -1 * np.min(regulize_data)
     regulize_data += min
-    centroids, lables, score = k_means(reshape_data, n_clusters=10, n_init=5, max_iter=100, n_jobs=-2)
+    centroids, lables, score = k_means(reshape_data, n_clusters=10, n_init=5, max_iter=100)
 
     lables = lables.reshape((d, h, w))
     centroids = centroids.T
@@ -264,7 +264,7 @@ def kmeans_clean_up(cut_out_image):
     print(sorted_idx)
     lables[np.where(lables == sorted_idx[0])] = 0
     lables[np.where(lables == sorted_idx[-1])] = 0
-    lables[np.where(lables == sorted_idx[-2])] = 0
+    # lables[np.where(lables == sorted_idx[-2])] = 0
     # lables[np.where(lables == sorted_idx[1])] = 0
     lables[np.where(lables != 0)] == 1
     return lables,regulize_data
@@ -289,7 +289,6 @@ def segmentation_3d(array_data, seed_list):
         image_data = measure.regionprops(zero_mat.astype(np.int32))
         BB_object = image_data[0].bbox
         zero_mat, _ = flood_fill_hull(zero_mat)
-        # CH_object = morphology.convex_hull_image(image_data)
         small_image_1, X_top,X_size, Y_top, Y_size = cut_image_out(array_data,BB_object)
         mask_image = np.zeros(small_image_1.shape)
         mask_image[BB_object[0]- X_top:BB_object[3]-X_top, BB_object[1]-Y_top:BB_object[4]-Y_top, BB_object[
@@ -301,7 +300,7 @@ def segmentation_3d(array_data, seed_list):
         masks = []
         a = time.time()
         sitk_image = sitk.GetImageFromArray(small_image_1)
-        sitk_image_1 = sitk.CurvatureFlow(image1=sitk_image, timeStep=0.4, numberOfIterations=1)
+        sitk_image_1 = sitk.CurvatureFlow(image1=sitk_image, timeStep=0.3, numberOfIterations=1)
         small_image = sitk.GetArrayFromImage(sitk_image_1)
         # seg_mat, _, _ = chan_vese_3d.chanvese3d(I=small_image, init_mask=mask_image, max_its=300,
         #                                        display=False,
@@ -326,6 +325,7 @@ def segmentation_3d(array_data, seed_list):
         for mat, idx in results:
             seg_mat[:, :, idx] = mat
 
+
         display_image = seg_mat.transpose(get_display_axis(np.argmin(seg_mat.shape)))
         multi_slice_viewer(display_image)
         plt.show()
@@ -338,6 +338,18 @@ def segmentation_3d(array_data, seed_list):
         segmented_image_to_use = get_intrinsic_component(sitk_image, nurm_seed_vec)
         closed_holes_image = sitk.GetArrayFromImage(segmented_image_to_use)
         cut_out_image = small_image * closed_holes_image
+
+        canny_image = np.zeros(cut_out_image.shape)
+        display_image = cut_out_image.transpose(get_display_axis(np.argmin(cut_out_image.shape)))
+        multi_slice_viewer(display_image)
+
+        plt.show()
+        for j in range(num_frame):
+            canny_image[:, :, j] = feature.canny(cut_out_image[:, :, j], sigma=0.5).astype(np.int32)
+
+        display_image = canny_image.transpose(get_display_axis(np.argmin(canny_image.shape)))
+        multi_slice_viewer(display_image)
+        plt.show()
 
         display_image = closed_holes_image.transpose(get_display_axis(np.argmin(closed_holes_image.shape)))
         multi_slice_viewer(display_image, do_gray=True)
@@ -360,24 +372,17 @@ def segmentation_3d(array_data, seed_list):
         plt.scatter(np.arange(len(hist[1:])),hist[1:])
         cut_out_image = cut_out_image * lables
 
-        display_image = cut_out_image.transpose(get_display_axis(np.argmin(cut_out_image.shape)))
-        multi_slice_viewer(display_image, do_gray=True)
-        plt.show()
+        # display_image = cut_out_image.transpose(get_display_axis(np.argmin(cut_out_image.shape)))
+        # multi_slice_viewer(display_image, do_gray=True)
+        # plt.show()
 
-        canny_image = np.zeros(cut_out_image.shape)
-        for j in range(num_frame):
-            canny_image[:,:,j] = feature.canny(cut_out_image[:, :, j], sigma=0.5).astype(np.int32)
-
-        display_image = canny_image.transpose(get_display_axis(np.argmin(canny_image.shape)))
-        multi_slice_viewer(display_image)
-        plt.show()
 
         intensty = small_image_1[np.where(lables == 1)]
         avg_color = np.average(intensty).astype(np.int32)
         print('avg_color',avg_color)
         std = np.std(intensty).astype(np.int32)
 
-        avg_colores = range(avg_color-2*int(std),avg_color+int(std/2))
+        avg_colores = range(avg_color-int(2*std),avg_color)
         print(avg_colores)
         convex_labe , _ = flood_fill_hull(lables)
 
@@ -387,45 +392,36 @@ def segmentation_3d(array_data, seed_list):
 
         smaller_images = np.zeros(small_image_1.shape)
         smaller_images[np.where(convex_labe == 1)] = small_image[np.where(convex_labe == 1)]
-
-        # display_image = smaller_images.transpose(get_display_axis(np.argmin(smaller_images.shape)))
-        # multi_slice_viewer(display_image)
-        # plt.show()
         smaller_images = smaller_images.astype(np.int32)
         for color in avg_colores:
             lables[np.where(smaller_images == color)] = 1
-        print('after new colors')
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
         multi_slice_viewer(display_image)
         plt.show()
-
-        mask = np.ones((5,5,5))
+        lables = nd.morphology.binary_closing(lables)
+        mask = np.ones((3,3))
+        big_mask = np.zeros((3,3,3))
+        big_mask[:,:,1] = mask
+        print(big_mask.shape)
+        print(big_mask)
+        diated_image = []
+        for j in range(lables.shape[2]):
+            diated_image.append(nd.morphology.binary_dilation(lables[:,:,j]))
+        diated_image = np.array(diated_image)
         # lables = nd.morphology.binary_fill_holes(lables,structure=mask)
 
+        display_image = diated_image.transpose(get_display_axis(np.argmin(diated_image.shape)))
+        multi_slice_viewer(display_image)
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
         multi_slice_viewer(display_image)
         plt.show()
-        # blob_size,bins =  np.histogram(blobs,bins=num_prop+1)
-        # plt.figure()
-        # plt.scatter(np.arange(len(blob_size)),blob_size)
-        # idx_blob = np.argsort(blob_size)
-        # num_blob = max(4,num_prop)
-        # for i in idx_blob[1:num_blob]:
-        #     lables[np.where(blobs == i)] = 1
+
 
 
         final_image = np.zeros(array_data.shape)
         h,w, z = closed_holes_image.shape
         final_image[X_top:X_top + h,Y_top:Y_top + w,:] = lables
-        # plt.scatter(range(len(hist) - 1), hist[1:])
-
-        # img = nib.Nifti1Image(lable, np.eye(4))
-        # nib.save(img, 'result_seg\\new_result9.nii.gz')
-        # final_array = sitk.GetArrayFromImage(lable * 100)
-        # final_array = lable.transpose(2, 0, 1)
-        # plt.show()
-        # clean_canny
-        # closed_holes_image
+        print(np.max(final_image))
         return final_image.transpose(2, 0, 1)
 
     except Exception as ex:
