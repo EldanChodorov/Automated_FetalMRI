@@ -205,19 +205,22 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         If directory was successfully chosen, open workspace.
         :param dir_only [bool]: if True, allow user to choose a directory. If false, must choose nifti file.
         '''
-        file_dialog = QtWidgets.QFileDialog()
-        if dir_only:
-            file_dialog.setFileMode(QtWidgets.QFileDialog.Directory)
-            file_dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
-        if not file_dialog.exec_():
-            print('Error in File Dialog.')
-            return
+        chosen_file = self._user_choose_file(dir_only)
+        # file_dialog = QtWidgets.QFileDialog()
+        # options = QtWidgets.QFileDialog.Options()
+        # options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        # if dir_only:
+        #     file_dialog.setFileMode(QtWidgets.QFileDialog.Directory)
+        #     file_dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
+        # if not file_dialog.exec_():
+        #     print('Error in File Dialog.')
+        #     return
 
         # create nifti if dicoms were selected, and open workspace with nifti object
-        chosen_files = file_dialog.selectedFiles()
-        if chosen_files:
+        # chosen_files = file_dialog.selectedFiles()
+        if chosen_file:
             # user can choose only one file at a time
-            self._source = chosen_files[0]
+            self._source = chosen_file
             if dir_only:
                 self._source = self._create_local_nifti_from_dicom(self._source)
             else:
@@ -230,14 +233,19 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         if self._workspace:
             self._workspace.save_segmentation()
 
-    def _user_choose_file(self):
+    def _user_choose_file(self, dir_only=False):
 
         file_dialog = QtWidgets.QFileDialog()
         options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(file_dialog, "Open segmentation Nifti file", "",
+        # options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        if not dir_only:
+            file_name, _ = QtWidgets.QFileDialog.getOpenFileName(file_dialog, "Open segmentation Nifti file", "",
                                                              "Nifti Files (*.nii, *.nii.gz)", options=options)
-        return file_name
+            return file_name
+        else:
+            dir_name = QtWidgets.QFileDialog.getExistingDirectory(file_dialog, "Select directory of dicoms", "",
+                                                                 options=options)
+            return dir_name
 
     def _open_segmentation(self):
         try:
@@ -246,6 +254,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
                 print("Must choose Nifti format file.")
                 return
             segmentation = np.array(nib.load(nifti_path).get_data())
+            segmentation = segmentation.transpose(2, 0, 1)  # convert to (num_frames, x, y)
             if self._workspace:
                 self._workspace.set_segmentation(segmentation)
         except Exception as ex:

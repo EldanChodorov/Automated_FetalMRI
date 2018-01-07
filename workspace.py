@@ -255,6 +255,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def save_segmentation(self):
         segmentation = self._image_label.points_to_image()
+        segmentation = segmentation.transpose(2, 0, 1)  # convert to (x, y, num_frames)
         try:
             file_dialog = QtWidgets.QFileDialog()
             options = QtWidgets.QFileDialog.Options()
