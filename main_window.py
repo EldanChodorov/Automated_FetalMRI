@@ -240,7 +240,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         # options |= QtWidgets.QFileDialog.DontUseNativeDialog
         if not dir_only:
             file_name, _ = QtWidgets.QFileDialog.getOpenFileName(file_dialog, "Open segmentation Nifti file", "",
-                                                             "Nifti Files (*.nii, *.nii.gz)", options=options)
+                                                             "All files (*);; Nifti Files (*.nii)", options=options)
             return file_name
         else:
             dir_name = QtWidgets.QFileDialog.getExistingDirectory(file_dialog, "Select directory of dicoms", "",
