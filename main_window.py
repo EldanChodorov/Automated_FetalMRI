@@ -133,6 +133,9 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.actionOpen_Segmentation.setEnabled(True)
         self.actionSave_Points.setEnabled(True)
         self.actionLoad_Points.setEnabled(True)
+        self.actionContrast_View.triggered.connect(self._workspace.contrast_view_btn.click)
+        self.actionContrast_View.setEnabled(True)
+
 
     def _open_workspace(self):
         '''
@@ -174,6 +177,9 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         dest = os.path.join(local_folder, base_name)
         try:
             shutil.copyfile(nifti_path, dest)
+        except shutil.SameFileError:
+            # will raise if copy of file already exists
+            pass
         except IOError:
             print('Permission denied.')
 

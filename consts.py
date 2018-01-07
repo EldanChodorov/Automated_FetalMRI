@@ -12,4 +12,7 @@ BRUSH_WIDTH_SMALL = 3
 BRUSH_WIDTH_MEDIUM = 6
 BRUSH_WIDTH_LARGE = 12
 
+# alpha channel to show paint as transparent
+ALPHA_TRANSPARENT = 10
+
 MIN_ZOOM = 0

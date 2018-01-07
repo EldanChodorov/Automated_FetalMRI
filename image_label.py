@@ -9,7 +9,7 @@ import segment3d_itk
 import nibabel as nib
 from Shapes import Shapes
 from consts import OUTER_SQUARE, INNER_SQUARE, USE_ERASER, USE_PAINTBRUSH, MIN_ZOOM, \
-    BRUSH_WIDTH_MEDIUM, BRUSH_WIDTH_SMALL, BRUSH_WIDTH_LARGE
+    BRUSH_WIDTH_MEDIUM, BRUSH_WIDTH_SMALL, BRUSH_WIDTH_LARGE, ALPHA_TRANSPARENT
 
 
 def overlap_images(background_img_list, mask_img_list):
@@ -83,7 +83,7 @@ class ImageLabel(QtWidgets.QLabel):
         self._image_size = self._initial_image_size()
 
         # alpha channel of painter
-        self._alpha_channel = 255
+        self.alpha_channel = 255
 
         # set view size
         self.setContentsMargins(0, 0, 0, 0)
@@ -165,7 +165,7 @@ class ImageLabel(QtWidgets.QLabel):
         :param image: [numpy.ndarray] binary image, shape (num_images, row, col)
         :return: [default dict of lists of QPoints] translated 1 pixels from image
         '''
-        indices = np.where((image == 1) | (image == 255))
+        indices = np.where((image == 1) | (image == 255))  # todo stick to one
         transformed_x = (indices[2] / image.shape[2]) * self.width()
         transformed_y = (indices[1] / image.shape[1]) * self.height()
 
@@ -181,6 +181,26 @@ class ImageLabel(QtWidgets.QLabel):
         image_y = (label_y / self.height()) * 512
         return QtCore.QPoint(image_x, image_y)
 
+    def points_to_image(self):
+        '''
+        Convert all points in Shapes object to a binary 3d image.
+        :return: [numpy.ndarray] size of frames
+        '''
+        try:
+            all_points = self.shapes.all_points()
+            image = np.zeros(self.frames.shape)
+            for frame, points_list in all_points.items():
+                for point in points_list:
+                    label_x, label_y = float(point.x()), float(point.y())
+                    image_x = (label_x / self.width()) * 512
+                    image_y = (label_y / self.height()) * 512  # TODO: make modular, might not be 512 (in all code)
+                    image[frame, image_x, image_y] = 1
+            return image
+        except Exception as ex:
+            print(ex)
+
+
+
     def set_segmentation(self, segmentation_array):
         '''
         Draw transparent points of segmentation on top of image.
@@ -189,6 +209,9 @@ class ImageLabel(QtWidgets.QLabel):
         marked_points = self._image_to_QPoint(segmentation_array)
         for frame_num, points_list in marked_points.items():
             self.shapes.add_points(frame_num, points_list)
+
+        # draw points transparently
+        self.alpha_channel = ALPHA_TRANSPARENT
 
     def paintEvent(self, paint_event):
         try:
@@ -201,23 +224,22 @@ class ImageLabel(QtWidgets.QLabel):
             pen.setWidth(self.paintbrush_size)
 
             # inner squares
-            pen.setColor(QtGui.QColor(138, 43, 226, self._alpha_channel))
+            pen.setColor(QtGui.QColor(138, 43, 226, self.alpha_channel))
             painter.setPen(pen)
             for square in self.shapes.inner_squares[self.frame_displayed_index]:
                 for point in square.points:
                     painter.drawPoint(point)
 
             # outer squares
-            pen.setColor(QtGui.QColor(255, 0, 0, self._alpha_channel))
+            pen.setColor(QtGui.QColor(255, 0, 0, self.alpha_channel))
             painter.setPen(pen)
             for square in self.shapes.outer_squares[self.frame_displayed_index]:
                 for point in square.points:
                     painter.drawPoint(point)
 
             # points
-            pen.setColor(QtGui.QColor(0, 0, 255, self._alpha_channel))
+            pen.setColor(QtGui.QColor(0, 0, 255, self.alpha_channel))
             painter.setPen(pen)
-            print(len(self.shapes.chosen_points[self.frame_displayed_index]))
             for point in self.shapes.chosen_points[self.frame_displayed_index]:
                 painter.drawPoint(point)
 

@@ -196,6 +196,8 @@ border-color: rgb(209, 238, 242);</string>
     <property name="title">
      <string>View</string>
     </property>
+    <addaction name="actionStandard_View"/>
+    <addaction name="actionContrast_View"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -287,6 +289,22 @@ border-color: rgb(209, 238, 242);</string>
    </property>
    <property name="whatsThis">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load and perform segmentation on directory containing Nifti files that have been preprocessed (marked with borders).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionStandard_View">
+   <property name="text">
+    <string>Standard View</string>
+   </property>
+  </action>
+  <action name="actionContrast_View">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Contrast View</string>
+   </property>
+   <property name="whatsThis">
+    <string>Improve contrast of image</string>
    </property>
   </action>
  </widget>

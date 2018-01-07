@@ -53,12 +53,13 @@ border-radius: 15px; border-width: 3px; border-style: outset</string>
               </property>
               <property name="styleSheet">
                <string notr="true">background-color:'white'; 
-color: black; 
+color: rgb(255, 0, 0);
+font: 75 8pt &quot;MS Shell Dlg 2&quot;;
 border-radius: 12px; border-color: red; border-width: 3px;
 border-style: outset;</string>
               </property>
               <property name="text">
-               <string/>
+               <string>Outer</string>
               </property>
               <property name="icon">
                <iconset>
@@ -73,12 +74,14 @@ border-style: outset;</string>
               </property>
               <property name="styleSheet">
                <string notr="true">background-color:'white'; 
-color: black; 
+color: rgb(133, 13, 255);
 border-radius: 12px; border-color: purple; border-width:3px;
-border-style: outset;</string>
+border-style: outset;
+font: 75 8pt &quot;MS Shell Dlg 2&quot;;
+</string>
               </property>
               <property name="text">
-               <string/>
+               <string>Inner</string>
               </property>
               <property name="icon">
                <iconset>
@@ -367,6 +370,9 @@ border-style: outset;</string>
          </item>
          <item>
           <widget class="QPushButton" name="contrast_view_btn">
+           <property name="whatsThis">
+            <string>Improve contrast of image</string>
+           </property>
            <property name="styleSheet">
             <string notr="true">background-color:rgb(145, 0, 109); color: white; font-weight: regular; font-size: 12pt;
 border-radius: 15px; border-color: black; border-width: 3px; 

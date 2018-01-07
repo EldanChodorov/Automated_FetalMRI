@@ -10,7 +10,7 @@ from skimage.exposure import equalize_adapthist
 from image_label import ImageLabel
 from Shapes import Shapes
 from consts import USE_PAINTBRUSH, INNER_SQUARE, OUTER_SQUARE, USE_ERASER,\
-    BRUSH_WIDTH_LARGE, BRUSH_WIDTH_MEDIUM, BRUSH_WIDTH_SMALL
+    BRUSH_WIDTH_LARGE, BRUSH_WIDTH_MEDIUM, BRUSH_WIDTH_SMALL, ALPHA_TRANSPARENT
 
 
 class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
@@ -201,7 +201,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def _perform_segmentation(self):
         try:
-            if not self._image_label or not self._image_label.shapes.chosen_points:
+            if not self._image_label:
+                return
+            all_points = self._image_label.shapes.all_points()
+            if not all_points:
                 return
 
             # change stage title
@@ -209,7 +212,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                                       'align="center">(please wait)</p></body></html>')
 
             seeds = []
-            for frame_idx, frame_points in self._image_label.shapes.chosen_points.items():
+            for frame_idx, frame_points in all_points.items():
                 if frame_points:
                     for pos in frame_points:
                         translated_pos = self._image_label.label_to_image_pos(pos)
@@ -235,6 +238,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def set_segmentation(self, segmentation_array):
         ''' Set given segmentation on top of scan image.'''
+        print('set segmentation', segmentation_array.shape)
         # self._image_label.frames = overlap_images(self.frames, segmentation_array)
         self._image_label.set_segmentation(segmentation_array)
 
@@ -250,9 +254,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                                      'save segmentation.')
 
     def save_segmentation(self):
-        if np.count_nonzero(self._segmentation_array) == 0:
-            print('No segmentation!')
-            return
+        segmentation = self._image_label.points_to_image()
         try:
             file_dialog = QtWidgets.QFileDialog()
             options = QtWidgets.QFileDialog.Options()
@@ -260,7 +262,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save segmentation", "",
                                         "Nifti Files (*.nii, *.nii.gz)", options=options)
             if fileName:
-                nifti = nib.Nifti1Image(self._segmentation_array, np.eye(4))
+                print('saving size', segmentation.shape)
+                nifti = nib.Nifti1Image(segmentation, np.eye(4))
                 nib.save(nifti, fileName)
                 print('Segmentation saved to %s' % fileName)
         except Exception as ex:
@@ -272,16 +275,15 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         :param frames: [numpy.ndarray] list of images
         :return: equalized frames, same type and shape of input.
         '''
-        equalized_frames = equalize_adapthist(frames)
-        # equalized_frames = np.zeros(frames.shape)
-        # for i in range(frames.shape[0]):
-        #     hist, bins = np.histogram(frames[i].flatten(), bins=256, normed=True)
-        #     cdf = hist.cumsum()  # cumulative distribution function
-        #     cdf = 255 * cdf / cdf[-1]  # normalize
-        #
-        #     # use linear interpolation of cdf to find new pixel values
-        #     image_equalized = np.interp(frames[i].flatten(), bins[:-1], cdf)
-        #     equalized_frames[i] = image_equalized.reshape(frames[i].shape)
+        equalized_frames = np.zeros(frames.shape)
+        for i in range(frames.shape[0]):
+            hist, bins = np.histogram(frames[i].flatten(), bins=256, normed=True)
+            cdf = hist.cumsum()  # cumulative distribution function
+            cdf = 255 * cdf / cdf[-1]  # normalize
+
+            # use linear interpolation of cdf to find new pixel values
+            image_equalized = np.interp(frames[i].flatten(), bins[:-1], cdf)
+            equalized_frames[i] = image_equalized.reshape(frames[i].shape)
 
         return equalized_frames
 
@@ -293,17 +295,21 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
     def load_points(self):
         '''Load a file containing points previously marked by user for current scans.'''
         if self._image_label:
-            file_dialog = QtWidgets.QFileDialog()
-            options = QtWidgets.QFileDialog.Options()
-            options |= QtWidgets.QFileDialog.DontUseNativeDialog
-            chosen_file, _ = QtWidgets.QFileDialog.getOpenFileName(file_dialog, "Choose points PICKLE file", "",
-                                                  "Pickle Files (*.pickle)", options=options)
-            if chosen_file.endswith('.pickle'):
-                with open(chosen_file, 'rb') as f:
-                    loaded = pickle.load(f)
+            try:
+                file_dialog = QtWidgets.QFileDialog()
+                options = QtWidgets.QFileDialog.Options()
+                options |= QtWidgets.QFileDialog.DontUseNativeDialog
+                chosen_file, _ = QtWidgets.QFileDialog.getOpenFileName(file_dialog, "Choose points PICKLE file", "",
+                                                      "Pickle Files (*.pickle)", options=options)
+                if chosen_file.endswith('.pickle'):
+                    with open(chosen_file, 'rb') as f:
+                        loaded = pickle.load(f)
                     if type(loaded) == Shapes:
                         self._image_label.shapes = loaded
+                        self._image_label.alpha_channel = ALPHA_TRANSPARENT
                         return
+            except EOFError:
+                print('Empty file.')
         print('Error in loading file.')
 
 

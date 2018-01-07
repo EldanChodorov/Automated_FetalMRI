@@ -87,22 +87,37 @@ class Shapes:
         Open dialog for user to pick directory in which to Shapes objects (points marked).
         :param original_nifti_path: [str] path of nifti originally opened in workspace.
         '''
-        print(original_nifti_path)
-        file_dialog = QtWidgets.QFileDialog()
-        file_dialog.setDefaultSuffix('.pickle')
-        options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save points PICKLE file", "",
-                                    "Pickle Files (*.pickle)", options=options)
-        if file_name:
-            if not file_name.endswith('.pickle'):
-                file_name += '.pickle'
-            try:
-                with open(file_name, 'wb') as f:
-                    pickle.dump(self, f)
-                print('Points marked saved to %s' % file_name)
-            except pickle.PickleError:
-                print('Error saving file.')
+        try:
+            file_dialog = QtWidgets.QFileDialog()
+            file_dialog.setDefaultSuffix('.pickle')
+            options = QtWidgets.QFileDialog.Options()
+            options |= QtWidgets.QFileDialog.DontUseNativeDialog
+            file_name, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save points PICKLE file", "",
+                                        "Pickle Files (*.pickle)", options=options)
+            if file_name:
+                if not file_name.endswith('.pickle'):
+                    file_name += '.pickle'
+                try:
+                    with open(file_name, 'wb') as f:
+                        pickle.dump(self, f)
+                    print('Points marked saved to %s' % file_name)
+                except pickle.PickleError:
+                    print('Error saving file.')
+        except Exception as ex:
+            print(ex)
+
+    def all_points(self):
+        ''':return: default dict of all points in shapes, without distinction to shape. '''
+        all_points = defaultdict(list)
+        for frame, points_list in self.chosen_points.items():
+            all_points[frame] = points_list
+        for frame, squares_list in self.inner_squares.items():
+            for square in squares_list:
+                all_points[frame] += square.points
+        for frame, squares_list in self.outer_squares.items():
+            for square in squares_list:
+                all_points[frame] += square.points
+        return all_points
 
 
 class Square:

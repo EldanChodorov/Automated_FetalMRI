@@ -35,10 +35,10 @@ class Ui_workspace(object):
         self.gridLayout.setObjectName("gridLayout")
         self.outer_square_btn = QtWidgets.QPushButton(self.tool_kit)
         self.outer_square_btn.setStyleSheet("background-color:\'white\'; \n"
-"color: black; \n"
+"color: rgb(255, 0, 0);\n"
+"font: 75 8pt \"MS Shell Dlg 2\";\n"
 "border-radius: 12px; border-color: red; border-width: 3px;\n"
 "border-style: outset;")
-        self.outer_square_btn.setText("")
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("images/red_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.outer_square_btn.setIcon(icon)
@@ -46,10 +46,11 @@ class Ui_workspace(object):
         self.gridLayout.addWidget(self.outer_square_btn, 5, 0, 1, 1)
         self.inner_square_btn = QtWidgets.QPushButton(self.tool_kit)
         self.inner_square_btn.setStyleSheet("background-color:\'white\'; \n"
-"color: black; \n"
+"color: rgb(133, 13, 255);\n"
 "border-radius: 12px; border-color: purple; border-width:3px;\n"
-"border-style: outset;")
-        self.inner_square_btn.setText("")
+"border-style: outset;\n"
+"font: 75 8pt \"MS Shell Dlg 2\";\n"
+"")
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap("images/purple_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.inner_square_btn.setIcon(icon1)
@@ -207,7 +208,9 @@ class Ui_workspace(object):
         _translate = QtCore.QCoreApplication.translate
         workspace.setWindowTitle(_translate("workspace", "Form"))
         self.outer_square_btn.setToolTip(_translate("workspace", "Mark middle frame with square ENCLOSING brain."))
+        self.outer_square_btn.setText(_translate("workspace", "Outer"))
         self.inner_square_btn.setToolTip(_translate("workspace", "Mark middle first and last frame with square CONTAINED in brain."))
+        self.inner_square_btn.setText(_translate("workspace", "Inner"))
         self.eraser_btn.setToolTip(_translate("workspace", "<html><head/><body><p>Use eraser to remove points or parts of segmentation.</p></body></html>"))
         self.eraser_size1_btn.setText(_translate("workspace", "1"))
         self.eraser_size2_btn.setText(_translate("workspace", "2"))
@@ -224,5 +227,6 @@ class Ui_workspace(object):
         self.perform_seg_btn.setText(_translate("workspace", "Perform Segmentation"))
         self.save_seg_btn.setText(_translate("workspace", "Save Segmentation"))
         self.standard_view_btn.setText(_translate("workspace", "Standard View"))
+        self.contrast_view_btn.setWhatsThis(_translate("workspace", "Improve contrast of image"))
         self.contrast_view_btn.setText(_translate("workspace", "Contrast View"))
 
