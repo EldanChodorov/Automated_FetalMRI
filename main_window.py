@@ -44,6 +44,10 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
 
         self._connect_menus()
 
+        # reset images - backup copies may not exist
+        self.label.setPixmap(QtGui.QPixmap('images/brain_large.jpg'))
+        self.label_2.setPixmap(QtGui.QPixmap('images/casmip.png'))
+
         # self._set_menus()
 
         # main startup window layout

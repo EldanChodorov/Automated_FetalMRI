@@ -8,8 +8,7 @@ import cv2
 import segment3d_itk
 import nibabel as nib
 from Shapes import Shapes
-from consts import OUTER_SQUARE, INNER_SQUARE, USE_ERASER, USE_PAINTBRUSH, MIN_ZOOM, \
-    BRUSH_WIDTH_MEDIUM, BRUSH_WIDTH_SMALL, BRUSH_WIDTH_LARGE, ALPHA_TRANSPARENT
+from consts import *
 
 
 def overlap_images(background_img_list, mask_img_list):
@@ -77,7 +76,7 @@ class ImageLabel(QtWidgets.QLabel):
         # if using square tool, store here first corner clicked with mouse
         self._square_corner = None
 
-        self._zoom = MIN_ZOOM
+        self._zoom = INITIAL_ZOOM
 
         # store image size, changed upon zoom
         self._image_size = self._initial_image_size()
@@ -90,8 +89,9 @@ class ImageLabel(QtWidgets.QLabel):
         self.setAlignment(QtCore.Qt.AlignCenter)
         self.setFixedSize(1000, 1000)
         self.setMinimumSize(1000, 1000)
-        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        # self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.set_image(self.frames[self.frame_displayed_index])
+        self.setSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
 
         # decide what to do with point clicks (paint/square/erase)
         self._tool_chosen = USE_PAINTBRUSH
@@ -274,26 +274,24 @@ class ImageLabel(QtWidgets.QLabel):
         self.update()
 
     def _zoom_image(self, zoom_factor):
-        try:
-            self._zoom = self._zoom + zoom_factor / 1200.0
-            if self._zoom < MIN_ZOOM:
-                self._zoom = MIN_ZOOM
 
-            image_size = self._displayed_pixmap.size()
-            image_size.setWidth(image_size.width() * 0.9)
-            image_size.setHeight(image_size.height() * 0.9)
-            self._image_size = image_size
-            self._displayed_pixmap = self._displayed_pixmap.scaled(image_size, QtCore.Qt.KeepAspectRatio)
-            print(self._displayed_pixmap.size(), self._zoom)
-        except Exception as ex:
-            print(ex)
+        if zoom_factor < 0:
+            # zoom in
+            if self._zoom < 0.2:
+                return
+            self._zoom *= 0.98
+        else:
+            # zoom out
+            if self._zoom > 5:
+                return
+            self._zoom *= 1.01
+        self.resize(self._zoom * self._displayed_pixmap.size())
 
     def wheelEvent(self, event):
         '''Change frames when user uses wheel scroll, or zoom in if CTRL is pressed.'''
-        modifiers = QtWidgets.QApplication.keyboardModifiers()
 
         # zoom in\out of images
-        if modifiers == QtCore.Qt.ControlModifier:
+        if QtWidgets.QApplication.keyboardModifiers() == QtCore.Qt.ControlModifier:
             self._zoom_image(event.angleDelta().y())
 
         # scroll through images
