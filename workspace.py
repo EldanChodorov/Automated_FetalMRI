@@ -72,13 +72,16 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._base_size_style = self.paintbrush_size1_btn.styleSheet()
         self.tool_chosen.connect(self._emphasize_tool_button)
 
-        # Label with ImageLabel
+        # Label with ImageLabel inside scroll area
         try:
             self._image_label = ImageLabel(self.frames, contrasted_frames, self)
-            self.MainLayout.addWidget(self._image_label)
-            self.MainLayout.addStretch(1)
+            self.scrollArea = QtWidgets.QScrollArea()
+            self.scrollArea.setWidget(self._image_label)
+            self.scrollArea.setVisible(True)
+            self.scrollLayout.addWidget(self.scrollArea)
         except Exception as ex:
             print('image label init', ex)
+            exit()
 
         self._init_ui()
 

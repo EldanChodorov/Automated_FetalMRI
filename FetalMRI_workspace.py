@@ -21,6 +21,8 @@ class Ui_workspace(object):
         self.MainLayout.setContentsMargins(13, -1, -1, -1)
         self.MainLayout.setObjectName("MainLayout")
         self.ImageLayout = QtWidgets.QHBoxLayout()
+        self.ImageLayout.setContentsMargins(-1, 0, -1, -1)
+        self.ImageLayout.setSpacing(9)
         self.ImageLayout.setObjectName("ImageLayout")
         self.toolkitLayout = QtWidgets.QVBoxLayout()
         self.toolkitLayout.setObjectName("toolkitLayout")
@@ -154,6 +156,7 @@ class Ui_workspace(object):
         self.toolkitLayout.setStretch(0, 1)
         self.ImageLayout.addLayout(self.toolkitLayout)
         self.performSegBtnsLayout = QtWidgets.QVBoxLayout()
+        self.performSegBtnsLayout.setSizeConstraint(QtWidgets.QLayout.SetMaximumSize)
         self.performSegBtnsLayout.setObjectName("performSegBtnsLayout")
         self.instructions = QtWidgets.QLabel(workspace)
         self.instructions.setStyleSheet("background-color: rgb(56, 112, 83);\n"
@@ -197,7 +200,10 @@ class Ui_workspace(object):
         spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.performSegBtnsLayout.addItem(spacerItem3)
         self.ImageLayout.addLayout(self.performSegBtnsLayout)
-        self.ImageLayout.setStretch(1, 1)
+        self.scrollLayout = QtWidgets.QVBoxLayout()
+        self.scrollLayout.setObjectName("scrollLayout")
+        self.ImageLayout.addLayout(self.scrollLayout)
+        self.ImageLayout.setStretch(2, 1)
         self.MainLayout.addLayout(self.ImageLayout)
         self.gridLayout_2.addLayout(self.MainLayout, 0, 2, 1, 1)
 
@@ -229,4 +235,14 @@ class Ui_workspace(object):
         self.standard_view_btn.setText(_translate("workspace", "Standard View"))
         self.contrast_view_btn.setWhatsThis(_translate("workspace", "Improve contrast of image"))
         self.contrast_view_btn.setText(_translate("workspace", "Contrast View"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    workspace = QtWidgets.QWidget()
+    ui = Ui_workspace()
+    ui.setupUi(workspace)
+    workspace.show()
+    sys.exit(app.exec_())
 

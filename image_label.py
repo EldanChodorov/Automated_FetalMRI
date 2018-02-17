@@ -49,7 +49,7 @@ class ImageLabel(QtWidgets.QLabel):
         :param contrasted_frames: [numpy.ndarray] list of images, after histogram equalization
         :param workspace_parent: [WorkSpace]
         '''
-        QtWidgets.QLabel.__init__(self, workspace_parent)
+        QtWidgets.QLabel.__init__(self)
 
         # Workspace holding this ImageLabel instance
         self._parent = workspace_parent
@@ -87,9 +87,9 @@ class ImageLabel(QtWidgets.QLabel):
         # set view size
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFixedSize(1000, 1000)
-        self.setMinimumSize(1000, 1000)
-        # self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        # self.setFixedSize(1000, 1000)
+        # self.setMinimumSize(1000, 1000)
+
         self.set_image(self.frames[self.frame_displayed_index])
         self.setSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
 
@@ -103,12 +103,15 @@ class ImageLabel(QtWidgets.QLabel):
         Set whether frames shown are regular or contrasted.
         :param contrast_view: [bool] if True, show contrasted frames.
         '''
-        if contrast_view:
-            self.frames = self.contrasted_frames
-        else:
-            self.frames = self.standard_frames
+        try:
+            if contrast_view:
+                self.frames = self.contrasted_frames
+            else:
+                self.frames = self.standard_frames
 
-        self.set_image(self.frames[self.frame_displayed_index])
+            self.set_image(self.frames[self.frame_displayed_index])
+        except Exception as ex:
+            print(ex)
 
     @QtCore.pyqtSlot(int)
     def _update_tool_in_use(self, tool_chosen):
@@ -131,8 +134,8 @@ class ImageLabel(QtWidgets.QLabel):
         self.setCursor(QtGui.QCursor(cursor))
 
     def sizeHint(self):
-        # TODO: set label minimum size
-        return QtCore.QSize(1000, 1000)
+        # this will be the initial label size
+        return QtCore.QSize(785, 785)
 
     def mouseMoveEvent(self, QMouseEvent):
         pos = QMouseEvent.pos()
@@ -274,18 +277,26 @@ class ImageLabel(QtWidgets.QLabel):
         self.update()
 
     def _zoom_image(self, zoom_factor):
-
         if zoom_factor < 0:
             # zoom in
-            if self._zoom < 0.2:
+            if self._zoom < 0.01:
                 return
             self._zoom *= 0.98
         else:
             # zoom out
-            if self._zoom > 5:
+            if self._zoom > 20:
                 return
             self._zoom *= 1.01
-        self.resize(self._zoom * self._displayed_pixmap.size())
+        self.resize(self._zoom * self.sizeHint())
+        try:
+            self._adjust_scroll_bar(self._parent.scrollArea.horizontalScrollBar(), zoom_factor)
+            self._adjust_scroll_bar(self._parent.scrollArea.verticalScrollBar(), zoom_factor)
+        except Exception as ex:
+            print(ex)
+
+    def _adjust_scroll_bar(self, scroll_bar, factor):
+        scroll_bar.setMaximum(100000)
+        scroll_bar.setValue(int(factor * scroll_bar.value() + ((factor - 1) * scroll_bar.pageStep()/2)))
 
     def wheelEvent(self, event):
         '''Change frames when user uses wheel scroll, or zoom in if CTRL is pressed.'''

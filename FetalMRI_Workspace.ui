@@ -29,7 +29,13 @@
       <number>13</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="ImageLayout" stretch="0,1">
+      <layout class="QHBoxLayout" name="ImageLayout" stretch="0,0,1">
+       <property name="spacing">
+        <number>9</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
        <item>
         <layout class="QVBoxLayout" name="toolkitLayout" stretch="1,0,0">
          <item>
@@ -276,6 +282,9 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
        </item>
        <item>
         <layout class="QVBoxLayout" name="performSegBtnsLayout">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMaximumSize</enum>
+         </property>
          <item>
           <widget class="QLabel" name="instructions">
            <property name="toolTip">
@@ -397,6 +406,9 @@ border-style: outset;</string>
           </spacer>
          </item>
         </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="scrollLayout"/>
        </item>
       </layout>
      </item>
