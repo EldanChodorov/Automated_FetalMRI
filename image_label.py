@@ -138,7 +138,7 @@ class ImageLabel(QtWidgets.QLabel):
         return QtCore.QSize(785, 785)
 
     def mouseMoveEvent(self, QMouseEvent):
-        pos = QMouseEvent.pos()
+        pos = self.widget2image_coord(QMouseEvent.pos())
         if self._tool_chosen == USE_PAINTBRUSH:
             self.shapes.add_point(self.frame_displayed_index, pos)
         elif self._tool_chosen == USE_ERASER:
@@ -149,12 +149,19 @@ class ImageLabel(QtWidgets.QLabel):
 
     def mousePressEvent(self, QMouseEvent):
         if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE]:
-            self._square_corner = QMouseEvent.pos()
+            self._square_corner = self.widget2image_coord(QMouseEvent.pos())
+
+    def widget2image_coord(self, pos):
+        return self.mapFromParent(pos) / self._zoom
+
+    def image2widget_coord(self, pos):
+        return pos * self._zoom
 
     def mouseReleaseEvent(self, cursor_event):
         if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE] and self._square_corner:
             # using square tool
-            self.shapes.add_square(self.frame_displayed_index, self._square_corner, cursor_event.pos(), self._tool_chosen)
+            pos = self.widget2image_coord(cursor_event.pos())
+            self.shapes.add_square(self.frame_displayed_index, self._square_corner, pos, self._tool_chosen)
             self._square_corner = None
             self.update()
         else:
@@ -229,20 +236,20 @@ class ImageLabel(QtWidgets.QLabel):
             painter.setPen(pen)
             for square in self.shapes.inner_squares[self.frame_displayed_index]:
                 for point in square.points:
-                    painter.drawPoint(point)
+                    painter.drawPoint(self.image2widget_coord(point))
 
             # outer squares
             pen.setColor(QtGui.QColor(255, 0, 0, self.alpha_channel))
             painter.setPen(pen)
             for square in self.shapes.outer_squares[self.frame_displayed_index]:
                 for point in square.points:
-                    painter.drawPoint(point)
+                    painter.drawPoint(self.image2widget_coord(point))
 
             # points
             pen.setColor(QtGui.QColor(0, 0, 255, self.alpha_channel))
             painter.setPen(pen)
             for point in self.shapes.chosen_points[self.frame_displayed_index]:
-                painter.drawPoint(point)
+                painter.drawPoint(self.image2widget_coord(point))
 
             # call update / setPalette(painter)
 
