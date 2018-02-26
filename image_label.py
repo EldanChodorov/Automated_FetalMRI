@@ -202,8 +202,6 @@ class ImageLabel(QtWidgets.QLabel):
         except Exception as ex:
             print(ex)
 
-
-
     def set_segmentation(self, segmentation_array):
         '''
         Draw transparent points of segmentation on top of image.
@@ -248,7 +246,6 @@ class ImageLabel(QtWidgets.QLabel):
 
             # call update / setPalette(painter)
 
-
         except Exception as ex:
             print('paintEvent', ex)
 
@@ -277,26 +274,32 @@ class ImageLabel(QtWidgets.QLabel):
         self.update()
 
     def _zoom_image(self, zoom_factor):
-        if zoom_factor < 0:
+        if zoom_factor > 0:
             # zoom in
-            if self._zoom < 0.01:
+            if self._zoom >= 5.0:
                 return
-            self._zoom *= 0.98
+            factor = 1.05
         else:
             # zoom out
-            if self._zoom > 20:
+            if self._zoom < 0.1:
                 return
-            self._zoom *= 1.01
+            factor = 0.952381
+
+        self._zoom *= factor
         self.resize(self._zoom * self.sizeHint())
         try:
-            self._adjust_scroll_bar(self._parent.scrollArea.horizontalScrollBar(), zoom_factor)
-            self._adjust_scroll_bar(self._parent.scrollArea.verticalScrollBar(), zoom_factor)
+            self._adjust_scroll_bar(self._parent.scroll_area.horizontalScrollBar(), factor)
+            self._adjust_scroll_bar(self._parent.scroll_area.verticalScrollBar(), factor)
         except Exception as ex:
             print(ex)
 
-    def _adjust_scroll_bar(self, scroll_bar, factor):
-        scroll_bar.setMaximum(100000)
-        scroll_bar.setValue(int(factor * scroll_bar.value() + ((factor - 1) * scroll_bar.pageStep()/2)))
+    @staticmethod
+    def _adjust_scroll_bar(scroll_bar, factor):
+        # TODO setMax & setPageStep should be set upon intialization
+        scroll_bar.setMaximum(int(512 * 1.5))
+        scroll_bar.setPageStep(4)
+        new_value = factor * scroll_bar.value() + (factor - 1) * scroll_bar.pageStep()
+        scroll_bar.setValue(int(new_value))
 
     def wheelEvent(self, event):
         '''Change frames when user uses wheel scroll, or zoom in if CTRL is pressed.'''

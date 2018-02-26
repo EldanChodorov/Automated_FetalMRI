@@ -75,10 +75,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # Label with ImageLabel inside scroll area
         try:
             self._image_label = ImageLabel(self.frames, contrasted_frames, self)
-            self.scrollArea = QtWidgets.QScrollArea()
-            self.scrollArea.setWidget(self._image_label)
-            self.scrollArea.setVisible(True)
-            self.scrollLayout.addWidget(self.scrollArea)
+            self.scroll_area = ScrollArea(self._image_label)
+
+            self.scrollLayout.addWidget(self.scroll_area)
         except Exception as ex:
             print('image label init', ex)
             exit()
@@ -316,6 +315,19 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                 print('Empty file.')
         print('Error in loading file.')
 
+
+class ScrollArea(QtWidgets.QScrollArea):
+
+    def __init__(self, image_label):
+        QtWidgets.QScrollArea.__init__(self)
+        self.setWidget(image_label)
+        self.setVisible(True)
+        self.verticalScrollBar().setPageStep(100)
+        self.horizontalScrollBar().setPageStep(100)
+
+    def wheelEvent(self, event):
+        if event.type() == QtCore.QEvent.Wheel:
+            event.ignore()
 
 def overlap_images(background_img_list, mask_img_list):
     '''
