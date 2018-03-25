@@ -42,14 +42,15 @@ class Shapes:
         if square_type == OUTER_SQUARE:
             self.outer_squares[frame_number].append(Square(corner1, corner2))
 
-    def add_points(self, frame_number, points):
+    def add_points(self, frame_number, points, zoom_factor):
         '''
         Add given points to list of points.
         :param frame_number: [int] frame points were selected from.
         :param points: [list of QtCore.QPoint]
+        :param zoom_factor: [int] multiply each point by this factor
         '''
         for point in points:
-            self.add_point(frame_number, point)
+            self.add_point(frame_number, point * zoom_factor)
 
     def add_point(self, frame_number, point):
         '''

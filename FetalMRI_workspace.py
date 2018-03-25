@@ -136,10 +136,22 @@ class Ui_workspace(object):
         self.horizontalLayout_3.addWidget(self.paintbrush_size3_btn)
         self.gridLayout.addLayout(self.horizontalLayout_3, 1, 0, 1, 1)
         self.toolkitLayout.addWidget(self.tool_kit)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.toolkitLayout.addItem(spacerItem)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
         self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.jump_frame_lineedit = QtWidgets.QLineEdit(workspace)
+        self.jump_frame_lineedit.setStyleSheet("font: 75 12pt \"MS Shell Dlg 2\";\n"
+"color: black;\n"
+"font-family: Courier;\n"
+"background-color: rgb(209, 211, 211);\n"
+"border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;\n"
+"")
+        self.jump_frame_lineedit.setObjectName("jump_frame_lineedit")
+        self.verticalLayout.addWidget(self.jump_frame_lineedit)
+        self.horizontalLayout_2.addLayout(self.verticalLayout)
         self.frame_number = QtWidgets.QLabel(workspace)
         self.frame_number.setMinimumSize(QtCore.QSize(42, 278))
         self.frame_number.setMaximumSize(QtCore.QSize(70, 16777215))
@@ -151,7 +163,8 @@ class Ui_workspace(object):
 "border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;\n"
 "")
         self.frame_number.setObjectName("frame_number")
-        self.verticalLayout_3.addWidget(self.frame_number)
+        self.horizontalLayout_2.addWidget(self.frame_number)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_2)
         self.toolkitLayout.addLayout(self.verticalLayout_3)
         self.toolkitLayout.setStretch(0, 1)
         self.ImageLayout.addLayout(self.toolkitLayout)
@@ -166,8 +179,8 @@ class Ui_workspace(object):
 "")
         self.instructions.setObjectName("instructions")
         self.performSegBtnsLayout.addWidget(self.instructions)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.performSegBtnsLayout.addItem(spacerItem1)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.performSegBtnsLayout.addItem(spacerItem)
         self.perform_seg_btn = QtWidgets.QPushButton(workspace)
         self.perform_seg_btn.setStyleSheet("background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;\n"
 "border-radius: 15px; border-color: black; border-width: 3px; \n"
@@ -182,8 +195,8 @@ class Ui_workspace(object):
 "border-style: outset;")
         self.save_seg_btn.setObjectName("save_seg_btn")
         self.performSegBtnsLayout.addWidget(self.save_seg_btn)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.performSegBtnsLayout.addItem(spacerItem2)
+        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.performSegBtnsLayout.addItem(spacerItem1)
         self.standard_view_btn = QtWidgets.QPushButton(workspace)
         self.standard_view_btn.setEnabled(False)
         self.standard_view_btn.setStyleSheet("background-color:rgb(145, 0, 109); color: white; font-weight: regular; font-size: 12pt;\n"
@@ -197,8 +210,8 @@ class Ui_workspace(object):
 "border-style: outset;")
         self.contrast_view_btn.setObjectName("contrast_view_btn")
         self.performSegBtnsLayout.addWidget(self.contrast_view_btn)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.performSegBtnsLayout.addItem(spacerItem3)
+        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.performSegBtnsLayout.addItem(spacerItem2)
         self.ImageLayout.addLayout(self.performSegBtnsLayout)
         self.scrollLayout = QtWidgets.QVBoxLayout()
         self.scrollLayout.setObjectName("scrollLayout")
@@ -225,6 +238,7 @@ class Ui_workspace(object):
         self.paintbrush_size1_btn.setText(_translate("workspace", "1"))
         self.paintbrush_size2_btn.setText(_translate("workspace", "2"))
         self.paintbrush_size3_btn.setText(_translate("workspace", "3"))
+        self.jump_frame_lineedit.setPlaceholderText(_translate("workspace", "Jump to Frame..."))
         self.frame_number.setText(_translate("workspace", "<html><head/><body><p align=\"right\">20/20</p></body></html>"))
         self.instructions.setToolTip(_translate("workspace", "<html><head/><body><pre style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;\"><span style=\" font-family:\'Courier New\'; font-size:9pt; font-weight:600; color:#008080;\">In the first and last frame: draw a purple square inside the brain area.<br/>In the middle frame: draw a red square around [enclosing] the brain area.<br/>Finally: press \'Perform Segmentation\'.</span></pre></body></html>"))
         self.instructions.setStatusTip(_translate("workspace", "<html><head/><body><pre style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;\"><span style=\" font-family:\'Courier New\'; font-size:9pt; font-weight:600; color:#008080;\">In the first and last frame: draw a purple square inside the brain area.<br/>In the middle frame: draw a red square around [enclosing] the brain area.<br/>Finally: press \'Perform Segmentation\'.</span></pre></body></html>"))
@@ -235,14 +249,4 @@ class Ui_workspace(object):
         self.standard_view_btn.setText(_translate("workspace", "Standard View"))
         self.contrast_view_btn.setWhatsThis(_translate("workspace", "Improve contrast of image"))
         self.contrast_view_btn.setText(_translate("workspace", "Contrast View"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    workspace = QtWidgets.QWidget()
-    ui = Ui_workspace()
-    ui.setupUi(workspace)
-    workspace.show()
-    sys.exit(app.exec_())
 

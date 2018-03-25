@@ -97,6 +97,9 @@ class ImageLabel(QtWidgets.QLabel):
         self._tool_chosen = USE_PAINTBRUSH
         self._parent.tool_chosen.connect(self._update_tool_in_use)
 
+        # set frame number shown
+        self.change_frame_number(1)
+
     @QtCore.pyqtSlot(bool)
     def change_view(self, contrast_view):
         '''
@@ -201,6 +204,7 @@ class ImageLabel(QtWidgets.QLabel):
             image = np.zeros(self.frames.shape)
             for frame, points_list in all_points.items():
                 for point in points_list:
+                    point /= self._zoom
                     label_x, label_y = float(point.x()), float(point.y())
                     image_x = (label_x / self.width()) * 512
                     image_y = (label_y / self.height()) * 512  # TODO: make modular, might not be 512 (in all code)
@@ -216,7 +220,7 @@ class ImageLabel(QtWidgets.QLabel):
         '''
         marked_points = self._image_to_QPoint(segmentation_array)
         for frame_num, points_list in marked_points.items():
-            self.shapes.add_points(frame_num, points_list)
+            self.shapes.add_points(frame_num, points_list, self._zoom)
 
         # draw points transparently
         self.alpha_channel = ALPHA_TRANSPARENT
@@ -307,6 +311,12 @@ class ImageLabel(QtWidgets.QLabel):
         scroll_bar.setPageStep(4)
         new_value = factor * scroll_bar.value() + (factor - 1) * scroll_bar.pageStep()
         scroll_bar.setValue(int(new_value))
+
+    def change_frame_number(self, frame_number):
+        if 0 < frame_number <= len(self.frames):
+            self.frame_displayed_index = frame_number - 1
+            self.set_image(self.frames[self.frame_displayed_index])
+            self._parent.frame_number.setText(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
 
     def wheelEvent(self, event):
         '''Change frames when user uses wheel scroll, or zoom in if CTRL is pressed.'''

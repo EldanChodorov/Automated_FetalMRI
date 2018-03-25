@@ -98,6 +98,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.standard_view_btn.clicked.connect(lambda: self._contrast_button_clicked(False))
         self.contrast_view_btn.clicked.connect(lambda: self._contrast_button_clicked(True))
 
+        # connect lineEdit
+        self.jump_frame_lineedit.returnPressed.connect(self._change_frame_number)
+
         # connect brushes buttons
         self.paintbrush_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_PAINTBRUSH))
         self.paintbrush_size1_btn.clicked.connect(lambda: self._change_paintbrush_size(BRUSH_WIDTH_SMALL))
@@ -167,6 +170,16 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.eraser_size2_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
         else:
             self.eraser_size3_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+
+    @QtCore.pyqtSlot()
+    def _change_frame_number(self):
+        try:
+            frame_number = int(self.jump_frame_lineedit.text())
+        except ValueError:
+            '''frame number must be integer'''
+        else:
+            self._image_label.change_frame_number(frame_number)
+        self.jump_frame_lineedit.clear()
 
     def _contrast_button_clicked(self, contrast_view):
         '''
@@ -311,6 +324,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                         self._image_label.shapes = loaded
                         self._image_label.alpha_channel = ALPHA_TRANSPARENT
                         return
+                else:
+                    print("Implement! read segmentation from file and convert to shapes")
             except EOFError:
                 print('Empty file.')
         print('Error in loading file.')

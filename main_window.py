@@ -10,6 +10,9 @@ import FetalMRI_mainwindow
 import FetalMRI_About
 
 
+WINDOW_TITLE = 'Fetal Brain Seg Tool'
+
+
 class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
     '''
     Main window display of the program. Displays upon startup. 
@@ -34,8 +37,8 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self._local_folder = None
 
     def init_ui(self):
-        # self.setGeometry(100, 50, 1500, 900)
-        self.setWindowTitle('Fetal Brain Seg Tool')
+
+        self.setWindowTitle(WINDOW_TITLE)
         self.setWindowIcon(QtGui.QIcon('images/buttons_PNG103.png'))
 
         # connect buttons
@@ -140,7 +143,6 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.actionContrast_View.triggered.connect(self._workspace.contrast_view_btn.click)
         self.actionContrast_View.setEnabled(True)
 
-
     def _open_workspace(self):
         '''
         Open workspace window with selected scans, set workspace to be central widget.
@@ -149,6 +151,8 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
             try:
                 self._workspace = WorkSpace(self._source, self)
                 self._connect_workspace_opened()
+                file_name = self._source.split('/')[-1]
+                self.setWindowTitle(WINDOW_TITLE + ' - ' + file_name)
             except Exception as ex:
                 print(ex)
             self.setCentralWidget(self._workspace)

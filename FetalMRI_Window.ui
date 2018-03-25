@@ -204,6 +204,7 @@ border-color: rgb(209, 238, 242);</string>
      <string>Tools</string>
     </property>
     <addaction name="actionProcess_Ready_Files"/>
+    <addaction name="actionMarked_Files"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -305,6 +306,11 @@ border-color: rgb(209, 238, 242);</string>
    </property>
    <property name="whatsThis">
     <string>Improve contrast of image</string>
+   </property>
+  </action>
+  <action name="actionMarked_Files">
+   <property name="text">
+    <string>Marked Files</string>
    </property>
   </action>
  </widget>
