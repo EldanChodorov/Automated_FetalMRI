@@ -8,8 +8,7 @@ import cv2
 import segment3d_itk
 import nibabel as nib
 from Shapes import Shapes
-from consts import OUTER_SQUARE, INNER_SQUARE, USE_ERASER, USE_PAINTBRUSH, MIN_ZOOM, \
-    BRUSH_WIDTH_MEDIUM, BRUSH_WIDTH_SMALL, BRUSH_WIDTH_LARGE, ALPHA_TRANSPARENT
+from consts import *
 
 
 def overlap_images(background_img_list, mask_img_list):
@@ -50,7 +49,7 @@ class ImageLabel(QtWidgets.QLabel):
         :param contrasted_frames: [numpy.ndarray] list of images, after histogram equalization
         :param workspace_parent: [WorkSpace]
         '''
-        QtWidgets.QLabel.__init__(self, workspace_parent)
+        QtWidgets.QLabel.__init__(self)
 
         # Workspace holding this ImageLabel instance
         self._parent = workspace_parent
@@ -77,7 +76,7 @@ class ImageLabel(QtWidgets.QLabel):
         # if using square tool, store here first corner clicked with mouse
         self._square_corner = None
 
-        self._zoom = MIN_ZOOM
+        self._zoom = INITIAL_ZOOM
 
         # store image size, changed upon zoom
         self._image_size = self._initial_image_size()
@@ -88,14 +87,18 @@ class ImageLabel(QtWidgets.QLabel):
         # set view size
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFixedSize(1000, 1000)
-        self.setMinimumSize(1000, 1000)
-        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        # self.setFixedSize(1000, 1000)
+        # self.setMinimumSize(1000, 1000)
+
         self.set_image(self.frames[self.frame_displayed_index])
+        self.setSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
 
         # decide what to do with point clicks (paint/square/erase)
         self._tool_chosen = USE_PAINTBRUSH
         self._parent.tool_chosen.connect(self._update_tool_in_use)
+
+        # set frame number shown
+        self.change_frame_number(1)
 
     @QtCore.pyqtSlot(bool)
     def change_view(self, contrast_view):
@@ -103,12 +106,15 @@ class ImageLabel(QtWidgets.QLabel):
         Set whether frames shown are regular or contrasted.
         :param contrast_view: [bool] if True, show contrasted frames.
         '''
-        if contrast_view:
-            self.frames = self.contrasted_frames
-        else:
-            self.frames = self.standard_frames
+        try:
+            if contrast_view:
+                self.frames = self.contrasted_frames
+            else:
+                self.frames = self.standard_frames
 
-        self.set_image(self.frames[self.frame_displayed_index])
+            self.set_image(self.frames[self.frame_displayed_index])
+        except Exception as ex:
+            print(ex)
 
     @QtCore.pyqtSlot(int)
     def _update_tool_in_use(self, tool_chosen):
@@ -131,11 +137,11 @@ class ImageLabel(QtWidgets.QLabel):
         self.setCursor(QtGui.QCursor(cursor))
 
     def sizeHint(self):
-        # TODO: set label minimum size
-        return QtCore.QSize(1000, 1000)
+        # this will be the initial label size
+        return QtCore.QSize(785, 785)
 
     def mouseMoveEvent(self, QMouseEvent):
-        pos = QMouseEvent.pos()
+        pos = self.widget2image_coord(QMouseEvent.pos())
         if self._tool_chosen == USE_PAINTBRUSH:
             self.shapes.add_point(self.frame_displayed_index, pos)
         elif self._tool_chosen == USE_ERASER:
@@ -146,12 +152,19 @@ class ImageLabel(QtWidgets.QLabel):
 
     def mousePressEvent(self, QMouseEvent):
         if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE]:
-            self._square_corner = QMouseEvent.pos()
+            self._square_corner = self.widget2image_coord(QMouseEvent.pos())
+
+    def widget2image_coord(self, pos):
+        return self.mapFromParent(pos) / self._zoom
+
+    def image2widget_coord(self, pos):
+        return pos * self._zoom
 
     def mouseReleaseEvent(self, cursor_event):
         if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE] and self._square_corner:
             # using square tool
-            self.shapes.add_square(self.frame_displayed_index, self._square_corner, cursor_event.pos(), self._tool_chosen)
+            pos = self.widget2image_coord(cursor_event.pos())
+            self.shapes.add_square(self.frame_displayed_index, self._square_corner, pos, self._tool_chosen)
             self._square_corner = None
             self.update()
         else:
@@ -191,6 +204,7 @@ class ImageLabel(QtWidgets.QLabel):
             image = np.zeros(self.frames.shape)
             for frame, points_list in all_points.items():
                 for point in points_list:
+                    point /= self._zoom
                     label_x, label_y = float(point.x()), float(point.y())
                     image_x = (label_x / self.width()) * 512
                     image_y = (label_y / self.height()) * 512  # TODO: make modular, might not be 512 (in all code)
@@ -199,8 +213,6 @@ class ImageLabel(QtWidgets.QLabel):
         except Exception as ex:
             print(ex)
 
-
-
     def set_segmentation(self, segmentation_array):
         '''
         Draw transparent points of segmentation on top of image.
@@ -208,7 +220,7 @@ class ImageLabel(QtWidgets.QLabel):
         '''
         marked_points = self._image_to_QPoint(segmentation_array)
         for frame_num, points_list in marked_points.items():
-            self.shapes.add_points(frame_num, points_list)
+            self.shapes.add_points(frame_num, points_list, self._zoom)
 
         # draw points transparently
         self.alpha_channel = ALPHA_TRANSPARENT
@@ -228,23 +240,22 @@ class ImageLabel(QtWidgets.QLabel):
             painter.setPen(pen)
             for square in self.shapes.inner_squares[self.frame_displayed_index]:
                 for point in square.points:
-                    painter.drawPoint(point)
+                    painter.drawPoint(self.image2widget_coord(point))
 
             # outer squares
             pen.setColor(QtGui.QColor(255, 0, 0, self.alpha_channel))
             painter.setPen(pen)
             for square in self.shapes.outer_squares[self.frame_displayed_index]:
                 for point in square.points:
-                    painter.drawPoint(point)
+                    painter.drawPoint(self.image2widget_coord(point))
 
             # points
             pen.setColor(QtGui.QColor(0, 0, 255, self.alpha_channel))
             painter.setPen(pen)
             for point in self.shapes.chosen_points[self.frame_displayed_index]:
-                painter.drawPoint(point)
+                painter.drawPoint(self.image2widget_coord(point))
 
             # call update / setPalette(painter)
-
 
         except Exception as ex:
             print('paintEvent', ex)
@@ -274,26 +285,44 @@ class ImageLabel(QtWidgets.QLabel):
         self.update()
 
     def _zoom_image(self, zoom_factor):
-        try:
-            self._zoom = self._zoom + zoom_factor / 1200.0
-            if self._zoom < MIN_ZOOM:
-                self._zoom = MIN_ZOOM
+        if zoom_factor > 0:
+            # zoom in
+            if self._zoom >= 5.0:
+                return
+            factor = 1.05
+        else:
+            # zoom out
+            if self._zoom < 0.1:
+                return
+            factor = 0.952381
 
-            image_size = self._displayed_pixmap.size()
-            image_size.setWidth(image_size.width() * 0.9)
-            image_size.setHeight(image_size.height() * 0.9)
-            self._image_size = image_size
-            self._displayed_pixmap = self._displayed_pixmap.scaled(image_size, QtCore.Qt.KeepAspectRatio)
-            print(self._displayed_pixmap.size(), self._zoom)
+        self._zoom *= factor
+        self.resize(self._zoom * self.sizeHint())
+        try:
+            self._adjust_scroll_bar(self._parent.scroll_area.horizontalScrollBar(), factor)
+            self._adjust_scroll_bar(self._parent.scroll_area.verticalScrollBar(), factor)
         except Exception as ex:
             print(ex)
 
+    @staticmethod
+    def _adjust_scroll_bar(scroll_bar, factor):
+        # TODO setMax & setPageStep should be set upon intialization
+        scroll_bar.setMaximum(int(512 * 1.5))
+        scroll_bar.setPageStep(4)
+        new_value = factor * scroll_bar.value() + (factor - 1) * scroll_bar.pageStep()
+        scroll_bar.setValue(int(new_value))
+
+    def change_frame_number(self, frame_number):
+        if 0 < frame_number <= len(self.frames):
+            self.frame_displayed_index = frame_number - 1
+            self.set_image(self.frames[self.frame_displayed_index])
+            self._parent.frame_number.setText(str(self.frame_displayed_index + 1) + "/" + str(len(self.frames)))
+
     def wheelEvent(self, event):
         '''Change frames when user uses wheel scroll, or zoom in if CTRL is pressed.'''
-        modifiers = QtWidgets.QApplication.keyboardModifiers()
 
         # zoom in\out of images
-        if modifiers == QtCore.Qt.ControlModifier:
+        if QtWidgets.QApplication.keyboardModifiers() == QtCore.Qt.ControlModifier:
             self._zoom_image(event.angleDelta().y())
 
         # scroll through images

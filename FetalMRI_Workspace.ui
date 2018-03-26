@@ -29,9 +29,15 @@
       <number>13</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="ImageLayout" stretch="0,1">
+      <layout class="QHBoxLayout" name="ImageLayout" stretch="0,0,1">
+       <property name="spacing">
+        <number>9</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
        <item>
-        <layout class="QVBoxLayout" name="toolkitLayout" stretch="1,0,0">
+        <layout class="QVBoxLayout" name="toolkitLayout" stretch="1,0">
          <item>
           <widget class="QFrame" name="tool_kit">
            <property name="styleSheet">
@@ -226,49 +232,59 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
            <item>
-            <widget class="QLabel" name="frame_number">
-             <property name="minimumSize">
-              <size>
-               <width>42</width>
-               <height>278</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>70</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="autoFillBackground">
-              <bool>false</bool>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
+            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+               <item>
+                <widget class="QLineEdit" name="jump_frame_lineedit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
+color: black;
+font-family: Courier;
+background-color: rgb(209, 211, 211);
+border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
+</string>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Jump to Frame...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QLabel" name="frame_number">
+               <property name="minimumSize">
+                <size>
+                 <width>42</width>
+                 <height>278</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>70</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
 color: rgb(255, 255, 255);
 font-family: Courier;
 background-color: rgb(4, 51, 57);
 border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
 </string>
-             </property>
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;20/20&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-            </widget>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;20/20&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
@@ -276,6 +292,9 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
        </item>
        <item>
         <layout class="QVBoxLayout" name="performSegBtnsLayout">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMaximumSize</enum>
+         </property>
          <item>
           <widget class="QLabel" name="instructions">
            <property name="toolTip">
@@ -397,6 +416,9 @@ border-style: outset;</string>
           </spacer>
          </item>
         </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="scrollLayout"/>
        </item>
       </layout>
      </item>

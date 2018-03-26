@@ -40,7 +40,7 @@ def sitk_show(img, title=None, margin=0.05, dpi=40):
     if title:
         plt.title(title)
 
-    # plt.show()
+    # #plt.show()
 
 
 def remove_keymap_conflicts(new_keys_set):
@@ -167,8 +167,8 @@ def get_intrinsic_component(image, seed_list,with_care = True):
     # image1 = nd.morphology.binary_dilation(image1, iterations=1).astype(np.int32)
     print('finding inteinsic 2')
     # display_image = image1.transpose(get_display_axis(np.argmin(image1.shape)))
-    # multi_slice_viewer(display_image)
-    # plt.show()
+    # #multi_slice_viewer(display_image)
+    # #plt.show()
     return sitk.GetImageFromArray(image1)
 
 
@@ -234,7 +234,7 @@ def worker_chanvese(index, cur_img, cur_mask):
     '''
     print('start %d' % index)
     if np.any(cur_mask == 1):
-        result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=True,
+        result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=False,
                                           alpha=0.3,thresh=0)
         segmentation_mat = result
     else:
@@ -327,8 +327,8 @@ def segmentation_3d(array_data, seed_list):
 
 
         display_image = seg_mat.transpose(get_display_axis(np.argmin(seg_mat.shape)))
-        multi_slice_viewer(display_image)
-        plt.show()
+        #multi_slice_viewer(display_image)
+        #plt.show()
 
         sitk_image = sitk.GetImageFromArray(seg_mat.astype(np.int32))  # (x, y,frame_num)
         nurm_seed_vec = seed_vec.copy()
@@ -341,23 +341,23 @@ def segmentation_3d(array_data, seed_list):
 
         canny_image = np.zeros(cut_out_image.shape)
         display_image = cut_out_image.transpose(get_display_axis(np.argmin(cut_out_image.shape)))
-        multi_slice_viewer(display_image)
+        #multi_slice_viewer(display_image)
 
-        plt.show()
+        #plt.show()
         for j in range(num_frame):
             canny_image[:, :, j] = feature.canny(cut_out_image[:, :, j], sigma=0.5).astype(np.int32)
 
         display_image = canny_image.transpose(get_display_axis(np.argmin(canny_image.shape)))
-        multi_slice_viewer(display_image)
-        plt.show()
+        #multi_slice_viewer(display_image)
+        #plt.show()
 
         display_image = closed_holes_image.transpose(get_display_axis(np.argmin(closed_holes_image.shape)))
-        multi_slice_viewer(display_image, do_gray=True)
+        #multi_slice_viewer(display_image, do_gray=True)
 
         lables , regulize_data = kmeans_clean_up(cut_out_image)
 
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
-        multi_slice_viewer(display_image, do_gray=False)
+        #multi_slice_viewer(display_image, do_gray=False)
 
         lables = sitk.GetImageFromArray(lables)
         lables = get_intrinsic_component(lables,nurm_seed_vec,with_care= False)
@@ -365,7 +365,7 @@ def segmentation_3d(array_data, seed_list):
         # lables_blobs, num_connected = measure.label(lables, return_num=True)
         # print('the num of blobs is ', num_connected)
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
-        multi_slice_viewer(display_image,do_gray=True)
+        #multi_slice_viewer(display_image,do_gray=True)
         plt.figure()
         print(np.min(regulize_data.astype(np.int32)))
         hist, bins = np.histogram(regulize_data,bins=256)
@@ -373,8 +373,8 @@ def segmentation_3d(array_data, seed_list):
         cut_out_image = cut_out_image * lables
 
         # display_image = cut_out_image.transpose(get_display_axis(np.argmin(cut_out_image.shape)))
-        # multi_slice_viewer(display_image, do_gray=True)
-        # plt.show()
+        # #multi_slice_viewer(display_image, do_gray=True)
+        # #plt.show()
 
 
         intensty = small_image_1[np.where(lables == 1)]
@@ -387,8 +387,8 @@ def segmentation_3d(array_data, seed_list):
         convex_labe , _ = flood_fill_hull(lables)
 
         display_image = convex_labe.transpose(get_display_axis(np.argmin(convex_labe.shape)))
-        multi_slice_viewer(display_image)
-        plt.show()
+        #multi_slice_viewer(display_image)
+        #plt.show()
 
         smaller_images = np.zeros(small_image_1.shape)
         smaller_images[np.where(convex_labe == 1)] = small_image[np.where(convex_labe == 1)]
@@ -396,8 +396,8 @@ def segmentation_3d(array_data, seed_list):
         for color in avg_colores:
             lables[np.where(smaller_images == color)] = 1
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
-        multi_slice_viewer(display_image)
-        plt.show()
+        #multi_slice_viewer(display_image)
+        #plt.show()
         lables = nd.morphology.binary_closing(lables)
         mask = np.ones((3,3))
         big_mask = np.zeros((3,3,3))
@@ -411,10 +411,10 @@ def segmentation_3d(array_data, seed_list):
         # lables = nd.morphology.binary_fill_holes(lables,structure=mask)
 
         display_image = diated_image.transpose(get_display_axis(np.argmin(diated_image.shape)))
-        multi_slice_viewer(display_image)
+        #multi_slice_viewer(display_image)
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
-        multi_slice_viewer(display_image)
-        plt.show()
+        #multi_slice_viewer(display_image)
+        #plt.show()
 
 
 
@@ -471,7 +471,7 @@ def segmentation_3d_1(array_data, seed_list):
         # bins = int(np.max(cut_out_image)) - int(np.min(cut_out_image)) + 1
         hist = np.bincount(cut_out_image.flatten().astype(np.int32))
         plt.scatter(range(len(hist)), hist)
-        # plt.show()
+        # #plt.show()
         d, h, w = cut_out_image.shape
         regulize_data = (cut_out_image.flatten()).reshape((d * h * w, 1))
         kmean = KMeans(n_clusters=3).fit(regulize_data)
@@ -512,15 +512,15 @@ def segmentation_3d_3d(array_data, seed_list):
 
         segmented_image_to_use_3d = get_intrinsic_component(sitk_image_3d, seed_list)
         # display_image = segmented_image_to_use_3d.transpose(get_display_axis(np.argmin(segmented_image_to_use_3d.shape)))
-        # multi_slice_viewer(display_image)
-        # plt.show()
+        # #multi_slice_viewer(display_image)
+        # #plt.show()
         img = nib.Nifti1Image(segmented_image_to_use_3d, np.eye(4))
         nib.save(img, 'result_seg\\new_result_chan_vase_3d.nii.gz')
         for j in range(num_frame):
             cur_img = array_data[:, :, j]
             cur_mask = zero_mat[:, :, j]
             if np.any(cur_mask == 1):
-                result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1000, display=True,
+                result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1000, display=False,
                                                   alpha=0.1)
                 seg_mat[:, :, j] = result
             else:
@@ -536,8 +536,8 @@ def segmentation_3d_3d(array_data, seed_list):
         # closed_holes_image = close_holes_opening_closing(segmented_image_to_use)
         closed_holes_image = sitk.GetArrayFromImage(segmented_image_to_use)
         display_image = closed_holes_image.transpose(get_display_axis(np.argmin(closed_holes_image.shape)))
-        # multi_slice_viewer(display_image)
-        # plt.show()
+        # #multi_slice_viewer(display_image)
+        # #plt.show()
         img = nib.Nifti1Image(closed_holes_image, np.eye(4))
         nib.save(img, 'result_seg\\new_result_chan_vase_2d.nii.gz')
 

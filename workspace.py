@@ -72,13 +72,15 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._base_size_style = self.paintbrush_size1_btn.styleSheet()
         self.tool_chosen.connect(self._emphasize_tool_button)
 
-        # Label with ImageLabel
+        # Label with ImageLabel inside scroll area
         try:
             self._image_label = ImageLabel(self.frames, contrasted_frames, self)
-            self.MainLayout.addWidget(self._image_label)
-            self.MainLayout.addStretch(1)
+            self.scroll_area = ScrollArea(self._image_label)
+
+            self.scrollLayout.addWidget(self.scroll_area)
         except Exception as ex:
             print('image label init', ex)
+            exit()
 
         self._init_ui()
 
@@ -95,6 +97,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.save_seg_btn.clicked.connect(self.save_segmentation)
         self.standard_view_btn.clicked.connect(lambda: self._contrast_button_clicked(False))
         self.contrast_view_btn.clicked.connect(lambda: self._contrast_button_clicked(True))
+
+        # connect lineEdit
+        self.jump_frame_lineedit.returnPressed.connect(self._change_frame_number)
 
         # connect brushes buttons
         self.paintbrush_btn.clicked.connect(lambda: self.tool_chosen.emit(USE_PAINTBRUSH))
@@ -165,6 +170,16 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.eraser_size2_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
         else:
             self.eraser_size3_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
+
+    @QtCore.pyqtSlot()
+    def _change_frame_number(self):
+        try:
+            frame_number = int(self.jump_frame_lineedit.text())
+        except ValueError:
+            '''frame number must be integer'''
+        else:
+            self._image_label.change_frame_number(frame_number)
+        self.jump_frame_lineedit.clear()
 
     def _contrast_button_clicked(self, contrast_view):
         '''
@@ -309,10 +324,25 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                         self._image_label.shapes = loaded
                         self._image_label.alpha_channel = ALPHA_TRANSPARENT
                         return
+                else:
+                    print("Implement! read segmentation from file and convert to shapes")
             except EOFError:
                 print('Empty file.')
         print('Error in loading file.')
 
+
+class ScrollArea(QtWidgets.QScrollArea):
+
+    def __init__(self, image_label):
+        QtWidgets.QScrollArea.__init__(self)
+        self.setWidget(image_label)
+        self.setVisible(True)
+        self.verticalScrollBar().setPageStep(100)
+        self.horizontalScrollBar().setPageStep(100)
+
+    def wheelEvent(self, event):
+        if event.type() == QtCore.QEvent.Wheel:
+            event.ignore()
 
 def overlap_images(background_img_list, mask_img_list):
     '''
