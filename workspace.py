@@ -120,6 +120,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.paintbrush_size2_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
         self.eraser_size2_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
 
+        # set up table ui
+        self.tableWidget.setWindowTitle('Workspace')
+        self.tableWidget.setHorizontalHeaderLabels(['File', 'Status'])
+
     @QtCore.pyqtSlot(int)
     def _emphasize_tool_button(self, tool_chosen):
         # set all buttons to base style

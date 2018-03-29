@@ -219,6 +219,16 @@ class Ui_workspace(object):
         self.ImageLayout.setStretch(2, 1)
         self.MainLayout.addLayout(self.ImageLayout)
         self.gridLayout_2.addLayout(self.MainLayout, 0, 2, 1, 1)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.tableWidget = QtWidgets.QTableWidget(workspace)
+        self.tableWidget.setStyleSheet("color: rgb(255, 255, 255);\n"
+"font: 75 8pt \"MS Shell Dlg 2\";")
+        self.tableWidget.setRowCount(1)
+        self.tableWidget.setColumnCount(2)
+        self.tableWidget.setObjectName("tableWidget")
+        self.verticalLayout_2.addWidget(self.tableWidget)
+        self.gridLayout_2.addLayout(self.verticalLayout_2, 0, 3, 1, 1)
 
         self.retranslateUi(workspace)
         QtCore.QMetaObject.connectSlotsByName(workspace)
