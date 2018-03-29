@@ -56,65 +56,69 @@ def chanvese(I, init_mask, max_its=1000, alpha=0.2,
     stop = False
     prev_mask = init_mask
     c = 0
+    try:
+        while (its < max_its and not stop):
+            # Get the curve's narrow band
+            idx = np.flatnonzero(np.logical_and(phi <= 1.2, phi >= -1.2))
 
-    while (its < max_its and not stop):
-        # Get the curve's narrow band
-        idx = np.flatnonzero(np.logical_and(phi <= 1.2, phi >= -1.2))
+            if len(idx) > 0:
+                # Intermediate output
+                if display:
+                    if np.mod(its, 50) == 0:
+                        print('iteration: {0}'.format(its))
+                        show_curve_and_phi(fig, I, phi, color)
+                else:
+                    if np.mod(its, 10) == 0:
+                        print('iteration: {0}'.format(its))
 
-        if len(idx) > 0:
-            # Intermediate output
-            if display:
-                if np.mod(its, 50) == 0:
-                    print('iteration: {0}'.format(its))
-                    show_curve_and_phi(fig, I, phi, color)
+                # Find interior and exterior mean
+                upts = np.flatnonzero(phi <= 0)  # interior points
+                vpts = np.flatnonzero(phi > 0)  # exterior points
+                u = np.sum(I.flat[upts]) / (len(upts) + eps)  # interior mean
+                v = np.sum(I.flat[vpts]) / (len(vpts) + eps)  # exterior mean
+
+                # Force from image information
+                F = (I.flat[idx] - u)**2 - (I.flat[idx] - v)**2
+                # Force from curvature penalty
+                curvature = get_curvature(phi, idx)
+
+                # Gradient descent to minimize energy
+                dphidt = F / np.max(np.abs(F)) + alpha * curvature
+
+                # Maintain the CFL condition
+                dt = 0.45 / (np.max(np.abs(dphidt)) + eps)
+
+                # Evolve the curve
+                phi.flat[idx] += dt * dphidt
+
+                # Keep SDF smooth
+                phi = sussman(phi, 0.5)
+
+                new_mask = phi <= 0
+                c = convergence(prev_mask, new_mask, thresh, c)
+
+                if c <= 5:
+                    its = its + 1
+                    prev_mask = new_mask.astype(np.float64)
+                else:
+                    stop = True
+
             else:
-                if np.mod(its, 10) == 0:
-                    print('iteration: {0}'.format(its))
+                break
 
-            # Find interior and exterior mean
-            upts = np.flatnonzero(phi <= 0)  # interior points
-            vpts = np.flatnonzero(phi > 0)  # exterior points
-            u = np.sum(I.flat[upts]) / (len(upts) + eps)  # interior mean
-            v = np.sum(I.flat[vpts]) / (len(vpts) + eps)  # exterior mean
+        # Final output
+        if display:
+            show_curve_and_phi(fig, I, phi, color)
+            plt.savefig('levelset_end.png', bbox_inches='tight')
 
-            # Force from image information
-            F = (I.flat[idx] - u)**2 - (I.flat[idx] - v)**2
-            # Force from curvature penalty
-            curvature = get_curvature(phi, idx)
+        # Make mask from SDF
+        seg = phi <= 0  # Get mask from levelset
 
-            # Gradient descent to minimize energy
-            dphidt = F / np.max(np.abs(F)) + alpha * curvature
-
-            # Maintain the CFL condition
-            dt = 0.45 / (np.max(np.abs(dphidt)) + eps)
-
-            # Evolve the curve
-            phi.flat[idx] += dt * dphidt
-
-            # Keep SDF smooth
-            phi = sussman(phi, 0.5)
-
-            new_mask = phi <= 0
-            c = convergence(prev_mask, new_mask, thresh, c)
-
-            if c <= 5:
-                its = its + 1
-                prev_mask = new_mask
-            else:
-                stop = True
-
-        else:
-            break
-
-    # Final output
-    if display:
-        show_curve_and_phi(fig, I, phi, color)
-        plt.savefig('levelset_end.png', bbox_inches='tight')
-
-    # Make mask from SDF
-    seg = phi <= 0  # Get mask from levelset
-
-    return seg, phi, its
+        return seg, phi, its
+    except Exception as ex:
+        print('segmentation', type(ex), ex)
+        print(its)
+        return None
 
 
 # ---------------------------------------------------------------------

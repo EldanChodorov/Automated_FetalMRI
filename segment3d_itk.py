@@ -161,10 +161,11 @@ def get_intrinsic_component(image, seed_list,with_care = True):
     print('finding inteinsic')
     image1 = data_array.copy()
     if with_care:
-        image1 = nd.morphology.binary_opening(data_array, iterations=2).astype(np.int32)
+        image1 = nd.morphology.binary_opening(data_array, iterations=1).astype(np.int32)
+        image1 = nd.morphology.binary_erosion(data_array, iterations=2).astype(np.int32)
 
     image1 = find_conected_comp(image1, seed_list).astype(np.int)
-    # image1 = nd.morphology.binary_dilation(image1, iterations=1).astype(np.int32)
+    image1 = nd.morphology.binary_dilation(image1, iterations=2).astype(np.int32)
     print('finding inteinsic 2')
     # display_image = image1.transpose(get_display_axis(np.argmin(image1.shape)))
     # #multi_slice_viewer(display_image)
@@ -235,7 +236,7 @@ def worker_chanvese(index, cur_img, cur_mask):
     print('start %d' % index)
     if np.any(cur_mask == 1):
         result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=False,
-                                          alpha=0.3,thresh=0)
+                                          alpha=0.1)
         segmentation_mat = result
     else:
         segmentation_mat = cur_mask
@@ -278,9 +279,10 @@ def segmentation_3d(array_data, seed_list):
     '''
     try:
 
-        seed_vec = np.zeros((len(seed_list),3)).astype(np.int32)
-        for i,seed in enumerate(seed_list):
-            seed_vec[i,:] = np.array([seed[1], seed[2], seed[0]])
+        # seed_vec = np.zeros((len(seed_list),3)).astype(np.int32)
+        seed_vec = np.array([np.array([seed[1], seed[2], seed[0]])for seed in seed_list])
+        # for i,seed in enumerate(seed_list):
+        #     seed_vec[i,:] = np.array([seed[1], seed[2], seed[0]])
         num_frame, x, y = array_data.shape
         array_data = array_data.transpose(1, 2, 0)
         zero_mat = np.zeros(array_data.shape)
@@ -305,11 +307,12 @@ def segmentation_3d(array_data, seed_list):
         # seg_mat, _, _ = chan_vese_3d.chanvese3d(I=small_image, init_mask=mask_image, max_its=300,
         #                                        display=False,
         #                                   alpha=0.3,thresh=0)
-
+        # results = []
         for j in range(num_frame):
+            # results.append(worker_chanvese(j,small_image[:, :, j],mask_image[:, :, j]))
             images.append(small_image[:, :, j])
             masks.append(mask_image[:, :, j])
-
+        # results = np.array(results)
 
         pool = Pool()
         results = pool.starmap(worker_chanvese, zip(range(num_frame), images, masks))
@@ -344,20 +347,20 @@ def segmentation_3d(array_data, seed_list):
         #multi_slice_viewer(display_image)
 
         #plt.show()
-        for j in range(num_frame):
-            canny_image[:, :, j] = feature.canny(cut_out_image[:, :, j], sigma=0.5).astype(np.int32)
+        # for j in range(num_frame):
+        #     canny_image[:, :, j] = feature.canny(cut_out_image[:, :, j], sigma=0.5).astype(np.int32)
 
-        display_image = canny_image.transpose(get_display_axis(np.argmin(canny_image.shape)))
-        #multi_slice_viewer(display_image)
-        #plt.show()
+        # display_image = canny_image.transpose(get_display_axis(np.argmin(canny_image.shape)))
+        # multi_slice_viewer(display_image)
+        # plt.show()
 
         display_image = closed_holes_image.transpose(get_display_axis(np.argmin(closed_holes_image.shape)))
-        #multi_slice_viewer(display_image, do_gray=True)
+        multi_slice_viewer(display_image, do_gray=True)
 
         lables , regulize_data = kmeans_clean_up(cut_out_image)
 
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
-        #multi_slice_viewer(display_image, do_gray=False)
+        multi_slice_viewer(display_image, do_gray=False)
 
         lables = sitk.GetImageFromArray(lables)
         lables = get_intrinsic_component(lables,nurm_seed_vec,with_care= False)
@@ -365,16 +368,16 @@ def segmentation_3d(array_data, seed_list):
         # lables_blobs, num_connected = measure.label(lables, return_num=True)
         # print('the num of blobs is ', num_connected)
         display_image = lables.transpose(get_display_axis(np.argmin(lables.shape)))
-        #multi_slice_viewer(display_image,do_gray=True)
+        multi_slice_viewer(display_image,do_gray=True)
         plt.figure()
         print(np.min(regulize_data.astype(np.int32)))
         hist, bins = np.histogram(regulize_data,bins=256)
         plt.scatter(np.arange(len(hist[1:])),hist[1:])
         cut_out_image = cut_out_image * lables
 
-        # display_image = cut_out_image.transpose(get_display_axis(np.argmin(cut_out_image.shape)))
-        # #multi_slice_viewer(display_image, do_gray=True)
-        # #plt.show()
+        display_image = cut_out_image.transpose(get_display_axis(np.argmin(cut_out_image.shape)))
+        multi_slice_viewer(display_image, do_gray=True)
+        plt.show()
 
 
         intensty = small_image_1[np.where(lables == 1)]
