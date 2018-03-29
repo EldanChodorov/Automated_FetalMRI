@@ -238,7 +238,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                         seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
 
             # run segmentation algorithm in separate thread so that gui does not freeze
-            self._segmentation_array = segment3d_itk.segmentation_3d(self.frames, seeds) * 255
+            self._segmentation_array = segment3d_itk.Brain_segmant().segmentation_3d(self.frames, seeds) * 255
 
             self._remove_progress_bar()
 
