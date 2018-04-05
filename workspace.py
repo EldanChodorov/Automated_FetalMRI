@@ -9,8 +9,8 @@ import segment3d_itk
 from skimage.exposure import equalize_adapthist
 from image_label import ImageLabel
 from Shapes import Shapes
-from consts import USE_PAINTBRUSH, INNER_SQUARE, OUTER_SQUARE, USE_ERASER,\
-    BRUSH_WIDTH_LARGE, BRUSH_WIDTH_MEDIUM, BRUSH_WIDTH_SMALL, ALPHA_TRANSPARENT
+from consts import *
+from scan_file import ScanFile
 
 
 class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
@@ -21,6 +21,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
     # signal that a new tool was chosen
     tool_chosen = QtCore.pyqtSignal(int)
 
+    # signal that a segmentation has finished running
+    segmentation_finished = QtCore.pyqtSignal()
+
     def __init__(self, nifti_path, parent=None):
         '''
         :param nifti_path [str]: path to Nifti file.
@@ -29,62 +32,40 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         QtWidgets.QWidget.__init__(self, parent)
         FetalMRI_workspace.Ui_workspace.__init__(self)
 
-        self._nifti_path = nifti_path
-
-        try:
-            self._nifti = nib.load(self._nifti_path)
-        except FileNotFoundError:
-            print('Error in path %s' % self._source)
-            return
-
-        self._array_data = self._nifti.get_data()
-
-        # Nifti file does not show stable shape, sometimes as (num,x,y) and at times as (x,y,num) or (x,num,y)
-        num_frames_index = self._nifti.shape.index(min(self._nifti.shape))
-        x_orig_index, y_orig_index = 1, 2
-        if num_frames_index == 1:
-            x_orig_index, y_orig_index = 0, 2
-        elif num_frames_index == 2:
-            x_orig_index, y_orig_index = 0, 1
-        self._array_data = self._array_data.transpose(num_frames_index, x_orig_index, y_orig_index)
-
         # defined in FetalMRI_workspace.Ui_workspace
         self.setupUi(self)
 
-        # normalize images
-        self.frames = (self._array_data.astype(np.float64) / np.max(self._array_data)) * 255
+        self._init_ui()
 
-        # index of current frame displayed
-        self.frame_displayed_index = 0
+        # all nifti paths held in workspace
+        self._all_scans = []
+        self._all_scans.append(ScanFile(nifti_path, self))
+        self._current_scan_idx = 0
 
-        # numpy array of frames with segmentation as binary images
-        self._segmentation_array = None
+        # display image label
+        self._all_scans[self._current_scan_idx].load_image_label()
 
-        # perform segmentation algorithm in separate thread so that gui is not frozen
-        self._segmentation_thread = Thread(target=self._perform_segmentation)
-        self._segmentation_thread.setDaemon(True)
+        # add item & remove button to table
+        item = QtWidgets.QTableWidgetItem(str(self._all_scans[self._current_scan_idx]))
+        self.tableWidget.setItem(0, 0, item)
+        button = QtWidgets.QPushButton('X')
+        button.clicked.connect(lambda: self._remove_scan(0))
+        self.tableWidget.setCellWidget(0, 2, button)
 
-        # TODO: perform in separate thread somehow
-        contrasted_frames = self._histogram_equalization(self.frames)
+        # create scrollArea containing the current image label
+        self.scroll_area = ScrollArea(self._all_scans[self._current_scan_idx].image_label)
+        self.scrollLayout.addWidget(self.scroll_area)
+
+        # scans which are in queue waiting to perform segmentation
+        self._seg_queue = []
+        self.segmentation_finished.connect(self._run_next_seg)
+
+    def _init_ui(self):
 
         # store original stylesheets
         self._base_tool_style = self.paintbrush_btn.styleSheet()
         self._base_size_style = self.paintbrush_size1_btn.styleSheet()
         self.tool_chosen.connect(self._emphasize_tool_button)
-
-        # Label with ImageLabel inside scroll area
-        try:
-            self._image_label = ImageLabel(self.frames, contrasted_frames, self)
-            self.scroll_area = ScrollArea(self._image_label)
-
-            self.scrollLayout.addWidget(self.scroll_area)
-        except Exception as ex:
-            print('image label init', ex)
-            exit()
-
-        self._init_ui()
-
-    def _init_ui(self):
 
         self.setAutoFillBackground(True)
         self.setStyleSheet('background-color: rgb(110, 137, 152)')
@@ -121,8 +102,50 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.eraser_size2_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
 
         # set up table ui
-        self.tableWidget.setWindowTitle('Workspace')
-        self.tableWidget.setHorizontalHeaderLabels(['File', 'Status'])
+        self.tableWidget.setHorizontalHeaderLabels(['File', 'Status', 'Remove'])
+        self.tableWidget.cellDoubleClicked.connect(self._switch_scan)
+
+    @QtCore.pyqtSlot(int, int)
+    def _switch_scan(self, row, col):
+        assert row < len(self._all_scans)
+        self._current_scan_idx = row
+        try:
+            self._all_scans[self._current_scan_idx].load_image_label()
+            self.scroll_area.set_image(self._all_scans[self._current_scan_idx].image_label)
+        except Exception as ex:
+            print(ex)
+
+    def add_scan(self, nifti_path):
+        new_scan = ScanFile(nifti_path, self)
+        self._all_scans.append(new_scan)
+
+        # add to workspace table
+        item = QtWidgets.QTableWidgetItem(str(new_scan))
+        full_rows = self.tableWidget.rowCount()
+        self.tableWidget.insertRow(full_rows)
+        self.tableWidget.setItem(full_rows, 0, item)
+
+        # add remove button to table
+        button = QtWidgets.QPushButton('X')
+        button.clicked.connect(lambda: self._remove_scan(full_rows))
+        self.tableWidget.setCellWidget(full_rows, 2, button)
+
+    @QtCore.pyqtSlot(int)
+    def _remove_scan(self, scan_idx):
+
+        if len(self._all_scans) == 1:
+            warn('At least one scan must remain in workspace.')
+            return
+
+        # TODO pop up warning message that all work will be lost, do you want to save?
+        self.tableWidget.removeRow(scan_idx)
+        self._all_scans.pop(scan_idx)
+
+        # choose new current scan
+        if scan_idx == 0:
+            self._current_scan_idx = 1
+        else:
+            self._current_scan_idx -= 1
 
     @QtCore.pyqtSlot(int)
     def _emphasize_tool_button(self, tool_chosen):
@@ -143,7 +166,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.outer_square_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
 
     def _change_paintbrush_size(self, size):
-        self._image_label.paintbrush_size = size
+        self._all_scans[self._current_scan_idx].image_label.paintbrush_size = size # TODO: on scan change, set paintbrush_size
         self.tool_chosen.emit(USE_PAINTBRUSH)
 
         self.paintbrush_size1_btn.setStyleSheet(self._base_size_style)
@@ -159,8 +182,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.paintbrush_size3_btn.setStyleSheet(self._base_size_style + ' border-width: 5px;')
 
     def _change_eraser_size(self, size):
-        self._image_label.eraser_size = size
-        self._image_label.shapes.eraser_width = size
+        self._all_scans[self._current_scan_idx].image_label.eraser_size = size
+        self._all_scans[self._current_scan_idx].image_label.shapes.eraser_width = size
         self.tool_chosen.emit(USE_ERASER)
 
         self.eraser_size1_btn.setStyleSheet(self._base_size_style)
@@ -182,7 +205,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         except ValueError:
             '''frame number must be integer'''
         else:
-            self._image_label.change_frame_number(frame_number)
+            self._all_scans[self._current_scan_idx].image_label.change_frame_number(frame_number)
         self.jump_frame_lineedit.clear()
 
     def _contrast_button_clicked(self, contrast_view):
@@ -190,7 +213,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         Set whether frames shown are regular or contrasted.
         :param contrast_view: [bool] if True, show contrasted frames, otherwise regular.
         '''
-        self._image_label.change_view(contrast_view)
+        self._all_scans[self._current_scan_idx].image_label.change_view(contrast_view)
         self.contrast_view_btn.setEnabled(not contrast_view)
         self.standard_view_btn.setEnabled(contrast_view)
 
@@ -211,38 +234,35 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # TODO: re-enable when loading or rechoosing points
         self.perform_seg_btn.setEnabled(False)
 
-        # run perform_segmentation from thread so that progress bar will run in background
-        self._segmentation_thread.start()
+        # if another segmentation is already running, insert request to waiting queue
+        # Todo use lock in case current seg finishes at same time, and then does not know that someone is waiting
+        if len(self._seg_queue) > 0:
+            self._seg_queue.append(self._current_scan_idx)
+        else:
+            # run perform_segmentation from thread so that progress bar will run in background
+            self._all_scans[self._current_scan_idx].run_segmentation()
+            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
+            self.tableWidget.setCellWidget(self._current_scan_idx, 1, item)
 
     def _remove_progress_bar(self):
         self.MainLayout.removeWidget(self._progress_bar)
         self._progress_bar.deleteLater()
 
-    def _perform_segmentation(self):
+    def perform_segmentation(self):
         try:
-            if not self._image_label:
-                return
-            all_points = self._image_label.shapes.all_points()
-            if not all_points:
-                return
-
             # change stage title
             self.instructions.setText('<html><head/><body><p align="center">Stage 2: Calculating Segmentation...</p><p '
                                       'align="center">(please wait)</p></body></html>')
 
-            seeds = []
-            for frame_idx, frame_points in all_points.items():
-                if frame_points:
-                    for pos in frame_points:
-                        translated_pos = self._image_label.label_to_image_pos(pos)
-                        seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
+            segmentation_array = self._all_scans[self._current_scan_idx].perform_segmentation()
 
-            # run segmentation algorithm in separate thread so that gui does not freeze
-            self._segmentation_array = segment3d_itk.Brain_segmant().segmentation_3d(self.frames, seeds) * 255
+            # update workspace table
+            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
+            self.tableWidget.setCellWidget(self._current_scan_idx, 1, item)
 
             self._remove_progress_bar()
 
-            if self._segmentation_array is None:
+            if segmentation_array is None:
                 self.perform_seg_btn.setEnabled(True)
                 self.instructions.setText(
                     '<html><head/><body><p align="center">Stage 1 [retry]: Boundary Marking...</p><p '
@@ -250,21 +270,24 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                 return
 
             self.save_seg_btn.setEnabled(True)
-            self.set_segmentation(self._segmentation_array)
+            self.set_segmentation(segmentation_array)
+            self.segmentation_finished.emit()  # next segmentation will be run
 
         except Exception as ex:
             print(ex, type(ex))
 
+    def _run_next_seg(self):
+        '''If there is a scan waiting in queue, perform its segmentation.'''
+        if len(self._seg_queue) > 0:
+            waiting_idx = self._seg_queue.pop(0)
+            self._all_scans[waiting_idx].run_segmentation()
+            item = QtWidgets.QTableWidgetItem(self._all_scans[waiting_idx].status)
+            self.tableWidget.setCellWidget(waiting_idx, 1, item)
+
     def set_segmentation(self, segmentation_array):
         ''' Set given segmentation on top of scan image.'''
         print('set segmentation', segmentation_array.shape)
-        # self._image_label.frames = overlap_images(self.frames, segmentation_array)
-        self._image_label.set_segmentation(segmentation_array)
-
-        # set images to image label
-        self._image_label.frame_displayed_index = 0
-        self._image_label.set_image(self._image_label.frames[0])
-        # self._image_label.update()
+        self._all_scans[self._current_scan_idx].set_segmentation(segmentation_array)
 
         # update stage title text
         self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
@@ -273,7 +296,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                                      'save segmentation.')
 
     def save_segmentation(self):
-        segmentation = self._image_label.points_to_image()
+        segmentation = self._all_scans[self._current_scan_idx].image_label.points_to_image()
         segmentation = segmentation.transpose(2, 0, 1)  # convert to (x, y, num_frames)
         try:
             file_dialog = QtWidgets.QFileDialog()
@@ -289,64 +312,51 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         except Exception as ex:
             print(ex)
 
-    def _histogram_equalization(self, frames):
-        '''
-        Perform histogram equalization on the given images to improve contrast.
-        :param frames: [numpy.ndarray] list of images
-        :return: equalized frames, same type and shape of input.
-        '''
-        equalized_frames = np.zeros(frames.shape)
-        for i in range(frames.shape[0]):
-            hist, bins = np.histogram(frames[i].flatten(), bins=256, normed=True)
-            cdf = hist.cumsum()  # cumulative distribution function
-            cdf = 255 * cdf / cdf[-1]  # normalize
-
-            # use linear interpolation of cdf to find new pixel values
-            image_equalized = np.interp(frames[i].flatten(), bins[:-1], cdf)
-            equalized_frames[i] = image_equalized.reshape(frames[i].shape)
-
-        return equalized_frames
-
     def save_points(self):
         '''If exists, save current points that were marked on screen by user.'''
-        if self._image_label:
-            self._image_label.shapes.save(self._nifti_path)
+        self._all_scans[self._current_scan_idx].image_label.shapes.save(self._nifti_path)
 
     def load_points(self):
         '''Load a file containing points previously marked by user for current scans.'''
-        if self._image_label:
-            try:
-                file_dialog = QtWidgets.QFileDialog()
-                options = QtWidgets.QFileDialog.Options()
-                options |= QtWidgets.QFileDialog.DontUseNativeDialog
-                chosen_file, _ = QtWidgets.QFileDialog.getOpenFileName(file_dialog, "Choose points PICKLE file", "",
-                                                      "Pickle Files (*.pickle)", options=options)
-                if chosen_file.endswith('.pickle'):
-                    with open(chosen_file, 'rb') as f:
-                        loaded = pickle.load(f)
-                    if type(loaded) == Shapes:
-                        self._image_label.shapes = loaded
-                        self._image_label.alpha_channel = ALPHA_TRANSPARENT
-                        return
-                else:
-                    print("Implement! read segmentation from file and convert to shapes")
-            except EOFError:
-                print('Empty file.')
-        print('Error in loading file.')
+        try:
+            file_dialog = QtWidgets.QFileDialog()
+            options = QtWidgets.QFileDialog.Options()
+            options |= QtWidgets.QFileDialog.DontUseNativeDialog
+            chosen_file, _ = QtWidgets.QFileDialog.getOpenFileName(file_dialog, "Choose points PICKLE file", "",
+                                                  "Pickle Files (*.pickle)", options=options)
+            if chosen_file.endswith('.pickle'):
+                with open(chosen_file, 'rb') as f:
+                    loaded = pickle.load(f)
+                if type(loaded) == Shapes:
+                    self._all_scans[self._current_scan_idx].image_label.shapes = loaded
+                    self._all_scans[self._current_scan_idx].image_label.alpha_channel = ALPHA_TRANSPARENT
+                    return
+            else:
+                print("Implement! read segmentation from file and convert to shapes")
+        except EOFError:
+            print('Empty file.')
 
 
 class ScrollArea(QtWidgets.QScrollArea):
 
     def __init__(self, image_label):
         QtWidgets.QScrollArea.__init__(self)
+        self.setStyleSheet('background-color:  rgb(4, 51, 57);')
         self.setWidget(image_label)
+        self.setAlignment(QtCore.Qt.AlignCenter)
         self.setVisible(True)
         self.verticalScrollBar().setPageStep(100)
         self.horizontalScrollBar().setPageStep(100)
 
+    def set_image(self, new_label):
+        # first take away from scrollArea the ownership over label, so that it will not delete it
+        placeholder = self.takeWidget()
+        self.setWidget(new_label)
+
     def wheelEvent(self, event):
         if event.type() == QtCore.QEvent.Wheel:
             event.ignore()
+
 
 def overlap_images(background_img_list, mask_img_list):
     '''
@@ -376,3 +386,14 @@ def overlap_images(background_img_list, mask_img_list):
         added_image = cv2.addWeighted(color_img, alpha, mask_img, 1-alpha, gamma=0)
         colored.append(added_image)
     return colored
+
+
+def warn(main_msg):
+    '''
+    Pop up a warning message box.
+    '''
+    msg_box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning, main_msg, main_msg, QtWidgets.QMessageBox.Ok)
+    msg_box.setWindowTitle('Seg Tool Warning')
+    msg_box.setMinimumSize(100, 200)
+    msg_box.exec_()
+

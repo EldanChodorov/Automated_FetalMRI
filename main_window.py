@@ -24,6 +24,8 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         FetalMRI_mainwindow.Ui_MainWindow.__init__(self)
 
+        self._workspace = None
+
         # defined in FetalMRI_design.Ui_MainWindow
         self.setupUi(self)
 
@@ -177,7 +179,15 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
                 if '.nii' not in self._source:
                     self._source = None
                 self._create_local_nifti_copy(self._source)
-            self._open_workspace()
+            try:
+                if not self._workspace:
+                    # open new workspace
+                    self._open_workspace()
+                else:
+                    # add to existing workspace
+                    self._workspace.add_scan(self._source)
+            except Exception as ex:
+                print(ex)
 
     def _save_segmentation(self):
         if self._workspace:

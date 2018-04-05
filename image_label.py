@@ -89,12 +89,16 @@ class ImageLabel(QtWidgets.QLabel):
         self.setAlignment(QtCore.Qt.AlignCenter)
         # self.setFixedSize(1000, 1000)
         # self.setMinimumSize(1000, 1000)
-
-        self.set_image(self.frames[self.frame_displayed_index])
         self.setSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
 
         # decide what to do with point clicks (paint/square/erase)
         self._tool_chosen = USE_PAINTBRUSH
+
+    def activate_image(self):
+        '''Set image to be displayed. Deactivated until image should be shown.'''
+        self.set_image(self.frames[self.frame_displayed_index])
+
+        # connect signal to be used only when image is displayed
         self._parent.tool_chosen.connect(self._update_tool_in_use)
 
         # set frame number shown
