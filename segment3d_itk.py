@@ -27,11 +27,13 @@ segmentations_lock = Lock()
 class Brain_segmant:
 
 
-    def __init__(self, brain_image = None):
+    def __init__(self, brain_image = None,display_work = False):
         self.init_points = []
         self.prev_segmantation = []
         self.brain_image = brain_image
         self.seed_vec = []
+        self.display_work = display_work
+        self.convex_segment = 0
 
 
     def add_init_points(self,seed_list ):
@@ -124,25 +126,6 @@ class Brain_segmant:
             return (2, 0, 1)
 
 
-    # def segmentation_graph_cut(data_array, seeds):
-    #     igc = pspc.ImageGraphCut(data_array, voxelsize=[1, 1, 1])
-    #     seeds = igc.interactivity()
-    #     print(seeds)
-
-
-    def segmentation_sitk_connect_threshold(self,image, seeds, lower_intensity, upper_intensity):
-        '''
-        Perform sitk.ConnectedThreshold
-        :param image: sitk.Image
-        :param seeds: list of tuples
-        :return: Image with segmentation
-        '''
-        return sitk.ConnectedThreshold(image1=image, seedList=seeds,
-                                       lower=float(lower_intensity),
-                                       upper=float(upper_intensity),
-                                       replaceValue=LABEL_SEGMENTED_COLOR)
-
-
     def close_holes_opening_closing(self,data_array):
         '''
         Close holes in image by using morphological operations.
@@ -177,14 +160,15 @@ class Brain_segmant:
         image1 = data_array.copy()
         if with_care:
             image1 = nd.morphology.binary_opening(data_array, iterations=1).astype(np.int32)
-            image1 = nd.morphology.binary_erosion(image1, iterations=2).astype(np.int32)
+            image1 = nd.morphology.binary_erosion(image1 , iterations=2).astype(np.int32)
 
         image1 = self.find_conected_comp(image1, seed_list).astype(np.int)
         image1 = nd.morphology.binary_dilation(image1, iterations=2).astype(np.int32)
         print('finding inteinsic 2')
-        # display_image = image1.transpose(get_display_axis(np.argmin(image1.shape)))
-        # #multi_slice_viewer(display_image)
-        # #plt.show()
+        if self.display_work:
+            display_image = image1.transpose(self.get_display_axis(np.argmin(image1.shape)))
+            self.multi_slice_viewer(display_image)
+            plt.show()
         return sitk.GetImageFromArray(image1)
 
 
@@ -250,9 +234,33 @@ class Brain_segmant:
         '''
         print('start %d' % index)
         if np.any(cur_mask == 1):
-            result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=False,
-                                              alpha=0.1)
+            result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=False,thresh=0.6,
+                                              alpha=0.15)
             segmentation_mat = result
+        else:
+            segmentation_mat = cur_mask
+
+        print('finish %d' % index)
+        return (segmentation_mat, index)
+
+
+    def worker_contur(self,index, cur_img, snake,cur_mask):
+        '''
+        Worker method for threading, performs chan vese.
+        Save fixed segmentation_mat in global variable.
+        :param index: [int] index of slice performing on
+        :param cur_img: image to perform algorithm on
+        :param cur_mask: mask for chan vese algorithm
+        '''
+        print('start %d' % index)
+        if snake[0].shape[0] > 1:
+            new_snake = segmentation.active_contour(cur_img,snake[0],alpha=0.005, beta=5, gamma=0.01).astype(np.int32)
+            if new_snake.shape[0] > 0:
+                new_image = np.zeros(cur_img.shape)
+                new_image[new_snake[:,0],new_snake[:,1]] = 1
+                segmentation_mat = new_image
+            else:
+                segmentation_mat = cur_mask
         else:
             segmentation_mat = cur_mask
 
@@ -266,24 +274,29 @@ class Brain_segmant:
 
     def kmeans_clean_up(self,cut_out_image):
         d, h, w = cut_out_image.shape
-        regulize_data = cut_out_image.flatten()
-        reshape_data = regulize_data.reshape((d * h * w, 1))
-        print('the min ', np.min(regulize_data))
-        min = np.min(regulize_data) if np.min(regulize_data) > 0 else -1 * np.min(regulize_data)
-        regulize_data += min
-        centroids, lables, score = k_means(reshape_data, n_clusters=10, n_init=5, max_iter=100)
+        print('before')
+        print(np.unique(cut_out_image).shape)
+        if self.display_work:
+            display_image = cut_out_image.transpose(self.get_display_axis(np.argmin(cut_out_image.shape)))
+            self.multi_slice_viewer(display_image,do_gray=True)
+            plt.show()
 
-        lables = lables.reshape((d, h, w))
-        centroids = centroids.T
-        print(centroids)
-        sorted_idx = np.argsort(centroids).flatten()
-        print(sorted_idx)
-        lables[np.where(lables == sorted_idx[0])] = 0
-        lables[np.where(lables == sorted_idx[-1])] = 0
-        lables[np.where(lables == sorted_idx[-2])] = 0
-        # lables[np.where(lables == sorted_idx[1])] = 0
-        lables[np.where(lables != 0)] == 1
-        return lables,regulize_data
+        after_quant = np.zeros((cut_out_image.shape))
+        for i,slice in enumerate(cut_out_image):
+            after_quant[i,:,:] = self.quantize(slice,levels=20,maxCount=255)
+        if self.display_work:
+            display_image = after_quant.transpose(self.get_display_axis(np.argmin(after_quant.shape)))
+            self.multi_slice_viewer(display_image,do_gray=True)
+            plt.show()
+        print('after')
+        print(np.unique(after_quant).shape)
+        for i in np.unique(after_quant):
+            print(i)
+
+
+
+
+        return after_quant
 
     def flood_fill_hull(self,image):
         points = np.transpose(np.where(image))
@@ -315,11 +328,14 @@ class Brain_segmant:
             image_data = measure.regionprops(zero_mat.astype(np.int32))
             BB_object = image_data[0].bbox
             zero_mat, _ = self.flood_fill_hull(zero_mat)
+
+
+
             small_image_1, X_top,X_size, Y_top, Y_size = self.cut_image_out(array_data,BB_object)
             mask_image = np.zeros(small_image_1.shape)
             mask_image[BB_object[0]- X_top:BB_object[3]-X_top, BB_object[1]-Y_top:BB_object[4]-Y_top, BB_object[
                 2]:BB_object[5]] = zero_mat[BB_object[0]:BB_object[3], BB_object[1]:BB_object[4], BB_object[2]:BB_object[5]]
-
+            # contour = [measure.find_contours(mask_image[:,:,i], 0.8) for i in range(mask_image.shape[2])]
 
             seg_mat = np.zeros(small_image_1.shape)
             images = []
@@ -328,16 +344,14 @@ class Brain_segmant:
             sitk_image = sitk.GetImageFromArray(small_image_1)
             sitk_image_1 = sitk.CurvatureFlow(image1=sitk_image, timeStep=0.3, numberOfIterations=1)
             small_image = sitk.GetArrayFromImage(sitk_image_1)
-            # seg_mat, _, _ = chan_vese_3d.chanvese3d(I=small_image, init_mask=mask_image, max_its=300,
-            #                                        display=False,
-            #                                   alpha=0.3,thresh=0)
             # results = []
             for j in range(num_frame):
                 # results.append(worker_chanvese(j,small_image[:, :, j],mask_image[:, :, j]))
+                # new_image = self.worker_contur(j,small_image[:, :, j],contour[j],mask_image[:, :, j])
                 images.append(small_image[:, :, j])
                 masks.append(mask_image[:, :, j])
             # results = np.array(results)
-
+            #
             pool = Pool()
             results = pool.starmap(self.worker_chanvese, zip(range(num_frame), images, masks))
             pool.close()
@@ -346,11 +360,16 @@ class Brain_segmant:
             pool.join()
             print('pool done.')
 
-            assert len(results) == num_frame
 
-            # extract segmentation slices and place into one matrix
+            assert len(results) == num_frame
+            # # extract segmentation slices and place into one matrix
             for mat, idx in results:
                 seg_mat[:, :, idx] = mat
+
+            if self.display_work:
+                display_image = seg_mat.transpose(self.get_display_axis(np.argmin(seg_mat.shape)))
+                self.multi_slice_viewer(display_image, do_gray=True)
+                plt.show()
 
             sitk_image = sitk.GetImageFromArray(seg_mat.astype(np.int32))  # (x, y,frame_num)
             nurm_seed_vec = seed_vec.copy()
@@ -359,75 +378,56 @@ class Brain_segmant:
 
             segmented_image_to_use = self.get_intrinsic_component(sitk_image, nurm_seed_vec)
             closed_holes_image = sitk.GetArrayFromImage(segmented_image_to_use)
-            cut_out_image = small_image * closed_holes_image
+            convex_holes_image,_ = self.flood_fill_hull(closed_holes_image)
+            cut_out_image = small_image * convex_holes_image
 
-            canny_image = np.zeros(cut_out_image.shape)
+            # canny_image = np.zeros(cut_out_image.shape)
             # for j in range(num_frame):
             #     canny_image[:, :, j] = feature.canny(cut_out_image[:, :, j], sigma=0.5).astype(np.int32)
 
-            display_image = closed_holes_image.transpose(self.get_display_axis(np.argmin(closed_holes_image.shape)))
-            self.multi_slice_viewer(display_image, do_gray=True)
-
-            lables , regulize_data = self.kmeans_clean_up(cut_out_image)
-
-            display_image = lables.transpose(self.get_display_axis(np.argmin(lables.shape)))
-            self.multi_slice_viewer(display_image, do_gray=False)
-
-            lables = sitk.GetImageFromArray(lables)
-            lables = self.get_intrinsic_component(lables,nurm_seed_vec,with_care= False)
-            lables = sitk.GetArrayFromImage(lables)
-            # lables_blobs, num_connected = measure.label(lables, return_num=True)
-            # print('the num of blobs is ', num_connected)
-            display_image = lables.transpose(self.get_display_axis(np.argmin(lables.shape)))
-            self.multi_slice_viewer(display_image,do_gray=True)
-            plt.figure()
-            print(np.min(regulize_data.astype(np.int32)))
-            hist, bins = np.histogram(regulize_data,bins=256)
-            plt.scatter(np.arange(len(hist[1:])),hist[1:])
-            cut_out_image = cut_out_image * lables
-
-            display_image = cut_out_image.transpose(self.get_display_axis(np.argmin(cut_out_image.shape)))
-            self.multi_slice_viewer(display_image, do_gray=True)
-            plt.show()
+            if self.display_work:
+                display_image = closed_holes_image.transpose(self.get_display_axis(np.argmin(closed_holes_image.shape)))
+                self.multi_slice_viewer(display_image, do_gray=True)
+                plt.show()
 
 
-            intensty = small_image_1[np.where(lables == 1)]
-            avg_color = np.average(intensty).astype(np.int32)
-            print('avg_color',avg_color)
-            std = np.std(intensty).astype(np.int32)
+            #clean up with kmeans
+            lables = self.kmeans_clean_up(cut_out_image)
 
-            avg_colores = range(avg_color-int(2*std),avg_color)
-            print(avg_colores)
-            convex_labe , _ = self.flood_fill_hull(lables)
+            # cut_out_image = cut_out_image * lables
 
-            smaller_images = np.zeros(small_image_1.shape)
-            smaller_images[np.where(convex_labe == 1)] = small_image[np.where(convex_labe == 1)]
-            smaller_images = smaller_images.astype(np.int32)
-            for color in avg_colores:
-                lables[np.where(smaller_images == color)] = 1
-            display_image = lables.transpose(self.get_display_axis(np.argmin(lables.shape)))
-            #multi_slice_viewer(display_image)
-            #plt.show()
-            lables = nd.morphology.binary_closing(lables)
+
+            closed_holes_image[np.where(lables == np.max(lables))] = 0
+            lables[np.where(lables == np.max(lables))] = 0
+            if self.display_work:
+                display_image = closed_holes_image.transpose(self.get_display_axis(np.argmin(closed_holes_image.shape)))
+                self.multi_slice_viewer(display_image, do_gray=True)
+                plt.show()
+            closed_holes_image[np.where(lables == np.max(lables))] = 0
+            lables[np.where(lables == np.max(lables))] = 0
+            if self.display_work:
+                display_image = closed_holes_image.transpose(self.get_display_axis(np.argmin(closed_holes_image.shape)))
+                self.multi_slice_viewer(display_image, do_gray=True)
+                plt.show()
+            closed_holes_image[np.where(lables == np.max(lables))] = 0
+            # avg_colores = range(avg_color-int(2*std),avg_color)
+            # print(avg_colores)
+            # convex_labe , _ = self.flood_fill_hull(lables)
+            #
+            # smaller_images = np.zeros(small_image_1.shape)
+            # smaller_images[np.where(convex_labe == 1)] = small_image[np.where(convex_labe == 1)]
+            # smaller_images = smaller_images.astype(np.int32)
+            # for color in avg_colores:
+            #     lables[np.where(smaller_images == color)] = 1
+            lables = nd.morphology.binary_closing(closed_holes_image)
             mask = np.ones((3,3))
             big_mask = np.zeros((3,3,3))
             big_mask[:,:,1] = mask
-            print(big_mask.shape)
-            print(big_mask)
             diated_image = []
-            for j in range(lables.shape[2]):
-                diated_image.append(nd.morphology.binary_dilation(lables[:,:,j]))
-            diated_image = np.array(diated_image)
+            # for j in range(lables.shape[2]):
+            #     diated_image.append(nd.morphology.binary_dilation(lables[:,:,j]))
+            # diated_image = np.array(diated_image)
             # lables = nd.morphology.binary_fill_holes(lables,structure=mask)
-
-            # display_image = diated_image.transpose(self.get_display_axis(np.argmin(diated_image.shape)))
-            # #multi_slice_viewer(display_image)
-            # display_image = lables.transpose(self.get_display_axis(np.argmin(lables.shape)))
-            # #multi_slice_viewer(display_image)
-            # #plt.show()
-
-
-
             final_image = np.zeros(array_data.shape)
             h,w, z = closed_holes_image.shape
             final_image[X_top:X_top + h,Y_top:Y_top + w,:] = lables
@@ -438,6 +438,81 @@ class Brain_segmant:
             print('segmentation', type(ex), ex)
             return None
 
+
+
+    def quantize(self,im, levels, qtype='uniform', maxCount=255, displayLevels=None):
+        """
+        Function to run uniform gray-level and improved gray-scale Quantization.
+        This takes in an image, and buckets the gray values depending on the params.
+        Args:
+            im (array): image to be quantized as an array of values from 0 to 255
+            levels (int): number of levels to quantize to.
+                This should be a positive integer, and smaller than the maxCount.
+            qtype (optional[string]): the type of quantization to perform.
+                Can be either 'uniform' or 'igs'; Defaults to 'uniform'.
+            maxCount (optional[int]): the maximum value for a digital count
+            displayLevels (optional[int]): the number of gray levels to expand to.
+                By default this value is None and will shrink the range of greys.
+                This value should be a positive integer when provided.
+        Return:
+            the quantized image
+        """
+        # default value if we need to return early
+        returnImage = im
+
+        # get int type
+        dtype = im.dtype
+
+        if (displayLevels == None):
+            # by default don't re-expand the image
+            displayCount = levels
+        elif displayLevels > 0:
+            displayCount = displayLevels-1
+        else:
+            print("displayLevels is an invalid value")
+            return returnImage
+
+        # we're getting one more level than we should be, so minus 1
+        if ((levels > 0) and (levels < maxCount)):
+            levels = levels - 1
+        else:
+            print("levels needs to be a positive value, and smaller than the maxCount")
+            return returnImage
+
+        if (qtype == 'uniform'):
+            # uniform method from lecture
+            returnImage = np.floor((im/((maxCount+1)/float(levels))))*(displayCount/levels)
+
+        elif (qtype == 'igs'):
+            # error diffusion method from lecture
+
+            # default error as 0 for the first pixel
+            error = 0
+
+            # the list of rows that will be turned into an image
+            returnList = []
+            for i in range(len(im)):
+                returnRow = []
+                for j in range(len(im[i])):
+                    # get a new digital count with the error
+                    errDC = im[i][j] + error
+                    # save the error for the next pixel
+                    error = errDC % (maxCount/levels)
+
+                    # calculate the new digital count, and append it to the row
+                    newDC = np.floor((errDC)/(maxCount/levels))
+                    returnRow.append(newDC*(displayCount/levels))
+                # append the row to the final image
+                returnList.append(np.array(returnRow))
+
+            returnImage = np.array(returnList, dtype)
+
+        else:
+            # invalid qtype
+            print('qtype is an invalid value, please use "uniform", or "igs"')
+
+        print(returnImage)
+        return np.array(returnImage, dtype)
 
 
 
