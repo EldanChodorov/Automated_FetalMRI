@@ -219,6 +219,8 @@ class Ui_workspace(object):
         self.ImageLayout.addLayout(self.scrollLayout)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
         self.label = QtWidgets.QLabel(workspace)
         self.label.setStyleSheet("font: 75 12pt \"MS Shell Dlg 2\";\n"
 "color: rgb(255, 255, 255);\n"
@@ -227,7 +229,15 @@ class Ui_workspace(object):
 "border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;\n"
 "")
         self.label.setObjectName("label")
-        self.verticalLayout_2.addWidget(self.label)
+        self.horizontalLayout.addWidget(self.label)
+        self.pushButton = QtWidgets.QPushButton(workspace)
+        self.pushButton.setStyleSheet("background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;\n"
+"border-radius: 15px; border-color: black; border-width: 3px; \n"
+"border-style: outset;\n"
+"")
+        self.pushButton.setObjectName("pushButton")
+        self.horizontalLayout.addWidget(self.pushButton)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.tableWidget = QtWidgets.QTableWidget(workspace)
         self.tableWidget.setStyleSheet("color: rgb(255, 255, 255);\n"
 "font: 75 8pt \"MS Shell Dlg 2\";\n"
@@ -273,4 +283,5 @@ class Ui_workspace(object):
         self.standard_view_btn.setText(_translate("workspace", "Standard View"))
         self.save_seg_btn.setText(_translate("workspace", "Save Segmentation"))
         self.label.setText(_translate("workspace", "Workspace"))
+        self.pushButton.setText(_translate("workspace", "Run All"))
 

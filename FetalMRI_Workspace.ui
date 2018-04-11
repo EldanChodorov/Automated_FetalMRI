@@ -399,19 +399,36 @@ border-style: outset;</string>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QLabel" name="label">
-           <property name="styleSheet">
-            <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="styleSheet">
+              <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
 color: rgb(255, 255, 255);
 font-family: Courier;
 background-color: rgb(4, 51, 57);
 border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
 </string>
-           </property>
-           <property name="text">
-            <string>Workspace</string>
-           </property>
-          </widget>
+             </property>
+             <property name="text">
+              <string>Workspace</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton">
+             <property name="styleSheet">
+              <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
+border-radius: 15px; border-color: black; border-width: 3px; 
+border-style: outset;
+</string>
+             </property>
+             <property name="text">
+              <string>Run All</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <widget class="QTableWidget" name="tableWidget">

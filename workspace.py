@@ -130,6 +130,12 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         button.clicked.connect(lambda: self._remove_scan(full_rows))
         self.tableWidget.setCellWidget(full_rows, 2, button)
 
+    def _run_all_segmentations(self):
+        # todo CREATE SEG QUEUE CLASS AND JUST PUSH IN TASKS
+        pass
+        self._seg_queue = range(len(self._all_scans))
+
+
     @QtCore.pyqtSlot(int)
     def _remove_scan(self, scan_idx):
 
@@ -217,8 +223,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.contrast_view_btn.setEnabled(not contrast_view)
         self.standard_view_btn.setEnabled(contrast_view)
 
-    def _perform_segmentation_wrapper(self):
-        # setup progress bar
+    def _setup_progress_bar(self):
         self._progress_bar = QtWidgets.QProgressBar(self)
         # TODO: text is not displaying, fix.
         self._progress_bar.setFormat('Segmentation running...')
@@ -229,6 +234,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.MainLayout.addStretch()
         self.MainLayout.addWidget(self._progress_bar)
         self.MainLayout.addStretch()
+
+    def _perform_segmentation_wrapper(self):
+
+        self._setup_progress_bar()
 
         # disable button so that only one segmentation will run at each time
         # TODO: re-enable when loading or rechoosing points

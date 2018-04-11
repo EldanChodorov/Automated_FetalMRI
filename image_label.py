@@ -146,6 +146,7 @@ class ImageLabel(QtWidgets.QLabel):
 
     def mouseMoveEvent(self, QMouseEvent):
         pos = self.widget2image_coord(QMouseEvent.pos())
+        print("mouseMoveEvent BEFORE %s AFTER %s" % (QMouseEvent.pos(), pos))
         if self._tool_chosen == USE_PAINTBRUSH:
             self.shapes.add_point(self.frame_displayed_index, pos)
         elif self._tool_chosen == USE_ERASER:
@@ -162,7 +163,8 @@ class ImageLabel(QtWidgets.QLabel):
         return self.mapFromParent(pos) / self._zoom
 
     def image2widget_coord(self, pos):
-        return pos * self._zoom
+        p = self.mapToParent(pos)
+        return p * self._zoom
 
     def mouseReleaseEvent(self, cursor_event):
         if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE] and self._square_corner:
