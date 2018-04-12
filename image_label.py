@@ -145,6 +145,7 @@ class ImageLabel(QtWidgets.QLabel):
 
     def sizeHint(self):
         # this will be the initial label size
+        return QtCore.QSize(1000, 1000)
         return QtCore.QSize(785, 785)
 
     def mouseMoveEvent(self, QMouseEvent):
@@ -251,7 +252,11 @@ class ImageLabel(QtWidgets.QLabel):
             if self.show_segmentation:
 
                 pen = QtGui.QPen()
-                pen.setWidth(self.paintbrush_size)
+                if self.alpha_channel == ALPHA_TRANSPARENT:
+                    # pen is too thin when transparent
+                    pen.setWidth(self.paintbrush_size + 3)
+                else:
+                    pen.setWidth(self.paintbrush_size)
 
                 # inner squares
                 pen.setColor(QtGui.QColor(138, 43, 226, self.alpha_channel))
@@ -301,14 +306,15 @@ class ImageLabel(QtWidgets.QLabel):
         self.update()
 
     def _zoom_image(self, zoom_factor):
+        print(self._zoom)
         if zoom_factor > 0:
             # zoom in
-            if self._zoom >= 5.0:
+            if self._zoom >= 3.0:
                 return
             factor = 1.05
         else:
             # zoom out
-            if self._zoom < 0.1:
+            if self._zoom < 0.9:
                 return
             factor = 0.952381
 

@@ -29,7 +29,7 @@
       <number>13</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="ImageLayout" stretch="0,8,4">
+      <layout class="QHBoxLayout" name="ImageLayout" stretch="1,8,4">
        <property name="spacing">
         <number>9</number>
        </property>

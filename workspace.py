@@ -237,7 +237,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def _perform_segmentation_wrapper(self):
 
-        self._setup_progress_bar()
+        # self._setup_progress_bar()
 
         # disable button so that only one segmentation will run at each time
         # TODO: re-enable when loading or rechoosing points
@@ -249,9 +249,12 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self._seg_queue.append(self._current_scan_idx)
         else:
             # run perform_segmentation from thread so that progress bar will run in background
-            self._all_scans[self._current_scan_idx].run_segmentation()
-            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            self.tableWidget.setCellWidget(self._current_scan_idx, 1, item)
+            try:
+                self._all_scans[self._current_scan_idx].run_segmentation()
+                item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
+                self.tableWidget.setItem(self._current_scan_idx, 1, item)
+            except Exception as ex:
+                print("perform segmentation wrapper", ex)
 
     def _remove_progress_bar(self):
         self.MainLayout.removeWidget(self._progress_bar)
@@ -267,9 +270,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
             # update workspace table
             item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            self.tableWidget.setCellWidget(self._current_scan_idx, 1, item)
+            self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
-            self._remove_progress_bar()
+            # self._remove_progress_bar()
 
             if segmentation_array is None:
                 self.perform_seg_btn.setEnabled(True)
@@ -291,7 +294,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             waiting_idx = self._seg_queue.pop(0)
             self._all_scans[waiting_idx].run_segmentation()
             item = QtWidgets.QTableWidgetItem(self._all_scans[waiting_idx].status)
-            self.tableWidget.setCellWidget(waiting_idx, 1, item)
+            self.tableWidget.setItem(waiting_idx, 1, item)
 
     def toggle_segmentation(self, show):
         '''

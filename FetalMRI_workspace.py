@@ -155,7 +155,6 @@ class Ui_workspace(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_number.sizePolicy().hasHeightForWidth())
         self.frame_number.setSizePolicy(sizePolicy)
-        self.frame_number.setMinimumSize(QtCore.QSize(42, 50))
         self.frame_number.setMaximumSize(QtCore.QSize(500, 100))
         self.frame_number.setAutoFillBackground(False)
         self.frame_number.setStyleSheet("font: 75 12pt \"MS Shell Dlg 2\";\n"
@@ -248,6 +247,7 @@ class Ui_workspace(object):
         self.tableWidget.setObjectName("tableWidget")
         self.verticalLayout_2.addWidget(self.tableWidget)
         self.ImageLayout.addLayout(self.verticalLayout_2)
+        self.ImageLayout.setStretch(0, 1)
         self.ImageLayout.setStretch(1, 8)
         self.ImageLayout.setStretch(2, 4)
         self.MainLayout.addLayout(self.ImageLayout)
