@@ -273,9 +273,8 @@ class Brain_segmant:
         # segmentations_lock.release()
 
     def kmeans_clean_up(self,cut_out_image):
-        d, h, w = cut_out_image.shape
-        print('before')
-        print(np.unique(cut_out_image).shape)
+        # print('before')
+        # print(np.unique(cut_out_image).shape)
         if self.display_work:
             display_image = cut_out_image.transpose(self.get_display_axis(np.argmin(cut_out_image.shape)))
             self.multi_slice_viewer(display_image,do_gray=True)
@@ -288,15 +287,13 @@ class Brain_segmant:
             display_image = after_quant.transpose(self.get_display_axis(np.argmin(after_quant.shape)))
             self.multi_slice_viewer(display_image,do_gray=True)
             plt.show()
-        print('after')
-        print(np.unique(after_quant).shape)
-        for i in np.unique(after_quant):
-            print(i)
+        # print('after')
+        # print(np.unique(after_quant).shape)
 
 
 
 
-        return after_quant
+        return after_quant, np.sort(np.unique(after_quant))
 
     def flood_fill_hull(self,image):
         points = np.transpose(np.where(image))
@@ -306,7 +303,7 @@ class Brain_segmant:
         out_idx = np.nonzero(deln.find_simplex(idx) + 1)
         out_img = np.zeros(image.shape)
         out_img[out_idx] = 1
-        return out_img, hull
+        return out_img
 
 
 
@@ -327,7 +324,7 @@ class Brain_segmant:
 
             image_data = measure.regionprops(zero_mat.astype(np.int32))
             BB_object = image_data[0].bbox
-            zero_mat, _ = self.flood_fill_hull(zero_mat)
+            zero_mat = self.flood_fill_hull(zero_mat)
 
 
 
@@ -378,7 +375,10 @@ class Brain_segmant:
 
             segmented_image_to_use = self.get_intrinsic_component(sitk_image, nurm_seed_vec)
             closed_holes_image = sitk.GetArrayFromImage(segmented_image_to_use)
-            convex_holes_image,_ = self.flood_fill_hull(closed_holes_image)
+            convex_holes_image = self.flood_fill_hull(closed_holes_image)
+
+            # save convex segmantation
+            self.convex_segment = convex_holes_image.copy()
             cut_out_image = small_image * convex_holes_image
 
             # canny_image = np.zeros(cut_out_image.shape)
@@ -392,37 +392,17 @@ class Brain_segmant:
 
 
             #clean up with kmeans
-            lables = self.kmeans_clean_up(cut_out_image)
+            lables,diff_vals = self.kmeans_clean_up(cut_out_image)
+
 
             # cut_out_image = cut_out_image * lables
 
 
-            closed_holes_image[np.where(lables == np.max(lables))] = 0
-            lables[np.where(lables == np.max(lables))] = 0
-            if self.display_work:
-                display_image = closed_holes_image.transpose(self.get_display_axis(np.argmin(closed_holes_image.shape)))
-                self.multi_slice_viewer(display_image, do_gray=True)
-                plt.show()
-            closed_holes_image[np.where(lables == np.max(lables))] = 0
-            lables[np.where(lables == np.max(lables))] = 0
-            if self.display_work:
-                display_image = closed_holes_image.transpose(self.get_display_axis(np.argmin(closed_holes_image.shape)))
-                self.multi_slice_viewer(display_image, do_gray=True)
-                plt.show()
-            closed_holes_image[np.where(lables == np.max(lables))] = 0
-            # avg_colores = range(avg_color-int(2*std),avg_color)
-            # print(avg_colores)
-            # convex_labe , _ = self.flood_fill_hull(lables)
-            #
-            # smaller_images = np.zeros(small_image_1.shape)
-            # smaller_images[np.where(convex_labe == 1)] = small_image[np.where(convex_labe == 1)]
-            # smaller_images = smaller_images.astype(np.int32)
-            # for color in avg_colores:
-            #     lables[np.where(smaller_images == color)] = 1
+            closed_holes_image[np.where(lables >= diff_vals[-7])] = 0
             lables = nd.morphology.binary_closing(closed_holes_image)
-            mask = np.ones((3,3))
-            big_mask = np.zeros((3,3,3))
-            big_mask[:,:,1] = mask
+            # mask = np.ones((3,3))
+            # big_mask = np.zeros((3,3,3))
+            # big_mask[:,:,1] = mask
             diated_image = []
             # for j in range(lables.shape[2]):
             #     diated_image.append(nd.morphology.binary_dilation(lables[:,:,j]))
