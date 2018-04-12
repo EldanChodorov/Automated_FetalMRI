@@ -237,7 +237,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def _perform_segmentation_wrapper(self):
 
-        self._setup_progress_bar()
+        # self._setup_progress_bar()
 
         # disable button so that only one segmentation will run at each time
         # TODO: re-enable when loading or rechoosing points
@@ -251,7 +251,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             # run perform_segmentation from thread so that progress bar will run in background
             self._all_scans[self._current_scan_idx].run_segmentation()
             item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            self.tableWidget.setCellWidget(self._current_scan_idx, 1, item)
+            # self.tableWidget.setCellWidget(self._current_scan_idx, 1, item)
 
     def _remove_progress_bar(self):
         self.MainLayout.removeWidget(self._progress_bar)
