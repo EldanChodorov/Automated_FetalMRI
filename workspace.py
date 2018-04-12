@@ -105,6 +105,12 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.tableWidget.setHorizontalHeaderLabels(['File', 'Status', 'Remove'])
         self.tableWidget.cellDoubleClicked.connect(self._switch_scan)
 
+        # hide features relevant only after segmentation
+        self.quantizationLabel.hide()
+        self.quantizationSlider.hide()
+        self.quantizationSlider.setRange(1, 10)
+        self.quantizationSlider.valueChanged.connect(self._toggle_quantization)
+
     @QtCore.pyqtSlot(int, int)
     def _switch_scan(self, row, col):
         assert row < len(self._all_scans)
@@ -272,6 +278,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
+            # show hidden features which are now relevant to work on segmentation
+            self.quantizationLabel.show()
+            self.quantizationSlider.show()
+
             # self._remove_progress_bar()
 
             if segmentation_array is None:
@@ -296,6 +306,11 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             item = QtWidgets.QTableWidgetItem(self._all_scans[waiting_idx].status)
             self.tableWidget.setItem(waiting_idx, 1, item)
 
+    def _toggle_quantization(self):
+        tick_val = self.quantizationSlider.value()
+        updated_segmentation = self._all_scans[self._current_scan_idx].get_quantization_segmentation(tick_val)
+        self._all_scans[self._current_scan_idx].set_segmentation(updated_segmentation)
+
     def toggle_segmentation(self, show):
         '''
         Show/hide the segmentation over the scan displaying.
@@ -306,7 +321,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def set_segmentation(self, segmentation_array):
         ''' Set given segmentation on top of scan image.'''
-        print('set segmentation', segmentation_array.shape)
         self._all_scans[self._current_scan_idx].set_segmentation(segmentation_array)
 
         # update stage title text

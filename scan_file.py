@@ -55,6 +55,9 @@ class ScanFile:
         # text representing scan's status: in Queue \ Processing \ Ready \ etc.
         self.status = ''
 
+        # class which performs the segmentation process
+        self._segment_worker = Brain_segmant()
+
     def load_image_label(self):
         try:
             self.image_label.activate_image()
@@ -78,8 +81,16 @@ class ScanFile:
                     seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
 
         # run segmentation algorithm in separate thread so that gui does not freeze
-        segmentation_array = Brain_segmant().segmentation_3d(self.frames, seeds) * 255
+        segmentation_array = self._segment_worker.segmentation_3d(self.frames, seeds) * 255
         return segmentation_array
+
+    def get_quantization_segmentation(self, level):
+        '''
+        Get segmentation after applying quantization stage with different quantum values.
+        :param level: [int] the quantum value to be used, in proportion.
+        :return: [numpy.ndarray] same shape as array returned from perform_segmentation()
+        '''
+        return self._segment_worker.get_quantization(level)
 
     def set_segmentation(self, segmentation_array):
         self._segmentation_array = segmentation_array
