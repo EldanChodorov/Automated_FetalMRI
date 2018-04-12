@@ -279,10 +279,6 @@ class Brain_segmant:
     def kmeans_clean_up(self,cut_out_image):
         # print('before')
         # print(np.unique(cut_out_image).shape)
-        if True:
-            display_image = cut_out_image.transpose(self.get_display_axis(np.argmin(cut_out_image.shape)))
-            self.multi_slice_viewer(display_image,do_gray=True)
-            plt.show()
 
         after_quant = np.zeros((cut_out_image.shape))
         for i,slice in enumerate(cut_out_image):
@@ -330,9 +326,7 @@ class Brain_segmant:
 
             small_image_1, X_top,X_size, Y_top, Y_size = self.cut_image_out(array_data,BB_object)
             self.BB.append(X_top)
-            self.BB.append(X_size)
             self.BB.append(Y_top)
-            self.BB.append(Y_size)
             mask_image = np.zeros(small_image_1.shape)
             mask_image[BB_object[0]- X_top:BB_object[3]-X_top, BB_object[1]-Y_top:BB_object[4]-Y_top, BB_object[
                 2]:BB_object[5]] = zero_mat[BB_object[0]:BB_object[3], BB_object[1]:BB_object[4], BB_object[2]:BB_object[5]]
@@ -399,7 +393,7 @@ class Brain_segmant:
             #     self.multi_slice_viewer(display_image, do_gray=True)
             #     plt.show()
             self.orig_segment = closed_holes_image.copy()
-            val_of_quant = diff_vals[-1*int(diff_vals.shape[0]/5)]
+            val_of_quant = diff_vals[-1*int(diff_vals.shape[0]/2)]
             convex_holes_image[np.where(lables >= val_of_quant)] = 0
             # lables = nd.morphology.binary_closing(closed_holes_image,iterations=1)
             # lables = nd.morphology.binary_opening(lables,iterations=1)
@@ -503,8 +497,11 @@ class Brain_segmant:
         cur_seg[np.where(self.after_quant_image >= self.quant_val[-1*index])] = 0
 
         final_image = np.zeros(self.brain_image.shape)
+        print(final_image.shape)
+        print(cur_seg.shape)
+        print(self.BB[0],self.BB[1])
         h, w, z = cur_seg.shape
-        final_image[self.BB[0]:self.BB[0] + h,self.BB[2]:self.BB[2] + w,:] = cur_seg
+        final_image[self.BB[0]:self.BB[0] + h,self.BB[1]:self.BB[1] + w,:] = cur_seg
         return final_image.transpose(2, 0, 1)
 
 
