@@ -73,6 +73,9 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.actionSave_Segmentation.triggered.connect(self._save_segmentation)
         self.actionOpen_Segmentation.triggered.connect(self._open_segmentation)
 
+        # View menu
+        self.actionShow_Segmentation.triggered.connect(self._toggle_segmentation)
+
         # Help menu
         self.actionAbout.triggered.connect(self._about_dialog)
 
@@ -86,6 +89,12 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.actionLoad_Points.setEnabled(True)
         self.actionContrast_View.triggered.connect(self._workspace.contrast_view_btn.click)
         self.actionContrast_View.setEnabled(True)
+        self.actionShow_Segmentation.setEnabled(True)
+
+    def _toggle_segmentation(self):
+        '''Display/Hide segmentation from showing in workspace.'''
+        if self._workspace:
+            self._workspace.toggle_segmentation(self.actionShow_Segmentation.isChecked())
 
     def _open_workspace(self):
         '''

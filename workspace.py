@@ -293,6 +293,14 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             item = QtWidgets.QTableWidgetItem(self._all_scans[waiting_idx].status)
             self.tableWidget.setCellWidget(waiting_idx, 1, item)
 
+    def toggle_segmentation(self, show):
+        '''
+        Show/hide the segmentation over the scan displaying.
+        :param show: [bool]
+        '''
+        self._all_scans[self._current_scan_idx].image_label.show_segmentation = show
+        self._all_scans[self._current_scan_idx].image_label.update()
+
     def set_segmentation(self, segmentation_array):
         ''' Set given segmentation on top of scan image.'''
         print('set segmentation', segmentation_array.shape)

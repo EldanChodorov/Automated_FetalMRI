@@ -94,6 +94,9 @@ class ImageLabel(QtWidgets.QLabel):
         # decide what to do with point clicks (paint/square/erase)
         self._tool_chosen = USE_PAINTBRUSH
 
+        # whether to paint segmentation over scan or not
+        self.show_segmentation = True
+
     def activate_image(self):
         '''Set image to be displayed. Deactivated until image should be shown.'''
         self.set_image(self.frames[self.frame_displayed_index])
@@ -146,7 +149,6 @@ class ImageLabel(QtWidgets.QLabel):
 
     def mouseMoveEvent(self, QMouseEvent):
         pos = self.widget2image_coord(QMouseEvent.pos())
-        print("mouseMoveEvent BEFORE %s AFTER %s" % (QMouseEvent.pos(), pos))
         if self._tool_chosen == USE_PAINTBRUSH:
             self.shapes.add_point(self.frame_displayed_index, pos)
         elif self._tool_chosen == USE_ERASER:
@@ -160,11 +162,18 @@ class ImageLabel(QtWidgets.QLabel):
             self._square_corner = self.widget2image_coord(QMouseEvent.pos())
 
     def widget2image_coord(self, pos):
-        return self.mapFromParent(pos) / self._zoom
+        img_pos = self.mapFromParent(pos)
+        scroll_height = self._parent.scroll_area.verticalScrollBar().value()
+        scroll_width = self._parent.scroll_area.horizontalScrollBar().value()
+        moved_pos =  img_pos - QtCore.QPoint(scroll_width, scroll_height)
+        return moved_pos / self._zoom
 
     def image2widget_coord(self, pos):
-        p = self.mapToParent(pos)
-        return p * self._zoom
+        widget_pos = self.mapToParent(pos)
+        scroll_height = self._parent.scroll_area.verticalScrollBar().value()
+        scroll_width = self._parent.scroll_area.horizontalScrollBar().value()
+        moved_pos = widget_pos + QtCore.QPoint(scroll_width, scroll_height)
+        return moved_pos * self._zoom
 
     def mouseReleaseEvent(self, cursor_event):
         if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE] and self._square_corner:
@@ -238,30 +247,31 @@ class ImageLabel(QtWidgets.QLabel):
             # draw image first so that points will be on top of image
             painter.drawPixmap(self.rect(), self._displayed_pixmap)
 
-            pen = QtGui.QPen()
-            pen.setWidth(self.paintbrush_size)
+            # draw segmentation and markings only if 'show segmentation' is defined
+            if self.show_segmentation:
 
-            # inner squares
-            pen.setColor(QtGui.QColor(138, 43, 226, self.alpha_channel))
-            painter.setPen(pen)
-            for square in self.shapes.inner_squares[self.frame_displayed_index]:
-                for point in square.points:
+                pen = QtGui.QPen()
+                pen.setWidth(self.paintbrush_size)
+
+                # inner squares
+                pen.setColor(QtGui.QColor(138, 43, 226, self.alpha_channel))
+                painter.setPen(pen)
+                for square in self.shapes.inner_squares[self.frame_displayed_index]:
+                    for point in square.points:
+                        painter.drawPoint(self.image2widget_coord(point))
+
+                # outer squares
+                pen.setColor(QtGui.QColor(255, 0, 0, self.alpha_channel))
+                painter.setPen(pen)
+                for square in self.shapes.outer_squares[self.frame_displayed_index]:
+                    for point in square.points:
+                        painter.drawPoint(self.image2widget_coord(point))
+
+                # points
+                pen.setColor(QtGui.QColor(0, 0, 255, self.alpha_channel))
+                painter.setPen(pen)
+                for point in self.shapes.chosen_points[self.frame_displayed_index]:
                     painter.drawPoint(self.image2widget_coord(point))
-
-            # outer squares
-            pen.setColor(QtGui.QColor(255, 0, 0, self.alpha_channel))
-            painter.setPen(pen)
-            for square in self.shapes.outer_squares[self.frame_displayed_index]:
-                for point in square.points:
-                    painter.drawPoint(self.image2widget_coord(point))
-
-            # points
-            pen.setColor(QtGui.QColor(0, 0, 255, self.alpha_channel))
-            painter.setPen(pen)
-            for point in self.shapes.chosen_points[self.frame_displayed_index]:
-                painter.drawPoint(self.image2widget_coord(point))
-
-            # call update / setPalette(painter)
 
         except Exception as ex:
             print('paintEvent', ex)

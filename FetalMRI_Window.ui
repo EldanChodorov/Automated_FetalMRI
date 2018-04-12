@@ -198,6 +198,7 @@ border-color: rgb(209, 238, 242);</string>
     </property>
     <addaction name="actionStandard_View"/>
     <addaction name="actionContrast_View"/>
+    <addaction name="actionShow_Segmentation"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -311,6 +312,20 @@ border-color: rgb(209, 238, 242);</string>
   <action name="actionMarked_Files">
    <property name="text">
     <string>Marked Files</string>
+   </property>
+  </action>
+  <action name="actionShow_Segmentation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Segmentation</string>
+   </property>
+   <property name="shortcut">
+    <string>S</string>
    </property>
   </action>
  </widget>
