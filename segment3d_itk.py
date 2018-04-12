@@ -500,15 +500,6 @@ class Brain_segmant:
 
 
 
-    def sperate_to_two_brains(self,segmantation,line_list):
-        convex_seg = self.flood_fill_hull(segmentation)
-        measure.label()
-        labels = measure.regionprops(convex_seg)[0]
-
-        print(labels.orientation())
-
-
-        pass
 
 
 
