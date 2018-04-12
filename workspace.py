@@ -257,7 +257,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             # run perform_segmentation from thread so that progress bar will run in background
             self._all_scans[self._current_scan_idx].run_segmentation()
             item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            # self.tableWidget.setCellWidget(self._current_scan_idx, 1, item)
+            self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
     def _remove_progress_bar(self):
         self.MainLayout.removeWidget(self._progress_bar)
@@ -266,14 +266,15 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
     def perform_segmentation(self):
         try:
             # change stage title
-            self.instructions.setText('<html><head/><body><p align="center">Stage 2: Calculating Segmentation...</p><p '
+            self.instructions.setText('<html><head/><body><p align="center">Stage 2:</p><p align="center">'
+                                      'Calculating <\p><p>Segmentation...</p><p '
                                       'align="center">(please wait)</p></body></html>')
 
             segmentation_array = self._all_scans[self._current_scan_idx].perform_segmentation()
 
             # update workspace table
             item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            self.tableWidget.setCellWidget(self._current_scan_idx, 1, item)
+            self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
             # show hidden features which are now relevant to work on segmentation
             self.quantizationLabel.show()
@@ -302,7 +303,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             waiting_idx = self._seg_queue.pop(0)
             self._all_scans[waiting_idx].run_segmentation()
             item = QtWidgets.QTableWidgetItem(self._all_scans[waiting_idx].status)
-            self.tableWidget.setCellWidget(waiting_idx, 1, item)
+            self.tableWidget.setItem(waiting_idx, 1, item)
 
     def _toggle_quantization(self):
         tick_val = self.quantizationSlider.value()

@@ -84,13 +84,24 @@ class ScanFile:
         segmentation_array = self._segment_worker.segmentation_3d(self.frames, seeds) * 255
         return segmentation_array
 
+    def volume(self, segmentation_array):
+        '''
+        Calculate volume of segmentation, based on the vixel spacing of the nifti file.
+        :param segmentation_array: [numpy.ndarray]
+        :return: [float] volume in mm.
+        '''
+        pixel_dims = self._nifti._header['pixdim']
+        if len(pixel_dims) == 8:
+            num_pixels = np.sum(segmentation_array)
+            return num_pixels * pixel_dims[1] * pixel_dims[2] * pixel_dims[3]
+
     def get_quantization_segmentation(self, level):
         '''
         Get segmentation after applying quantization stage with different quantum values.
         :param level: [int] the quantum value to be used, in proportion.
         :return: [numpy.ndarray] same shape as array returned from perform_segmentation()
         '''
-        return self._segment_worker.get_quantization(level)
+        return self._segment_worker.get_quant_segment(level)
 
     def set_segmentation(self, segmentation_array):
         self._segmentation_array = segmentation_array
