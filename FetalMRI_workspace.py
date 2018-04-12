@@ -52,6 +52,7 @@ class Ui_workspace(object):
         self.paintbrush_size2_btn.setObjectName("paintbrush_size2_btn")
         self.gridLayout_3.addWidget(self.paintbrush_size2_btn, 2, 0, 1, 1)
         self.eraser_size2_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.eraser_size2_btn.setMaximumSize(QtCore.QSize(16777, 16777215))
         self.eraser_size2_btn.setStyleSheet("background-color: rgb(231, 248, 243);\n"
 "color: rgb(0, 0, 0);\n"
 "border-radius: 4px; border-color: black; border-width: 2px; \n"
@@ -71,6 +72,7 @@ class Ui_workspace(object):
         self.paintbrush_btn.setObjectName("paintbrush_btn")
         self.gridLayout_3.addWidget(self.paintbrush_btn, 0, 0, 1, 1)
         self.eraser_size1_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.eraser_size1_btn.setMaximumSize(QtCore.QSize(16777, 16777215))
         self.eraser_size1_btn.setStyleSheet("background-color: rgb(231, 248, 243);\n"
 "color: rgb(0, 0, 0);\n"
 "border-radius: 4px; border-color: black; border-width: 2px; \n"
@@ -79,6 +81,7 @@ class Ui_workspace(object):
         self.eraser_size1_btn.setObjectName("eraser_size1_btn")
         self.gridLayout_3.addWidget(self.eraser_size1_btn, 1, 1, 1, 1)
         self.eraser_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.eraser_btn.setMaximumSize(QtCore.QSize(16777, 16777215))
         self.eraser_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: black; \n"
 "border-radius: 12px; border-color: black; border-width: 3px;\n"
@@ -88,6 +91,7 @@ class Ui_workspace(object):
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap("images/erase.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.eraser_btn.setIcon(icon1)
+        self.eraser_btn.setIconSize(QtCore.QSize(24, 24))
         self.eraser_btn.setObjectName("eraser_btn")
         self.gridLayout_3.addWidget(self.eraser_btn, 0, 1, 1, 1)
         self.paintbrush_size1_btn = QtWidgets.QPushButton(self.tool_kit)
@@ -107,6 +111,7 @@ class Ui_workspace(object):
         self.paintbrush_size3_btn.setObjectName("paintbrush_size3_btn")
         self.gridLayout_3.addWidget(self.paintbrush_size3_btn, 3, 0, 1, 1)
         self.eraser_size3_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.eraser_size3_btn.setMaximumSize(QtCore.QSize(16777, 16777215))
         self.eraser_size3_btn.setStyleSheet("background-color: rgb(231, 248, 243);\n"
 "color: rgb(0, 0, 0);\n"
 "border-radius: 4px; border-color: black; border-width: 2px; \n"
@@ -247,6 +252,25 @@ class Ui_workspace(object):
         self.tableWidget.setColumnCount(3)
         self.tableWidget.setObjectName("tableWidget")
         self.verticalLayout_2.addWidget(self.tableWidget)
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.quantizationLabel = QtWidgets.QLabel(workspace)
+        self.quantizationLabel.setObjectName("quantizationLabel")
+        self.verticalLayout.addWidget(self.quantizationLabel)
+        self.quantizationSlider = QtWidgets.QSlider(workspace)
+        self.quantizationSlider.setAutoFillBackground(False)
+        self.quantizationSlider.setStyleSheet("")
+        self.quantizationSlider.setSliderPosition(5)
+        self.quantizationSlider.setTracking(False)
+        self.quantizationSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.quantizationSlider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self.quantizationSlider.setTickInterval(1)
+        self.quantizationSlider.setObjectName("quantizationSlider")
+        self.verticalLayout.addWidget(self.quantizationSlider)
+        self.verticalLayout_2.addLayout(self.verticalLayout)
+        self.verticalLayout_2.setStretch(0, 1)
+        self.verticalLayout_2.setStretch(1, 20)
+        self.verticalLayout_2.setStretch(2, 5)
         self.ImageLayout.addLayout(self.verticalLayout_2)
         self.ImageLayout.setStretch(1, 8)
         self.ImageLayout.setStretch(2, 4)
@@ -278,10 +302,15 @@ class Ui_workspace(object):
         self.instructions.setWhatsThis(_translate("workspace", "<html><head/><body><p>In the first and last frame: draw a purple square inside the brain area.</p><p>In the middle frame: draw a red square around [enclosing] the brain area.</p><p>Finally: press \'Perform Segmentation\'.</p></body></html>"))
         self.instructions.setText(_translate("workspace", "<html><head/><body><p align=\"center\"><span style=\" text-decoration: underline;\">Stage 1</span><span style=\" text-decoration: underline;\">: Boundary Marking</span></p><p>Outline the brain in the first, </p><p>last and middle frames.</p></body></html>"))
         self.contrast_view_btn.setWhatsThis(_translate("workspace", "Improve contrast of image"))
-        self.contrast_view_btn.setText(_translate("workspace", "Contrast View"))
-        self.perform_seg_btn.setText(_translate("workspace", "Perform Segmentation"))
-        self.standard_view_btn.setText(_translate("workspace", "Standard View"))
-        self.save_seg_btn.setText(_translate("workspace", "Save Segmentation"))
+        self.contrast_view_btn.setText(_translate("workspace", "Contrast \n"
+"View"))
+        self.perform_seg_btn.setText(_translate("workspace", "Perform \n"
+"Segmentation"))
+        self.standard_view_btn.setText(_translate("workspace", "Standard \n"
+"View"))
+        self.save_seg_btn.setText(_translate("workspace", "Save \n"
+"Segmentation"))
         self.label.setText(_translate("workspace", "Workspace"))
         self.pushButton.setText(_translate("workspace", "Run All"))
+        self.quantizationLabel.setText(_translate("workspace", "Play with quantization"))
 
