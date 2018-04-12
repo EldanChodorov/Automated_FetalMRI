@@ -29,7 +29,7 @@
       <number>13</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="ImageLayout" stretch="1,8,4">
+      <layout class="QHBoxLayout" name="ImageLayout" stretch="0,8,4">
        <property name="spacing">
         <number>9</number>
        </property>
@@ -291,6 +291,12 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>42</width>
+             <height>50</height>
+            </size>
            </property>
            <property name="maximumSize">
             <size>

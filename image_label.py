@@ -145,7 +145,6 @@ class ImageLabel(QtWidgets.QLabel):
 
     def sizeHint(self):
         # this will be the initial label size
-        return QtCore.QSize(1000, 1000)
         return QtCore.QSize(785, 785)
 
     def mouseMoveEvent(self, QMouseEvent):
@@ -163,17 +162,17 @@ class ImageLabel(QtWidgets.QLabel):
             self._square_corner = self.widget2image_coord(QMouseEvent.pos())
 
     def widget2image_coord(self, pos):
-        img_pos = pos
+        img_pos = self.mapFromParent(pos)
         scroll_height = self._parent.scroll_area.verticalScrollBar().value()
         scroll_width = self._parent.scroll_area.horizontalScrollBar().value()
-        moved_pos = img_pos #- QtCore.QPoint(scroll_width, scroll_height)
+        moved_pos =  img_pos - QtCore.QPoint(scroll_width, scroll_height)
         return moved_pos / self._zoom
 
     def image2widget_coord(self, pos):
-        widget_pos = pos
+        widget_pos = self.mapToParent(pos)
         scroll_height = self._parent.scroll_area.verticalScrollBar().value()
         scroll_width = self._parent.scroll_area.horizontalScrollBar().value()
-        moved_pos = widget_pos #+ QtCore.QPoint(scroll_width, scroll_height)
+        moved_pos = widget_pos + QtCore.QPoint(scroll_width, scroll_height)
         return moved_pos * self._zoom
 
     def mouseReleaseEvent(self, cursor_event):
@@ -252,11 +251,7 @@ class ImageLabel(QtWidgets.QLabel):
             if self.show_segmentation:
 
                 pen = QtGui.QPen()
-                if self.alpha_channel == ALPHA_TRANSPARENT:
-                    # pen is too thin when transparent
-                    pen.setWidth(self.paintbrush_size + 3)
-                else:
-                    pen.setWidth(self.paintbrush_size)
+                pen.setWidth(self.paintbrush_size)
 
                 # inner squares
                 pen.setColor(QtGui.QColor(138, 43, 226, self.alpha_channel))
@@ -306,22 +301,24 @@ class ImageLabel(QtWidgets.QLabel):
         self.update()
 
     def _zoom_image(self, zoom_factor):
-        print(self._zoom)
         if zoom_factor > 0:
             # zoom in
-            if self._zoom >= 3.0:
+            if self._zoom >= 5.0:
                 return
             factor = 1.05
         else:
             # zoom out
-            if self._zoom < 0.9:
+            if self._zoom < 0.1:
                 return
             factor = 0.952381
 
         self._zoom *= factor
         self.resize(self._zoom * self.sizeHint())
-        self._adjust_scroll_bar(self._parent.scroll_area.horizontalScrollBar(), factor)
-        self._adjust_scroll_bar(self._parent.scroll_area.verticalScrollBar(), factor)
+        try:
+            self._adjust_scroll_bar(self._parent.scroll_area.horizontalScrollBar(), factor)
+            self._adjust_scroll_bar(self._parent.scroll_area.verticalScrollBar(), factor)
+        except Exception as ex:
+            print(ex)
 
     @staticmethod
     def _adjust_scroll_bar(scroll_bar, factor):

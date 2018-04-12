@@ -35,6 +35,9 @@ class Brain_segmant:
         self.display_work = display_work
         self.convex_segment = 0
         self.differant_threshold = []
+        self.after_quant_image = []
+        self.quant_val = []
+        self.BB = []
 
 
     def add_init_points(self,seed_list ):
@@ -276,18 +279,14 @@ class Brain_segmant:
     def kmeans_clean_up(self,cut_out_image):
         # print('before')
         # print(np.unique(cut_out_image).shape)
-        if self.display_work:
+        if True:
             display_image = cut_out_image.transpose(self.get_display_axis(np.argmin(cut_out_image.shape)))
             self.multi_slice_viewer(display_image,do_gray=True)
             plt.show()
 
         after_quant = np.zeros((cut_out_image.shape))
         for i,slice in enumerate(cut_out_image):
-            after_quant[i,:,:] = self.quantize(slice,levels=20,maxCount=255)
-        if self.display_work:
-            display_image = after_quant.transpose(self.get_display_axis(np.argmin(after_quant.shape)))
-            self.multi_slice_viewer(display_image,do_gray=True)
-            plt.show()
+            after_quant[i,:,:] = self.quantize(slice,levels=30,maxCount=255)
         # print('after')
         # print(np.unique(after_quant).shape)
 
@@ -315,6 +314,7 @@ class Brain_segmant:
         :return: np array of 3d segmentation (frame_num,X,Y)
         '''
         try:
+            self.brain_image = array_data.copy()
             seed_vec = np.array([np.array([seed[1], seed[2], seed[0]])for seed in seed_list])
             # for i,seed in enumerate(seed_list):
             #     seed_vec[i,:] = np.array([seed[1], seed[2], seed[0]])
@@ -329,10 +329,13 @@ class Brain_segmant:
 
 
             small_image_1, X_top,X_size, Y_top, Y_size = self.cut_image_out(array_data,BB_object)
+            self.BB.append(X_top)
+            self.BB.append(X_size)
+            self.BB.append(Y_top)
+            self.BB.append(Y_size)
             mask_image = np.zeros(small_image_1.shape)
             mask_image[BB_object[0]- X_top:BB_object[3]-X_top, BB_object[1]-Y_top:BB_object[4]-Y_top, BB_object[
                 2]:BB_object[5]] = zero_mat[BB_object[0]:BB_object[3], BB_object[1]:BB_object[4], BB_object[2]:BB_object[5]]
-            # contour = [measure.find_contours(mask_image[:,:,i], 0.8) for i in range(mask_image.shape[2])]
 
             seg_mat = np.zeros(small_image_1.shape)
             images = []
@@ -345,8 +348,6 @@ class Brain_segmant:
             for j in range(num_frame):
                 images.append(small_image[:, :, j])
                 masks.append(mask_image[:, :, j])
-            # results = np.array(results)
-            #
             pool = Pool()
             results = pool.starmap(self.worker_chanvese, zip(range(num_frame), images, masks))
             pool.close()
@@ -387,20 +388,21 @@ class Brain_segmant:
 
             #clean up with kmeans
             lables,diff_vals = self.kmeans_clean_up(cut_out_image)
-
+            self.after_quant_image = lables.copy()
+            self.quant_val = diff_vals.copy()
 
             # cut_out_image = cut_out_image * lables
-            amp = np.zeros(closed_holes_image.shape)
+            # amp = np.zeros(convex_holes_image.shape)
             # for i in diff_vals:
             #     amp[np.where(lables == i)] = 1
             #     display_image = amp.transpose(self.get_display_axis(np.argmin(amp.shape)))
             #     self.multi_slice_viewer(display_image, do_gray=True)
             #     plt.show()
-
-            val_of_quant = diff_vals[int(diff_vals.shape[0]/2)]
-            closed_holes_image[np.where(lables >= val_of_quant)] = 0
-            lables = nd.morphology.binary_closing(closed_holes_image,iterations=2)
-            # lables = nd.morphology.binary_opening(lables,iterations=2)
+            self.orig_segment = closed_holes_image.copy()
+            val_of_quant = diff_vals[-1*int(diff_vals.shape[0]/5)]
+            convex_holes_image[np.where(lables >= val_of_quant)] = 0
+            # lables = nd.morphology.binary_closing(closed_holes_image,iterations=1)
+            # lables = nd.morphology.binary_opening(lables,iterations=1)
             # mask = np.ones((3,3))
             # big_mask = np.zeros((3,3,3))
             # big_mask[:,:,1] = mask
@@ -410,11 +412,8 @@ class Brain_segmant:
             # diated_image = np.array(diated_image)
             # lables = nd.morphology.binary_fill_holes(lables,structure=mask)
             final_image = np.zeros(array_data.shape)
-            print('final_image',final_image.shape)
-            print('convex_holes_image',convex_holes_image.shape)
-            h,w, z = closed_holes_image.shape
-            final_image[X_top:X_top + h,Y_top:Y_top + w,:] = lables
-            print(np.max(final_image))
+            h, w, z = convex_holes_image.shape
+            final_image[X_top:X_top + h,Y_top:Y_top + w,:] = convex_holes_image
             return final_image.transpose(2, 0, 1)
 
         except Exception as ex:
@@ -498,8 +497,21 @@ class Brain_segmant:
         return np.array(returnImage, dtype)
 
 
+    def get_quant_segment(self,index):
+        index = int(index/10 * self.quant_val.shape[0])
+        cur_seg = self.orig_segment.copy()
+        cur_seg[np.where(self.after_quant_image >= self.quant_val[-1*index])] = 0
+
+        final_image = np.zeros(self.brain_image.shape)
+        h, w, z = cur_seg.shape
+        final_image[self.BB[0]:self.BB[0] + h,self.BB[2]:self.BB[2] + w,:] = cur_seg
+        return final_image.transpose(2, 0, 1)
 
 
+    def sperate_to_two_brains(self,segmantation,line_list):
+        convex_seg = self.flood_fill_hull(segmentation)
+        labels = measure.regionprops(convex_seg)[0]
+        print(labels.orientation)
 
 
 
