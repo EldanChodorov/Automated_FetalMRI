@@ -34,6 +34,7 @@ class Brain_segmant:
         self.seed_vec = []
         self.display_work = display_work
         self.convex_segment = 0
+        self.differant_threshold = []
 
 
     def add_init_points(self,seed_list ):
@@ -321,7 +322,6 @@ class Brain_segmant:
             array_data = array_data.transpose(1, 2, 0)
             zero_mat = np.zeros(array_data.shape)
             zero_mat[seed_vec[:,0],seed_vec[:,1],seed_vec[:,2]] = 1
-
             image_data = measure.regionprops(zero_mat.astype(np.int32))
             BB_object = image_data[0].bbox
             zero_mat = self.flood_fill_hull(zero_mat)
@@ -343,8 +343,6 @@ class Brain_segmant:
             small_image = sitk.GetArrayFromImage(sitk_image_1)
             # results = []
             for j in range(num_frame):
-                # results.append(worker_chanvese(j,small_image[:, :, j],mask_image[:, :, j]))
-                # new_image = self.worker_contur(j,small_image[:, :, j],contour[j],mask_image[:, :, j])
                 images.append(small_image[:, :, j])
                 masks.append(mask_image[:, :, j])
             # results = np.array(results)
@@ -381,10 +379,6 @@ class Brain_segmant:
             self.convex_segment = convex_holes_image.copy()
             cut_out_image = small_image * convex_holes_image
 
-            # canny_image = np.zeros(cut_out_image.shape)
-            # for j in range(num_frame):
-            #     canny_image[:, :, j] = feature.canny(cut_out_image[:, :, j], sigma=0.5).astype(np.int32)
-
             if self.display_work:
                 display_image = closed_holes_image.transpose(self.get_display_axis(np.argmin(closed_holes_image.shape)))
                 self.multi_slice_viewer(display_image, do_gray=True)
@@ -396,10 +390,17 @@ class Brain_segmant:
 
 
             # cut_out_image = cut_out_image * lables
+            amp = np.zeros(closed_holes_image.shape)
+            # for i in diff_vals:
+            #     amp[np.where(lables == i)] = 1
+            #     display_image = amp.transpose(self.get_display_axis(np.argmin(amp.shape)))
+            #     self.multi_slice_viewer(display_image, do_gray=True)
+            #     plt.show()
 
-
-            closed_holes_image[np.where(lables >= diff_vals[-7])] = 0
-            lables = nd.morphology.binary_closing(closed_holes_image)
+            val_of_quant = diff_vals[int(diff_vals.shape[0]/2)]
+            closed_holes_image[np.where(lables >= val_of_quant)] = 0
+            lables = nd.morphology.binary_closing(closed_holes_image,iterations=2)
+            # lables = nd.morphology.binary_opening(lables,iterations=2)
             # mask = np.ones((3,3))
             # big_mask = np.zeros((3,3,3))
             # big_mask[:,:,1] = mask
@@ -409,6 +410,8 @@ class Brain_segmant:
             # diated_image = np.array(diated_image)
             # lables = nd.morphology.binary_fill_holes(lables,structure=mask)
             final_image = np.zeros(array_data.shape)
+            print('final_image',final_image.shape)
+            print('convex_holes_image',convex_holes_image.shape)
             h,w, z = closed_holes_image.shape
             final_image[X_top:X_top + h,Y_top:Y_top + w,:] = lables
             print(np.max(final_image))
