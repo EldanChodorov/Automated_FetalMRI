@@ -262,12 +262,6 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="minimumSize">
-            <size>
-             <width>42</width>
-             <height>50</height>
-            </size>
-           </property>
            <property name="maximumSize">
             <size>
              <width>500</width>
