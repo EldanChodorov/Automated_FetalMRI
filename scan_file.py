@@ -101,7 +101,11 @@ class ScanFile:
         :param level: [int] the quantum value to be used, in proportion.
         :return: [numpy.ndarray] same shape as array returned from perform_segmentation()
         '''
-        return self._segment_worker.get_quant_segment(level)
+        try:
+            print(level)
+            return self._segment_worker.get_quant_segment(level)
+        except Exception as ex:
+            print("quantization", ex)
 
     def set_segmentation(self, segmentation_array):
         self._segmentation_array = segmentation_array

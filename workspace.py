@@ -281,7 +281,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.quantizationSlider.show()
 
             # self._remove_progress_bar()
-            self._remove_progress_bar()
 
             if segmentation_array is None:
                 self.perform_seg_btn.setEnabled(True)
