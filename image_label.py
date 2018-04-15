@@ -162,18 +162,10 @@ class ImageLabel(QtWidgets.QLabel):
             self._square_corner = self.widget2image_coord(QMouseEvent.pos())
 
     def widget2image_coord(self, pos):
-        img_pos = self.mapFromParent(pos)
-        scroll_height = self._parent.scroll_area.verticalScrollBar().value()
-        scroll_width = self._parent.scroll_area.horizontalScrollBar().value()
-        moved_pos =  img_pos - QtCore.QPoint(scroll_width, scroll_height)
-        return moved_pos / self._zoom
+        return pos / self._zoom
 
     def image2widget_coord(self, pos):
-        widget_pos = self.mapToParent(pos)
-        scroll_height = self._parent.scroll_area.verticalScrollBar().value()
-        scroll_width = self._parent.scroll_area.horizontalScrollBar().value()
-        moved_pos = widget_pos + QtCore.QPoint(scroll_width, scroll_height)
-        return moved_pos * self._zoom
+        return pos * self._zoom
 
     def mouseReleaseEvent(self, cursor_event):
         if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE] and self._square_corner:
@@ -308,7 +300,7 @@ class ImageLabel(QtWidgets.QLabel):
             factor = 1.05
         else:
             # zoom out
-            if self._zoom < 0.1:
+            if self._zoom < 0.9:
                 return
             factor = 0.952381
 

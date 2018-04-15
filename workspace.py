@@ -386,6 +386,7 @@ class ScrollArea(QtWidgets.QScrollArea):
         self.setWidget(new_label)
 
     def wheelEvent(self, event):
+        # ignore so that scrolling is handled only by ImageLabel
         if event.type() == QtCore.QEvent.Wheel:
             event.ignore()
 
