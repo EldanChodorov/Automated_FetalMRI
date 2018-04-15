@@ -1,5 +1,5 @@
 import time
-
+import copy
 from scipy import spatial
 from skimage import feature
 import SimpleITK as sitk
@@ -169,10 +169,6 @@ class Brain_segmant:
         image1 = self.find_conected_comp(image1, seed_list).astype(np.int)
         image1 = nd.morphology.binary_dilation(image1, iterations=2).astype(np.int32)
         print('finding inteinsic 2')
-        if self.display_work:
-            display_image = image1.transpose(self.get_display_axis(np.argmin(image1.shape)))
-            self.multi_slice_viewer(display_image)
-            plt.show()
         return sitk.GetImageFromArray(image1)
 
 
@@ -289,7 +285,7 @@ class Brain_segmant:
 
 
 
-        return after_quant, np.sort(np.unique(after_quant))
+        return after_quant, np.flip(np.sort(np.unique(after_quant)),axis=-1)
 
     def flood_fill_hull(self,image):
         points = np.transpose(np.where(image))
@@ -310,12 +306,13 @@ class Brain_segmant:
         :return: np array of 3d segmentation (frame_num,X,Y)
         '''
         try:
-            self.brain_image = array_data.copy()
+
             seed_vec = np.array([np.array([seed[1], seed[2], seed[0]])for seed in seed_list])
             # for i,seed in enumerate(seed_list):
             #     seed_vec[i,:] = np.array([seed[1], seed[2], seed[0]])
             num_frame, x, y = array_data.shape
             array_data = array_data.transpose(1, 2, 0)
+            self.brain_image = array_data.copy()
             zero_mat = np.zeros(array_data.shape)
             zero_mat[seed_vec[:,0],seed_vec[:,1],seed_vec[:,2]] = 1
             image_data = measure.regionprops(zero_mat.astype(np.int32))
@@ -382,6 +379,7 @@ class Brain_segmant:
 
             #clean up with kmeans
             lables,diff_vals = self.kmeans_clean_up(cut_out_image)
+            print('the shae of quant vals = ', diff_vals.shape)
             self.after_quant_image = lables.copy()
             self.quant_val = diff_vals.copy()
 
@@ -392,19 +390,11 @@ class Brain_segmant:
             #     display_image = amp.transpose(self.get_display_axis(np.argmin(amp.shape)))
             #     self.multi_slice_viewer(display_image, do_gray=True)
             #     plt.show()
-            self.orig_segment = closed_holes_image.copy()
-            val_of_quant = diff_vals[-1*int(diff_vals.shape[0]/2)]
+            self.orig_segment = np.copy(closed_holes_image)
+            val_of_quant = diff_vals[int(diff_vals.shape[0]/2)]
             convex_holes_image[np.where(lables >= val_of_quant)] = 0
             # lables = nd.morphology.binary_closing(closed_holes_image,iterations=1)
             # lables = nd.morphology.binary_opening(lables,iterations=1)
-            # mask = np.ones((3,3))
-            # big_mask = np.zeros((3,3,3))
-            # big_mask[:,:,1] = mask
-            diated_image = []
-            # for j in range(lables.shape[2]):
-            #     diated_image.append(nd.morphology.binary_dilation(lables[:,:,j]))
-            # diated_image = np.array(diated_image)
-            # lables = nd.morphology.binary_fill_holes(lables,structure=mask)
             final_image = np.zeros(array_data.shape)
             h, w, z = convex_holes_image.shape
             final_image[X_top:X_top + h,Y_top:Y_top + w,:] = convex_holes_image
@@ -487,19 +477,17 @@ class Brain_segmant:
             # invalid qtype
             print('qtype is an invalid value, please use "uniform", or "igs"')
 
-        print(returnImage)
         return np.array(returnImage, dtype)
 
 
     def get_quant_segment(self,index):
-        index = int(index/10 * self.quant_val.shape[0])
-        cur_seg = self.orig_segment.copy()
-        cur_seg[np.where(self.after_quant_image >= self.quant_val[-1*index])] = 0
+        index = 1 if index == 0 else index
+        index = int(index/10 * self.quant_val.shape[0]) - 1
+
+        cur_seg = copy.deepcopy(self.orig_segment)
+        cur_seg[np.where(self.after_quant_image >= self.quant_val[index])] = 0
 
         final_image = np.zeros(self.brain_image.shape)
-        print(final_image.shape)
-        print(cur_seg.shape)
-        print(self.BB[0],self.BB[1])
         h, w, z = cur_seg.shape
         final_image[self.BB[0]:self.BB[0] + h,self.BB[1]:self.BB[1] + w,:] = cur_seg
         return final_image.transpose(2, 0, 1)
