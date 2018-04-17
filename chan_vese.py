@@ -65,11 +65,11 @@ def chanvese(I, init_mask, max_its=1000, alpha=0.2,
                 # Intermediate output
                 if display:
                     if np.mod(its, 50) == 0:
-                        print('iteration: {0}'.format(its))
+                        # print('iteration: {0}'.format(its))
                         show_curve_and_phi(fig, I, phi, color)
                 else:
                     if np.mod(its, 10) == 0:
-                        print('iteration: {0}'.format(its))
+                        # print('iteration: {0}'.format(its))
 
                 # Find interior and exterior mean
                 upts = np.flatnonzero(phi <= 0)  # interior points

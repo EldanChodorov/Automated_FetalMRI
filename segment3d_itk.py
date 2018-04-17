@@ -47,7 +47,6 @@ class Brain_segmant:
 
 
     def sitk_show(self,img, title=None, margin=0.05, dpi=40):
-        print(type(img))
         nda = sitk.GetArrayFromImage(img)
         spacing = img.GetSpacing()
         figsize = (1 + margin) * nda.shape[0] / dpi, (1 + margin) * nda.shape[1] / dpi
@@ -160,7 +159,6 @@ class Brain_segmant:
 
     def get_intrinsic_component(self,image, seed_list,with_care = True):
         data_array = sitk.GetArrayFromImage(image)
-        print('finding inteinsic')
         image1 = data_array.copy()
         if with_care:
             image1 = nd.morphology.binary_opening(data_array, iterations=1).astype(np.int32)
@@ -168,7 +166,6 @@ class Brain_segmant:
 
         image1 = self.find_conected_comp(image1, seed_list).astype(np.int)
         image1 = nd.morphology.binary_dilation(image1, iterations=2).astype(np.int32)
-        print('finding inteinsic 2')
         return sitk.GetImageFromArray(image1)
 
 
@@ -232,7 +229,6 @@ class Brain_segmant:
         :param cur_img: image to perform algorithm on
         :param cur_mask: mask for chan vese algorithm
         '''
-        print('start %d' % index)
         if np.any(cur_mask == 1):
             result, _, _ = chan_vese.chanvese(I=cur_img, init_mask=cur_mask, max_its=1500, display=False,thresh=0.6,
                                               alpha=0.15)
@@ -240,7 +236,6 @@ class Brain_segmant:
         else:
             segmentation_mat = cur_mask
 
-        print('finish %d' % index)
         return (segmentation_mat, index)
 
 
@@ -252,7 +247,7 @@ class Brain_segmant:
         :param cur_img: image to perform algorithm on
         :param cur_mask: mask for chan vese algorithm
         '''
-        print('start %d' % index)
+        # print('start %d' % index)
         if snake[0].shape[0] > 1:
             new_snake = segmentation.active_contour(cur_img,snake[0],alpha=0.005, beta=5, gamma=0.01).astype(np.int32)
             if new_snake.shape[0] > 0:
@@ -264,7 +259,7 @@ class Brain_segmant:
         else:
             segmentation_mat = cur_mask
 
-        print('finish %d' % index)
+        # print('finish %d' % index)
         return (segmentation_mat, index)
         # # store in global container
         # segmentations_lock.acquire()
