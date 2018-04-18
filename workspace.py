@@ -104,10 +104,14 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.tableWidget.setHorizontalHeaderLabels(['File', 'Status', 'Remove'])
         self.tableWidget.cellDoubleClicked.connect(self._switch_scan)
 
-        # hide features relevant only after segmentation
-        self.quantizationLabel.hide()
-        self.quantizationSlider.hide()
+        # connect buttons and sliders contained in the info box
         self.quantizationSlider.valueChanged.connect(self._toggle_quantization)
+        self.show_convex_btn.clicked.connect(self._all_scans[self._current_scan_idx].show_convex)
+        self.show_brain_halves_btn.clicked.connect(self._all_scans[self._current_scan_idx].show_brain_halves)
+        self.show_full_seg_btn.clicked.connect(self._all_scans[self._current_scan_idx].show_segmentation)
+
+        # hide info box which is relevant only after segmentation is shown
+        # self.verticalFrame.hide()
 
     @QtCore.pyqtSlot(int, int)
     def _switch_scan(self, row, col):
@@ -269,8 +273,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
             # show hidden features which are now relevant to work on segmentation
-            self.quantizationLabel.show()
-            self.quantizationSlider.show()
+            self.verticalFrame.show()
 
             if segmentation_array is None:
                 warn('An error occurred while computing the segmentation. Please perform better markings, '
@@ -309,8 +312,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def _toggle_quantization(self):
         tick_val = self.quantizationSlider.value()
-        updated_segmentation = self._all_scans[self._current_scan_idx].get_quantization_segmentation(tick_val)
-        self._all_scans[self._current_scan_idx].set_segmentation(updated_segmentation)
+        self._all_scans[self._current_scan_idx].show_quantization_segmentation(tick_val)
 
     def toggle_segmentation(self, show):
         '''

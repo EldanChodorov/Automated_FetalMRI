@@ -141,6 +141,8 @@ class Shapes:
         for frame, squares_list in self.outer_squares.items():
             for square in squares_list:
                 all_points[frame] += square.points
+        for frame, seg_points in self.segmentation_points.items():
+            all_points[frame] += seg_points
         return all_points
 
 
