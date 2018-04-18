@@ -70,8 +70,14 @@ class ScanFile:
 
     def perform_segmentation(self):
         all_points = self.image_label.shapes.all_points()
-        if not all_points:
-            return
+
+        # do not attempt segmentation if user did not mark enough frames
+        frames_marked = 0
+        for items_list in all_points.values():
+            if items_list:
+                frames_marked += 1
+        if frames_marked < 3:
+            return None
 
         seeds = []
         for frame_idx, frame_points in all_points.items():
@@ -100,7 +106,12 @@ class ScanFile:
 
     def show_brain_halves(self):
         if self._segment_worker:
-            pass
+            # TODO maybe wasteful and unnecessary to calculate this each time? think about it
+            self._segmentation_array = self.image_label.points_to_image()
+            try:
+                self._segment_worker.sperate_to_two_brains(self._segmentation_array)
+            except Exception as ex:
+                print('error in sperate_to_two_brains', ex)
 
     def show_segmentation(self):
         '''Show original segmentation in image label.'''
@@ -123,7 +134,8 @@ class ScanFile:
         Get segmentation after applying quantization stage with different quantum values, and display it.
         :param level: [int] the quantum value to be used, in proportion.
         '''
-        segmentation_array = self._segment_worker.get_quant_segment(level)
+        updated_seg = self.image_label.points_to_image()
+        segmentation_array = self._segment_worker.get_quant_segment(level, updated_seg)
         self._segmentation_array = segmentation_array
         self.set_segmentation(segmentation_array)
 

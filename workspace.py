@@ -106,12 +106,27 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
         # connect buttons and sliders contained in the info box
         self.quantizationSlider.valueChanged.connect(self._toggle_quantization)
-        self.show_convex_btn.clicked.connect(self._all_scans[self._current_scan_idx].show_convex)
-        self.show_brain_halves_btn.clicked.connect(self._all_scans[self._current_scan_idx].show_brain_halves)
-        self.show_full_seg_btn.clicked.connect(self._all_scans[self._current_scan_idx].show_segmentation)
+        self.show_convex_btn.clicked.connect(self._toggle_convex)
+        self.show_brain_halves_btn.clicked.connect(self._toggle_brain_halves)
+        self.show_full_seg_btn.clicked.connect(self._toggle_show_seg)
 
         # hide info box which is relevant only after segmentation is shown
-        # self.verticalFrame.hide()
+        self.verticalFrame.hide()
+
+    @QtCore.pyqtSlot()
+    def _toggle_convex(self):
+        self._all_scans[self._current_scan_idx].show_convex()
+
+    @QtCore.pyqtSlot()
+    def _toggle_brain_halves(self):
+        self._all_scans[self._current_scan_idx].show_brain_halves()
+
+    @QtCore.pyqtSlot()
+    def _toggle_show_seg(self):
+        try:
+            self._all_scans[self._current_scan_idx].show_segmentation()
+        except Exception as ex:
+            print('toggle show seg', ex)
 
     @QtCore.pyqtSlot(int, int)
     def _switch_scan(self, row, col):
@@ -267,14 +282,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                                       'align="center">(please wait)</p></body></html>')
 
             segmentation_array = self._all_scans[self._current_scan_idx].perform_segmentation()
-
-            # update workspace table
-            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            self.tableWidget.setItem(self._current_scan_idx, 1, item)
-
-            # show hidden features which are now relevant to work on segmentation
-            self.verticalFrame.show()
-
+            print(bool(segmentation_array), segmentation_array)
             if segmentation_array is None:
                 warn('An error occurred while computing the segmentation. Please perform better markings, '
                      'and try again.')
@@ -282,6 +290,13 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                     '<html><head/><body><p align="center">Stage 1 [retry]: Boundary Marking...</p><p '
                     'align="center">(hover for instructions)</p></body></html>')
                 return
+
+            # update workspace table
+            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
+            self.tableWidget.setItem(self._current_scan_idx, 1, item)
+
+            # show hidden features which are now relevant to work on segmentation
+            self.verticalFrame.show()
 
             # set status in workspace table
             item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
@@ -311,8 +326,11 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.tableWidget.setItem(waiting_idx, 1, item)
 
     def _toggle_quantization(self):
-        tick_val = self.quantizationSlider.value()
-        self._all_scans[self._current_scan_idx].show_quantization_segmentation(tick_val)
+        try:
+            tick_val = self.quantizationSlider.value()
+            self._all_scans[self._current_scan_idx].show_quantization_segmentation(tick_val)
+        except Exception as ex:
+            print('quati error', ex)
 
     def toggle_segmentation(self, show):
         '''
@@ -365,8 +383,11 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     @QtCore.pyqtSlot()
     def _toggle_contrast(self):
-        tick_val = self.contrast_slider.value()
-        self._all_scans[self._current_scan_idx].image_label.change_view(tick_val)
+        try:
+            tick_val = self.contrast_slider.value()
+            self._all_scans[self._current_scan_idx].image_label.change_view(tick_val)
+        except Exception as ex:
+            print('toggle contrast error', ex)
 
 
 class ScrollArea(QtWidgets.QScrollArea):
