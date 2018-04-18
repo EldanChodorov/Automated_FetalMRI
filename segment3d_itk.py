@@ -386,7 +386,7 @@ class Brain_segmant:
 
             #clean up with kmeans
             lables,diff_vals = self.kmeans_clean_up(cut_out_image)
-            print('the shae of quant vals = ', diff_vals.shape)
+            # print('the shae of quant vals = ', diff_vals.shape)
             self.after_quant_image = lables.copy()
             self.quant_val = diff_vals.copy()
 
@@ -487,16 +487,21 @@ class Brain_segmant:
         return np.array(returnImage, dtype)
 
 
-    def get_quant_segment(self,index):
+    def get_quant_segment(self,index,segmantation):
+
+        convex_holes_image = self.flood_fill_hull(segmantation)
+
+        # save convex segmantation
+        self.convex_segment = convex_holes_image.copy()
+        cut_out_image = self.brain_image * convex_holes_image
+        self.after_quant_image,self.diff_vals = self.kmeans_clean_up(cut_out_image)
+
+
         index = 1 if index == 0 else index
-        index = int(index/10 * self.quant_val.shape[0]) - 1
+        index = int(index/10 * self.diff_vals.shape[0]) - 1
 
         cur_seg = copy.deepcopy(self.orig_segment)
         cur_seg[np.where(self.after_quant_image >= self.quant_val[index])] = 0
-
-        display_image = cur_seg.transpose(self.get_display_axis(np.argmin(cur_seg.shape)))
-        self.multi_slice_viewer(display_image, do_gray=True)
-        plt.show()
 
         final_image = np.zeros(self.brain_image.shape)
         h, w, z = cur_seg.shape
