@@ -360,7 +360,7 @@ class Brain_segmant:
             for mat, idx in results:
                 seg_mat[:, :, idx] = mat
 
-            if self.display_work:
+            if False:
                 display_image = seg_mat.transpose(self.get_display_axis(np.argmin(seg_mat.shape)))
                 self.multi_slice_viewer(display_image, do_gray=True)
                 plt.show()
@@ -376,6 +376,7 @@ class Brain_segmant:
 
             # save convex segmantation
             self.convex_segment = convex_holes_image.copy()
+            print(small_image.shape,convex_holes_image.shape)
             cut_out_image = small_image * convex_holes_image
 
             if self.display_work:
@@ -488,11 +489,13 @@ class Brain_segmant:
 
 
     def get_quant_segment(self,index,segmantation):
-
+        segmantation = segmantation.transpose(1, 2, 0)
         convex_holes_image = self.flood_fill_hull(segmantation)
 
         # save convex segmantation
         self.convex_segment = convex_holes_image.copy()
+        print(self.brain_image.shape)
+        print(convex_holes_image.shape)
         cut_out_image = self.brain_image * convex_holes_image
         self.after_quant_image,self.diff_vals = self.kmeans_clean_up(cut_out_image)
 
@@ -510,7 +513,7 @@ class Brain_segmant:
         return final_image.transpose(2, 0, 1)
 
 
-    def sperate_to_two_brains(self,segmantation,line_list):
+    def sperate_to_two_brains(self,segmantation):
         convex_seg = self.flood_fill_hull(segmantation)
         labels = measure.regionprops(convex_seg)[0]
         print(labels.orientation)
