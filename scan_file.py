@@ -64,8 +64,7 @@ class ScanFile:
         self.image_label.activate_image()
 
     def run_segmentation(self):
-        print('run_segmentation!  %s' % self._nifti_path)
-        self.status = 'Processing'
+        self.status = PROCESSING
         self._segmentation_thread.start()
 
     def perform_segmentation(self):
@@ -88,8 +87,11 @@ class ScanFile:
 
         segmentation_array = self._segment_worker.segmentation_3d(self.frames, seeds) * 255
 
-        if segmentation_array is not None:
+        if segmentation_array is None:
+            self.status = ''
+        else:
             self.set_segmentation(segmentation_array)
+            self.status = SEGMENTED
 
         return segmentation_array
 
@@ -143,7 +145,6 @@ class ScanFile:
         self._segmentation_array = segmentation_array
         self.image_label.set_segmentation(segmentation_array)
         self.image_label.set_image(self.image_label.frames[self.image_label.frame_displayed_index])
-        self.status = 'Segmented'
 
     def __str__(self):
         return self._nifti_path.split('/')[-1].split('.')[0]

@@ -106,6 +106,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # set up table ui
         self.tableWidget.setHorizontalHeaderLabels(['File', 'Status', 'Remove'])
         self.tableWidget.cellDoubleClicked.connect(self._switch_scan)
+        self.runAll_btn.clicked.connect(self._run_all_segmentations)
 
         # connect buttons and sliders contained in the info box
         self.quantizationSlider.valueChanged.connect(self._toggle_quantization)
@@ -157,10 +158,17 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.tableWidget.setCellWidget(full_rows, 2, button)
 
     def _run_all_segmentations(self):
-        # todo CREATE SEG QUEUE CLASS AND JUST PUSH IN TASKS
-        pass
-        self._seg_queue = range(len(self._all_scans))
+        '''
+        Insert all scans which have yet to be segmented, into queue to be segmented, and run them one by one.
+        '''
+        for i in range(len(self._all_scans)):
+            if self._all_scans[i].status == '':
+                self._seg_queue.append(i)
+                self._all_scans[i].status = QUEUED
+                self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem(QUEUED))
 
+        # will execute segmentation on first scan in queue
+        self._run_next_seg()
 
     @QtCore.pyqtSlot(int)
     def _remove_scan(self, scan_idx):
@@ -264,7 +272,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self._seg_queue.append(self._current_scan_idx)
 
             # set status in workspace table
-            item = QtWidgets.QTableWidgetItem('In Queue...')
+            item = QtWidgets.QTableWidgetItem(QUEUED)
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
         else:
@@ -274,7 +282,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self._all_scans[self._current_scan_idx].run_segmentation()
 
             # set status in workspace table
-            item = QtWidgets.QTableWidgetItem('Processing...')
+            item = QtWidgets.QTableWidgetItem(PROCESSING)
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
     def _remove_progress_bar(self):
@@ -308,7 +316,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                 return
 
             # update finished status in workspace table
-            item = QtWidgets.QTableWidgetItem('Segmented')
+            item = QtWidgets.QTableWidgetItem(SEGMENTED)
             self.tableWidget.setItem(self._segmentation_running, 1, item)
 
             # show hidden features which are now relevant to work on segmentation
@@ -333,7 +341,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self._all_scans[waiting_idx].run_segmentation()
 
             # update status in workspace table
-            item = QtWidgets.QTableWidgetItem('Processing...')
+            item = QtWidgets.QTableWidgetItem(PROCESSING)
             self.tableWidget.setItem(waiting_idx, 1, item)
         else:
             self._segmentation_running = NO_SEG_RUNNING

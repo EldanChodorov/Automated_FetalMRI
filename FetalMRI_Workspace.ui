@@ -113,7 +113,7 @@ border-style: outset;</string>
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
+                  <normaloff>../../../../.designer/backup/images/paintbrush.png</normaloff>../../../../.designer/backup/images/paintbrush.png</iconset>
                 </property>
                </widget>
               </item>
@@ -160,7 +160,7 @@ border-style: outset;
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
+                  <normaloff>../../../../.designer/backup/images/erase.jpg</normaloff>../../../../.designer/backup/images/erase.jpg</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -236,7 +236,7 @@ font: 75 8pt &quot;MS Shell Dlg 2&quot;;
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>images/purple_square.png</normaloff>images/purple_square.png</iconset>
+                  <normaloff>../../../../.designer/backup/images/purple_square.png</normaloff>../../../../.designer/backup/images/purple_square.png</iconset>
                 </property>
                </widget>
               </item>
@@ -257,7 +257,7 @@ border-style: outset;</string>
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>images/red_square.png</normaloff>images/red_square.png</iconset>
+                  <normaloff>../../../../.designer/backup/images/red_square.png</normaloff>../../../../.designer/backup/images/red_square.png</iconset>
                 </property>
                </widget>
               </item>
@@ -443,7 +443,7 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="runAll_btn">
              <property name="styleSheet">
               <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
 border-radius: 15px; border-color: black; border-width: 3px; 

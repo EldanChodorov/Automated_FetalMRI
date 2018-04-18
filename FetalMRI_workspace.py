@@ -67,7 +67,7 @@ class Ui_workspace(object):
 "border-style: outset;")
         self.paintbrush_btn.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("images/paintbrush.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("../../../../.designer/backup/images/paintbrush.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.paintbrush_btn.setIcon(icon)
         self.paintbrush_btn.setObjectName("paintbrush_btn")
         self.gridLayout_3.addWidget(self.paintbrush_btn, 0, 0, 1, 1)
@@ -89,7 +89,7 @@ class Ui_workspace(object):
 "")
         self.eraser_btn.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("images/erase.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("../../../../.designer/backup/images/erase.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.eraser_btn.setIcon(icon1)
         self.eraser_btn.setIconSize(QtCore.QSize(24, 24))
         self.eraser_btn.setObjectName("eraser_btn")
@@ -127,7 +127,7 @@ class Ui_workspace(object):
 "font: 75 8pt \"MS Shell Dlg 2\";\n"
 "")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("images/purple_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap("../../../../.designer/backup/images/purple_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.inner_square_btn.setIcon(icon2)
         self.inner_square_btn.setObjectName("inner_square_btn")
         self.gridLayout_3.addWidget(self.inner_square_btn, 0, 3, 1, 1)
@@ -138,7 +138,7 @@ class Ui_workspace(object):
 "border-radius: 12px; border-color: red; border-width: 3px;\n"
 "border-style: outset;")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap("images/red_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap("../../../../.designer/backup/images/red_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.outer_square_btn.setIcon(icon3)
         self.outer_square_btn.setObjectName("outer_square_btn")
         self.gridLayout_3.addWidget(self.outer_square_btn, 1, 3, 1, 1)
@@ -237,13 +237,13 @@ class Ui_workspace(object):
 "")
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
-        self.pushButton = QtWidgets.QPushButton(workspace)
-        self.pushButton.setStyleSheet("background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;\n"
+        self.runAll_btn = QtWidgets.QPushButton(workspace)
+        self.runAll_btn.setStyleSheet("background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;\n"
 "border-radius: 15px; border-color: black; border-width: 3px; \n"
 "border-style: outset;\n"
 "")
-        self.pushButton.setObjectName("pushButton")
-        self.horizontalLayout.addWidget(self.pushButton)
+        self.runAll_btn.setObjectName("runAll_btn")
+        self.horizontalLayout.addWidget(self.runAll_btn)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.tableWidget = QtWidgets.QTableWidget(workspace)
         self.tableWidget.setStyleSheet("color: rgb(255, 255, 255);\n"
@@ -324,7 +324,7 @@ class Ui_workspace(object):
 "Segmentation"))
         self.contrast_label.setText(_translate("workspace", "Fix Contrast:"))
         self.label.setText(_translate("workspace", "Workspace"))
-        self.pushButton.setText(_translate("workspace", "Run All"))
+        self.runAll_btn.setText(_translate("workspace", "Run All"))
         self.quantizationLabel.setText(_translate("workspace", "Play with quantization"))
         self.brain_volume_label.setText(_translate("workspace", "Brain Volume: "))
         self.show_convex_btn.setText(_translate("workspace", "Show Convex"))

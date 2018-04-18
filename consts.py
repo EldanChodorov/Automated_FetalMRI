@@ -20,3 +20,8 @@ MIN_ZOOM = 0
 INITIAL_ZOOM = 1
 
 NO_SEG_RUNNING = -1
+
+# representation of scans' status in workspace table
+SEGMENTED = 'Segmented'
+QUEUED = 'In Queue...'
+PROCESSING = 'Processing...'
