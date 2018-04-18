@@ -276,11 +276,23 @@ class Brain_segmant:
             after_quant[i,:,:] = self.quantize(slice,levels=30,maxCount=255)
         # print('after')
         # print(np.unique(after_quant).shape)
+        try:
+            res = np.flip(np.sort(np.unique(after_quant)),axis=-1)
+        except AttributeError:
+            # flip not valid for numpy versions < 1.12.0
+            res = self._flip(np.sort(np.unique(after_quant)), axis=-1)
+        return after_quant, res
 
-
-
-
-        return after_quant, np.flip(np.sort(np.unique(after_quant)),axis=-1)
+    def _flip(self, m, axis):
+        if not hasattr(m, 'ndim'):
+            m = np.asarray(m)
+        indexer = [slice(None)] * m.ndim
+        try:
+            indexer[axis] = slice(None, None, -1)
+        except IndexError:
+            raise ValueError("axis=%i is invalid for the %i-dimensional input array"
+                             % (axis, m.ndim))
+        return m[tuple(indexer)]
 
     def flood_fill_hull(self,image):
         points = np.transpose(np.where(image))
