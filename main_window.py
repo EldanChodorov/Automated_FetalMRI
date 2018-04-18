@@ -87,8 +87,6 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.actionOpen_Segmentation.setEnabled(True)
         self.actionSave_Points.setEnabled(True)
         self.actionLoad_Points.setEnabled(True)
-        self.actionContrast_View.triggered.connect(self._workspace.contrast_view_btn.click)
-        self.actionContrast_View.setEnabled(True)
         self.actionShow_Segmentation.setEnabled(True)
 
     def _toggle_segmentation(self):

@@ -160,7 +160,6 @@ class Ui_workspace(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_number.sizePolicy().hasHeightForWidth())
         self.frame_number.setSizePolicy(sizePolicy)
-        self.frame_number.setMinimumSize(QtCore.QSize(42, 50))
         self.frame_number.setMaximumSize(QtCore.QSize(500, 100))
         self.frame_number.setAutoFillBackground(False)
         self.frame_number.setStyleSheet("font: 75 12pt \"MS Shell Dlg 2\";\n"
@@ -182,41 +181,44 @@ class Ui_workspace(object):
 "")
         self.instructions.setObjectName("instructions")
         self.toolkitLayout.addWidget(self.instructions)
-        self.gridLayout_4 = QtWidgets.QGridLayout()
-        self.gridLayout_4.setObjectName("gridLayout_4")
-        self.contrast_view_btn = QtWidgets.QPushButton(workspace)
-        self.contrast_view_btn.setStyleSheet("background-color:rgb(145, 0, 109); color: white; font-weight: regular; font-size: 12pt;\n"
-"border-radius: 15px; border-color: black; border-width: 3px; \n"
-"border-style: outset;")
-        self.contrast_view_btn.setObjectName("contrast_view_btn")
-        self.gridLayout_4.addWidget(self.contrast_view_btn, 1, 1, 1, 1)
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.perform_seg_btn = QtWidgets.QPushButton(workspace)
         self.perform_seg_btn.setStyleSheet("background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;\n"
 "border-radius: 15px; border-color: black; border-width: 3px; \n"
 "border-style: outset;\n"
 "")
         self.perform_seg_btn.setObjectName("perform_seg_btn")
-        self.gridLayout_4.addWidget(self.perform_seg_btn, 0, 0, 1, 1)
-        self.standard_view_btn = QtWidgets.QPushButton(workspace)
-        self.standard_view_btn.setEnabled(False)
-        self.standard_view_btn.setStyleSheet("background-color:rgb(145, 0, 109); color: white; font-weight: regular; font-size: 12pt;\n"
-"border-radius: 15px; border-color: black; border-width: 3px; \n"
-"border-style: outset;")
-        self.standard_view_btn.setObjectName("standard_view_btn")
-        self.gridLayout_4.addWidget(self.standard_view_btn, 1, 0, 1, 1)
+        self.horizontalLayout_3.addWidget(self.perform_seg_btn)
         self.save_seg_btn = QtWidgets.QPushButton(workspace)
         self.save_seg_btn.setEnabled(False)
         self.save_seg_btn.setStyleSheet("background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;\n"
 "border-radius: 15px; border-color: black; border-width: 3px; \n"
 "border-style: outset;")
         self.save_seg_btn.setObjectName("save_seg_btn")
-        self.gridLayout_4.addWidget(self.save_seg_btn, 0, 1, 1, 1)
-        self.toolkitLayout.addLayout(self.gridLayout_4)
+        self.horizontalLayout_3.addWidget(self.save_seg_btn)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_3)
+        self.contrast_label = QtWidgets.QLabel(workspace)
+        self.contrast_label.setStyleSheet("background-color: rgb(158, 51, 158);\n"
+" color: white; font-weight: regular; font-size: 12pt;\n"
+"border-radius: 15px; border-color: black; border-width: 3px; \n"
+"border-style: outset;\n"
+"")
+        self.contrast_label.setObjectName("contrast_label")
+        self.verticalLayout_3.addWidget(self.contrast_label)
+        self.contrast_slider = QtWidgets.QSlider(workspace)
+        self.contrast_slider.setMaximum(10)
+        self.contrast_slider.setProperty("value", 5)
+        self.contrast_slider.setOrientation(QtCore.Qt.Horizontal)
+        self.contrast_slider.setObjectName("contrast_slider")
+        self.verticalLayout_3.addWidget(self.contrast_slider)
+        self.toolkitLayout.addLayout(self.verticalLayout_3)
         self.toolkitLayout.setStretch(0, 1)
         self.toolkitLayout.setStretch(1, 1)
         self.toolkitLayout.setStretch(2, 1)
         self.toolkitLayout.setStretch(3, 1)
-        self.toolkitLayout.setStretch(4, 2)
         self.ImageLayout.addLayout(self.toolkitLayout)
         self.scrollLayout = QtWidgets.QVBoxLayout()
         self.scrollLayout.setSpacing(9)
@@ -260,6 +262,7 @@ class Ui_workspace(object):
         self.quantizationSlider = QtWidgets.QSlider(workspace)
         self.quantizationSlider.setAutoFillBackground(False)
         self.quantizationSlider.setStyleSheet("")
+        self.quantizationSlider.setMaximum(10)
         self.quantizationSlider.setSliderPosition(5)
         self.quantizationSlider.setTracking(False)
         self.quantizationSlider.setOrientation(QtCore.Qt.Horizontal)
@@ -272,6 +275,7 @@ class Ui_workspace(object):
         self.verticalLayout_2.setStretch(1, 20)
         self.verticalLayout_2.setStretch(2, 5)
         self.ImageLayout.addLayout(self.verticalLayout_2)
+        self.ImageLayout.setStretch(0, 1)
         self.ImageLayout.setStretch(1, 8)
         self.ImageLayout.setStretch(2, 4)
         self.MainLayout.addLayout(self.ImageLayout)
@@ -301,15 +305,11 @@ class Ui_workspace(object):
         self.instructions.setStatusTip(_translate("workspace", "<html><head/><body><pre style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;\"><span style=\" font-family:\'Courier New\'; font-size:9pt; font-weight:600; color:#008080;\">In the first and last frame: draw a purple square inside the brain area.<br/>In the middle frame: draw a red square around [enclosing] the brain area.<br/>Finally: press \'Perform Segmentation\'.</span></pre></body></html>"))
         self.instructions.setWhatsThis(_translate("workspace", "<html><head/><body><p>In the first and last frame: draw a purple square inside the brain area.</p><p>In the middle frame: draw a red square around [enclosing] the brain area.</p><p>Finally: press \'Perform Segmentation\'.</p></body></html>"))
         self.instructions.setText(_translate("workspace", "<html><head/><body><p align=\"center\"><span style=\" text-decoration: underline;\">Stage 1</span><span style=\" text-decoration: underline;\">: Boundary Marking</span></p><p>Outline the brain in the first, </p><p>last and middle frames.</p></body></html>"))
-        self.contrast_view_btn.setWhatsThis(_translate("workspace", "Improve contrast of image"))
-        self.contrast_view_btn.setText(_translate("workspace", "Contrast \n"
-"View"))
         self.perform_seg_btn.setText(_translate("workspace", "Perform \n"
 "Segmentation"))
-        self.standard_view_btn.setText(_translate("workspace", "Standard \n"
-"View"))
         self.save_seg_btn.setText(_translate("workspace", "Save \n"
 "Segmentation"))
+        self.contrast_label.setText(_translate("workspace", "Fix Contrast:"))
         self.label.setText(_translate("workspace", "Workspace"))
         self.pushButton.setText(_translate("workspace", "Run All"))
         self.quantizationLabel.setText(_translate("workspace", "Play with quantization"))

@@ -38,7 +38,9 @@ class ScanFile:
         self.frames = (self._array_data.astype(np.float64) / np.max(self._array_data)) * 255
 
         # TODO: perform in separate thread somehow
-        self._contrasted_frames = histogram_equalization(self.frames)
+        self._contrasted_frames = np.zeros((10, self.frames.shape[0], self.frames.shape[1], self.frames.shape[2]))
+        for i in range(1, 11):
+            self._contrasted_frames[i-1] = contrast_change(i, self.frames)
 
         # index of current frame displayed
         self.frame_displayed_index = 0
@@ -120,6 +122,17 @@ class ScanFile:
     def __str__(self):
         return self._nifti_path.split('/')[-1].split('.')[0]
 
+
+def contrast_change(index, image):
+    '''
+    Change contrast of a given image.
+    :param index: [int] 1 <= index <= 10, affects level of contrast. 5 leaves image unchanged.
+    :param image: [numpy.ndarray]
+    :return: contrasted image [numpy.ndarray]
+    '''
+    max_intens = 255.0 if np.max(image) <= 255.0 else 1024.0
+    new_image = max_intens * ((image / max_intens) ** ((index/10) * 2))
+    return new_image
 
 def histogram_equalization(frames):
     '''

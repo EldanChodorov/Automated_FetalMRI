@@ -29,7 +29,7 @@
       <number>13</number>
      </property>
      <item>
-      <layout class="QHBoxLayout" name="ImageLayout" stretch="0,8,4">
+      <layout class="QHBoxLayout" name="ImageLayout" stretch="1,8,4">
        <property name="spacing">
         <number>9</number>
        </property>
@@ -37,7 +37,7 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QVBoxLayout" name="toolkitLayout" stretch="1,1,1,1,2">
+        <layout class="QVBoxLayout" name="toolkitLayout" stretch="1,1,1,1,0">
          <item>
           <widget class="QFrame" name="tool_kit">
            <property name="sizePolicy">
@@ -292,12 +292,6 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="minimumSize">
-            <size>
-             <width>42</width>
-             <height>50</height>
-            </size>
-           </property>
            <property name="maximumSize">
             <size>
              <width>500</width>
@@ -356,66 +350,65 @@ border-style: outset;
           </widget>
          </item>
          <item>
-          <layout class="QGridLayout" name="gridLayout_4">
-           <item row="1" column="1">
-            <widget class="QPushButton" name="contrast_view_btn">
-             <property name="whatsThis">
-              <string>Improve contrast of image</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color:rgb(145, 0, 109); color: white; font-weight: regular; font-size: 12pt;
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QPushButton" name="perform_seg_btn">
+               <property name="styleSheet">
+                <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
+border-radius: 15px; border-color: black; border-width: 3px; 
+border-style: outset;
+</string>
+               </property>
+               <property name="text">
+                <string>Perform 
+Segmentation</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="save_seg_btn">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
 border-radius: 15px; border-color: black; border-width: 3px; 
 border-style: outset;</string>
-             </property>
-             <property name="text">
-              <string>Contrast 
-View</string>
-             </property>
-            </widget>
+               </property>
+               <property name="text">
+                <string>Save 
+Segmentation</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
-           <item row="0" column="0">
-            <widget class="QPushButton" name="perform_seg_btn">
+           <item>
+            <widget class="QLabel" name="contrast_label">
              <property name="styleSheet">
-              <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
+              <string notr="true">background-color: rgb(158, 51, 158);
+ color: white; font-weight: regular; font-size: 12pt;
 border-radius: 15px; border-color: black; border-width: 3px; 
 border-style: outset;
 </string>
              </property>
              <property name="text">
-              <string>Perform 
-Segmentation</string>
+              <string>Fix Contrast:</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QPushButton" name="standard_view_btn">
-             <property name="enabled">
-              <bool>false</bool>
+           <item>
+            <widget class="QSlider" name="contrast_slider">
+             <property name="maximum">
+              <number>10</number>
              </property>
-             <property name="styleSheet">
-              <string notr="true">background-color:rgb(145, 0, 109); color: white; font-weight: regular; font-size: 12pt;
-border-radius: 15px; border-color: black; border-width: 3px; 
-border-style: outset;</string>
+             <property name="value">
+              <number>5</number>
              </property>
-             <property name="text">
-              <string>Standard 
-View</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QPushButton" name="save_seg_btn">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
-border-radius: 15px; border-color: black; border-width: 3px; 
-border-style: outset;</string>
-             </property>
-             <property name="text">
-              <string>Save 
-Segmentation</string>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
             </widget>
            </item>
@@ -502,6 +495,9 @@ background-color: rgb(4, 51, 57)</string>
              </property>
              <property name="styleSheet">
               <string notr="true"/>
+             </property>
+             <property name="maximum">
+              <number>10</number>
              </property>
              <property name="sliderPosition">
               <number>5</number>

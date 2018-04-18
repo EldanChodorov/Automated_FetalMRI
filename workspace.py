@@ -76,8 +76,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # connect buttons
         self.perform_seg_btn.clicked.connect(self._perform_segmentation_wrapper)
         self.save_seg_btn.clicked.connect(self.save_segmentation)
-        self.standard_view_btn.clicked.connect(lambda: self._contrast_button_clicked(False))
-        self.contrast_view_btn.clicked.connect(lambda: self._contrast_button_clicked(True))
+        self.contrast_slider.valueChanged.connect(self._toggle_contrast)
 
         # connect lineEdit
         self.jump_frame_lineedit.returnPressed.connect(self._change_frame_number)
@@ -108,7 +107,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # hide features relevant only after segmentation
         self.quantizationLabel.hide()
         self.quantizationSlider.hide()
-        self.quantizationSlider.setRange(1, 10)
         self.quantizationSlider.valueChanged.connect(self._toggle_quantization)
 
     @QtCore.pyqtSlot(int, int)
@@ -220,15 +218,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         else:
             self._all_scans[self._current_scan_idx].image_label.change_frame_number(frame_number)
         self.jump_frame_lineedit.clear()
-
-    def _contrast_button_clicked(self, contrast_view):
-        '''
-        Set whether frames shown are regular or contrasted.
-        :param contrast_view: [bool] if True, show contrasted frames, otherwise regular.
-        '''
-        self._all_scans[self._current_scan_idx].image_label.change_view(contrast_view)
-        self.contrast_view_btn.setEnabled(not contrast_view)
-        self.standard_view_btn.setEnabled(contrast_view)
 
     def _setup_progress_bar(self):
         self._progress_bar = QtWidgets.QProgressBar(self)
@@ -372,6 +361,11 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         except EOFError:
             print('Empty file.')
 
+    @QtCore.pyqtSlot()
+    def _toggle_contrast(self):
+        tick_val = self.contrast_slider.value()
+        self._all_scans[self._current_scan_idx].image_label.change_view(tick_val)
+
 
 class ScrollArea(QtWidgets.QScrollArea):
 
@@ -393,18 +387,6 @@ class ScrollArea(QtWidgets.QScrollArea):
         # ignore so that scrolling is handled only by ImageLabel
         if event.type() == QtCore.QEvent.Wheel:
             event.ignore()
-
-
-def contrast_change(index, image):
-    '''
-    Change contrast of a given image.
-    :param index: [int] 1 <= index <= 10, affects level of contrast. 5 leaves image unchanged.
-    :param image: [numpy.ndarray]
-    :return: contrasted image [numpy.ndarray]
-    '''
-    max_intens = 255.0 if np.max(image) <= 255.0 else 1024.0
-    new_image = max_intens * ((image / max_intens) ** ((index/10) * 2))
-    return new_image
 
 
 def overlap_images(background_img_list, mask_img_list):

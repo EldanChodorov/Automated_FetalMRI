@@ -46,7 +46,7 @@ class ImageLabel(QtWidgets.QLabel):
     def __init__(self, frames, contrasted_frames, workspace_parent):
         '''
         :param frames: [numpy.ndarray] list of images
-        :param contrasted_frames: [numpy.ndarray] list of images, after histogram equalization
+        :param contrasted_frames: different levels of contrast performed on frames, shape (10, frames.shape)
         :param workspace_parent: [WorkSpace]
         '''
         QtWidgets.QLabel.__init__(self)
@@ -63,6 +63,8 @@ class ImageLabel(QtWidgets.QLabel):
 
         # numpy array, list of images
         self.standard_frames = frames
+
+        # numpy array, shape (10, standard_frames.shape)
         self.contrasted_frames = contrasted_frames
 
         self._original_cursor = self.cursor()
@@ -107,17 +109,17 @@ class ImageLabel(QtWidgets.QLabel):
         # set frame number shown
         self.change_frame_number(1)
 
-    @QtCore.pyqtSlot(bool)
-    def change_view(self, contrast_view):
+    @QtCore.pyqtSlot(int)
+    def change_view(self, contrast_index=-1):
         '''
         Set whether frames shown are regular or contrasted.
-        :param contrast_view: [bool] if True, show contrasted frames.
+        :param contrast_index: [int] contrast level to show. if -1, show regular frames.
         '''
         try:
-            if contrast_view:
-                self.frames = self.contrasted_frames
-            else:
+            if contrast_index == -1:
                 self.frames = self.standard_frames
+            else:
+                self.frames = self.contrasted_frames[contrast_index]
 
             self.set_image(self.frames[self.frame_displayed_index])
         except Exception as ex:
