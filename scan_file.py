@@ -115,7 +115,7 @@ class ScanFile:
 
     def show_segmentation(self):
         '''Show original segmentation in image label.'''
-        if self._segmentation_array:
+        if self._segmentation_array is not None:
             self.image_label.set_segmentation(self._segmentation_array)
 
     def show_convex(self):

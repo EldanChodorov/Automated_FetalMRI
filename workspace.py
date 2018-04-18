@@ -282,7 +282,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                                       'align="center">(please wait)</p></body></html>')
 
             segmentation_array = self._all_scans[self._current_scan_idx].perform_segmentation()
-            print(bool(segmentation_array), segmentation_array)
+
             if segmentation_array is None:
                 warn('An error occurred while computing the segmentation. Please perform better markings, '
                      'and try again.')
