@@ -512,15 +512,6 @@ class Brain_segmant:
 
 
 
-    def better_contres(self,index,image):
-        max_intes = 255.0 if np.max(image) <= 255.0 else 1024.0
-
-        new_image = (max_intes)*((image/max_intes)**((index/10)*2))
-
-        return new_image
-
-
-
 
 def confidance_evaluation(alg_seg, gt_seg):
     union_seg = alg_seg + gt_seg

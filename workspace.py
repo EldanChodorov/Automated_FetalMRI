@@ -395,6 +395,18 @@ class ScrollArea(QtWidgets.QScrollArea):
             event.ignore()
 
 
+def contrast_change(index, image):
+    '''
+    Change contrast of a given image.
+    :param index: [int] 1 <= index <= 10, affects level of contrast. 5 leaves image unchanged.
+    :param image: [numpy.ndarray]
+    :return: contrasted image [numpy.ndarray]
+    '''
+    max_intens = 255.0 if np.max(image) <= 255.0 else 1024.0
+    new_image = max_intens * ((image / max_intens) ** ((index/10) * 2))
+    return new_image
+
+
 def overlap_images(background_img_list, mask_img_list):
     '''
     Color mask in background image.
