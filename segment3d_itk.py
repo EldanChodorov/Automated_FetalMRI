@@ -494,18 +494,30 @@ class Brain_segmant:
         cur_seg = copy.deepcopy(self.orig_segment)
         cur_seg[np.where(self.after_quant_image >= self.quant_val[index])] = 0
 
+        display_image = cur_seg.transpose(self.get_display_axis(np.argmin(cur_seg.shape)))
+        self.multi_slice_viewer(display_image, do_gray=True)
+        plt.show()
+
         final_image = np.zeros(self.brain_image.shape)
         h, w, z = cur_seg.shape
         final_image[self.BB[0]:self.BB[0] + h,self.BB[1]:self.BB[1] + w,:] = cur_seg
+
         return final_image.transpose(2, 0, 1)
 
 
     def sperate_to_two_brains(self,segmantation,line_list):
-        convex_seg = self.flood_fill_hull(segmentation)
+        convex_seg = self.flood_fill_hull(segmantation)
         labels = measure.regionprops(convex_seg)[0]
         print(labels.orientation)
 
 
+
+    def better_contres(self,index,image):
+        max_intes = 255.0 if np.max(image) <= 255.0 else 1024.0
+
+        new_image = (max_intes)*((image/max_intes)**((index/10)*2))
+
+        return new_image
 
 
 
