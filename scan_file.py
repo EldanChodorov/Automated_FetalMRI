@@ -110,8 +110,7 @@ class ScanFile:
     def set_segmentation(self, segmentation_array):
         self._segmentation_array = segmentation_array
         self.image_label.set_segmentation(segmentation_array)
-        self.image_label.frame_displayed_index = 0
-        self.image_label.set_image(self.image_label.frames[0])
+        self.image_label.set_image(self.image_label.frames[self.image_label.frame_displayed_index])
         self.status = 'Segmented'
 
     def __str__(self):
