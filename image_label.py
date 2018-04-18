@@ -81,9 +81,6 @@ class ImageLabel(QtWidgets.QLabel):
         # store image size, changed upon zoom
         self._image_size = self._initial_image_size()
 
-        # alpha channel of painter
-        self.alpha_channel = 255
-
         # set view size
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
@@ -96,6 +93,9 @@ class ImageLabel(QtWidgets.QLabel):
 
         # whether to paint segmentation over scan or not
         self.show_segmentation = True
+
+        # whether segmentation has been added to the image yet
+        self._segmentation_added = False
 
     def activate_image(self):
         '''Set image to be displayed. Deactivated until image should be shown.'''
@@ -225,12 +225,12 @@ class ImageLabel(QtWidgets.QLabel):
         Draw transparent points of segmentation on top of image.
         :param segmentation_array: [numpy.ndarray] binary image
         '''
+        self.shapes.reset_segmentation()
         marked_points = self._image_to_QPoint(segmentation_array)
         for frame_num, points_list in marked_points.items():
-            self.shapes.add_points(frame_num, points_list, self._zoom)
-
-        # draw points transparently
-        self.alpha_channel = ALPHA_TRANSPARENT
+            self.shapes.add_points(frame_num, points_list, self._zoom, True)
+        self._segmentation_added = True
+        self.update()
 
     def paintEvent(self, paint_event):
         try:
@@ -245,25 +245,35 @@ class ImageLabel(QtWidgets.QLabel):
                 pen = QtGui.QPen()
                 pen.setWidth(self.paintbrush_size)
 
-                # inner squares
-                pen.setColor(QtGui.QColor(138, 43, 226, self.alpha_channel))
-                painter.setPen(pen)
-                for square in self.shapes.inner_squares[self.frame_displayed_index]:
-                    for point in square.points:
+                # draw user markings only before segmentation has been added to image
+                if not self._segmentation_added:
+
+                    # inner squares
+                    pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_NON_TRANSPARENT))
+                    painter.setPen(pen)
+                    for square in self.shapes.inner_squares[self.frame_displayed_index]:
+                        for point in square.points:
+                            painter.drawPoint(self.image2widget_coord(point))
+
+                    # outer squares
+                    pen.setColor(QtGui.QColor(255, 0, 0, ALPHA_NON_TRANSPARENT))
+                    painter.setPen(pen)
+                    for square in self.shapes.outer_squares[self.frame_displayed_index]:
+                        for point in square.points:
+                            painter.drawPoint(self.image2widget_coord(point))
+
+                    # points
+                    pen.setColor(QtGui.QColor(0, 0, 255, ALPHA_NON_TRANSPARENT))
+                    painter.setPen(pen)
+                    for point in self.shapes.chosen_points[self.frame_displayed_index]:
                         painter.drawPoint(self.image2widget_coord(point))
 
-                # outer squares
-                pen.setColor(QtGui.QColor(255, 0, 0, self.alpha_channel))
-                painter.setPen(pen)
-                for square in self.shapes.outer_squares[self.frame_displayed_index]:
-                    for point in square.points:
+                else:
+                    # segmentation points
+                    pen.setColor(QtGui.QColor(0, 0, 255, ALPHA_TRANSPARENT))
+                    painter.setPen(pen)
+                    for point in self.shapes.segmentation_points[self.frame_displayed_index]:
                         painter.drawPoint(self.image2widget_coord(point))
-
-                # points
-                pen.setColor(QtGui.QColor(0, 0, 255, self.alpha_channel))
-                painter.setPen(pen)
-                for point in self.shapes.chosen_points[self.frame_displayed_index]:
-                    painter.drawPoint(self.image2widget_coord(point))
 
         except Exception as ex:
             print('paintEvent', ex)

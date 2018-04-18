@@ -65,6 +65,7 @@ class ScanFile:
             print(ex)
 
     def run_segmentation(self):
+        print('run_segmentation!  %s' % self._nifti_path)
         self.status = 'Processing'
         self._segmentation_thread.start()
 
@@ -80,8 +81,11 @@ class ScanFile:
                     translated_pos = self.image_label.label_to_image_pos(pos)
                     seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
 
-        # run segmentation algorithm in separate thread so that gui does not freeze
         segmentation_array = self._segment_worker.segmentation_3d(self.frames, seeds) * 255
+
+        if segmentation_array is not None:
+            self.set_segmentation(segmentation_array)
+
         return segmentation_array
 
     def volume(self, segmentation_array):

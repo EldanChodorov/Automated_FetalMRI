@@ -18,6 +18,9 @@ class Shapes:
         # dict of frame number: points chosen manually by user per each frame
         self.chosen_points = defaultdict(list)
 
+        # dict of frame number: points included in segmentation
+        self.segmentation_points = defaultdict(list)
+
         # dict of frame number: squares chosen manually by user per each frame
         # inner - contained in brain, outer - enclosing the brain
         self.inner_squares = defaultdict(list)
@@ -42,15 +45,35 @@ class Shapes:
         if square_type == OUTER_SQUARE:
             self.outer_squares[frame_number].append(Square(corner1, corner2))
 
-    def add_points(self, frame_number, points, zoom_factor):
+    def reset_segmentation(self):
+        # reset segmentation points (assume new segmentation was found)
+        self.segmentation_points = defaultdict(list)
+
+    def add_points(self, frame_number, points, zoom_factor, segmentation=False):
         '''
         Add given points to list of points.
         :param frame_number: [int] frame points were selected from.
         :param points: [list of QtCore.QPoint]
         :param zoom_factor: [int] multiply each point by this factor
+        :param segmentation: [bool] If True, added points belong to segmentation and not user marks
         '''
-        for point in points:
-            self.add_point(frame_number, point * zoom_factor)
+        # use two different function for segmentation/regular points, for speed
+        # faster than using one function + checking (if) on a boolean for every point in points
+
+        if segmentation:
+            for point in points:
+                self.add_segmentation_point(frame_number, point * zoom_factor)
+        else:
+            for point in points:
+                self.add_point(frame_number, point * zoom_factor)
+
+    def add_segmentation_point(self, frame_number, point):
+        '''
+        Add given point to existing points container.
+        :param frame_number: [int] frame points were selected from.
+        :param point: [QtCore.QPoint]
+        '''
+        self.segmentation_points[frame_number].append(point)
 
     def add_point(self, frame_number, point):
         '''

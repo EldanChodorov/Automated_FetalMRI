@@ -144,6 +144,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     @QtCore.pyqtSlot(int)
     def _remove_scan(self, scan_idx):
+        # TODO: disable remove button while segmentation is performing
 
         if len(self._all_scans) == 1:
             warn('At least one scan must remain in workspace.')
@@ -243,11 +244,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def _perform_segmentation_wrapper(self):
 
-        # self._setup_progress_bar()
-
-        # disable button so that only one segmentation will run at each time
-        # TODO: re-enable when loading or rechoosing points
-        self.perform_seg_btn.setEnabled(False)
+        # TODO: in scan file, when 'perform segmentation' is called, perform only if the thread is not already running?
 
         # if another segmentation is already running, insert request to waiting queue
         # Todo use lock in case current seg finishes at same time, and then does not know that someone is waiting
@@ -266,8 +263,11 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._progress_bar.deleteLater()
 
     def perform_segmentation(self):
+        '''
+        Worker function, runs as code in ScanFile._segmentation_thread
+        Calculates and sets the segmentation on the image.
+        '''
         try:
-            print('perform segmentation!')
             # change stage title
             self.instructions.setText('<html><head/><body><p align="center">Stage 2:</p><p align="center">'
                                       'Calculating <\p><p>Segmentation...</p><p '
@@ -283,12 +283,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.quantizationLabel.show()
             self.quantizationSlider.show()
 
-            # self._remove_progress_bar()
-
             if segmentation_array is None:
                 warn('An error occurred while computing the segmentation. Please perform better markings, '
                      'and try again.')
-                self.perform_seg_btn.setEnabled(True)
                 self.instructions.setText(
                     '<html><head/><body><p align="center">Stage 1 [retry]: Boundary Marking...</p><p '
                     'align="center">(hover for instructions)</p></body></html>')
@@ -298,8 +295,13 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
+
+            self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
+                                      'align="center">(hover for instructions)</p></body></html>')
+            self.instructions.setToolTip('Use paintbrush and eraser to fix result segmentation.\nWhen finished, '
+                                         'save segmentation.')
+
             self.save_seg_btn.setEnabled(True)
-            self.set_segmentation(segmentation_array)
             self.segmentation_finished.emit()  # next segmentation will be run
 
         except Exception as ex:
@@ -317,12 +319,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.tableWidget.setItem(waiting_idx, 1, item)
 
     def _toggle_quantization(self):
-        try:
-            tick_val = self.quantizationSlider.value()
-            updated_segmentation = self._all_scans[self._current_scan_idx].get_quantization_segmentation(tick_val)
-            self._all_scans[self._current_scan_idx].set_segmentation(updated_segmentation)
-        except Exception as ex:
-            print('toggle quantization error', ex)
+        tick_val = self.quantizationSlider.value()
+        updated_segmentation = self._all_scans[self._current_scan_idx].get_quantization_segmentation(tick_val)
+        self._all_scans[self._current_scan_idx].set_segmentation(updated_segmentation)
 
     def toggle_segmentation(self, show):
         '''
@@ -331,16 +330,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         '''
         self._all_scans[self._current_scan_idx].image_label.show_segmentation = show
         self._all_scans[self._current_scan_idx].image_label.update()
-
-    def set_segmentation(self, segmentation_array):
-        ''' Set given segmentation on top of scan image.'''
-        self._all_scans[self._current_scan_idx].set_segmentation(segmentation_array)
-
-        # update stage title text
-        self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
-                                  'align="center">(hover for instructions)</p></body></html>')
-        self.instructions.setToolTip('Use paintbrush and eraser to fix result segmentation.\nWhen finished, '
-                                     'save segmentation.')
 
     def save_segmentation(self):
         segmentation = self._all_scans[self._current_scan_idx].image_label.points_to_image()
