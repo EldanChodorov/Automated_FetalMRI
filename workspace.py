@@ -60,6 +60,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._seg_queue = []
         self.segmentation_finished.connect(self._run_next_seg)
 
+        # holds the row index of the scan currently performing segmentation
+        self._segmentation_running = NO_SEG_RUNNING
+
     def _init_ui(self):
 
         # store original stylesheets
@@ -256,14 +259,22 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
         # if another segmentation is already running, insert request to waiting queue
         # Todo use lock in case current seg finishes at same time, and then does not know that someone is waiting
-        if len(self._seg_queue) > 0:
+        if self._segmentation_running != NO_SEG_RUNNING:
+            # insert to waiting queue
             self._seg_queue.append(self._current_scan_idx)
+
+            # set status in workspace table
+            item = QtWidgets.QTableWidgetItem('In Queue...')
+            self.tableWidget.setItem(self._current_scan_idx, 1, item)
+
         else:
+            self._segmentation_running = self._current_scan_idx
+
             # run perform_segmentation from thread so that progress bar will run in background
             self._all_scans[self._current_scan_idx].run_segmentation()
 
             # set status in workspace table
-            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
+            item = QtWidgets.QTableWidgetItem('Processing...')
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
     def _remove_progress_bar(self):
@@ -281,7 +292,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                                       'Calculating <\p><p>Segmentation...</p><p '
                                       'align="center">(please wait)</p></body></html>')
 
-            segmentation_array = self._all_scans[self._current_scan_idx].perform_segmentation()
+            segmentation_array = self._all_scans[self._segmentation_running].perform_segmentation()
 
             if segmentation_array is None:
                 warn('An error occurred while computing the segmentation. Please perform better markings, '
@@ -289,19 +300,19 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                 self.instructions.setText(
                     '<html><head/><body><p align="center">Stage 1 [retry]: Boundary Marking...</p><p '
                     'align="center">(hover for instructions)</p></body></html>')
+
+                # reset status in workspace table
+                item = QtWidgets.QTableWidgetItem('')
+                self.tableWidget.setItem(self._segmentation_running, 1, item)
+
                 return
 
-            # update workspace table
-            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            self.tableWidget.setItem(self._current_scan_idx, 1, item)
+            # update finished status in workspace table
+            item = QtWidgets.QTableWidgetItem('Segmented')
+            self.tableWidget.setItem(self._segmentation_running, 1, item)
 
             # show hidden features which are now relevant to work on segmentation
             self.verticalFrame.show()
-
-            # set status in workspace table
-            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            self.tableWidget.setItem(self._current_scan_idx, 1, item)
-
 
             self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
                                       'align="center">(hover for instructions)</p></body></html>')
@@ -316,14 +327,16 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def _run_next_seg(self):
         '''If there is a scan waiting in queue, perform its segmentation.'''
-        print('run next seg, queue size: %d' % len(self._seg_queue))
         if len(self._seg_queue) > 0:
             waiting_idx = self._seg_queue.pop(0)
+            self._segmentation_running = waiting_idx
             self._all_scans[waiting_idx].run_segmentation()
 
             # update status in workspace table
-            item = QtWidgets.QTableWidgetItem(self._all_scans[waiting_idx].status)
+            item = QtWidgets.QTableWidgetItem('Processing...')
             self.tableWidget.setItem(waiting_idx, 1, item)
+        else:
+            self._segmentation_running = NO_SEG_RUNNING
 
     def _toggle_quantization(self):
         try:
