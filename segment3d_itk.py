@@ -406,7 +406,12 @@ class Brain_segmant:
             final_image = np.zeros(array_data.shape)
             h, w, z = convex_holes_image.shape
             final_image[X_top:X_top + h,Y_top:Y_top + w,:] = convex_holes_image
-            return final_image.transpose(2, 0, 1)
+
+            final_image = final_image.transpose(2, 0, 1)
+
+            # self.sperate_to_two_brains(final_image.copy())
+
+            return final_image
 
         except Exception as ex:
             print('segmentation', type(ex), ex)
@@ -494,8 +499,7 @@ class Brain_segmant:
 
         # save convex segmantation
         self.convex_segment = convex_holes_image.copy()
-        print(self.brain_image.shape)
-        print(convex_holes_image.shape)
+
         cut_out_image = self.brain_image * convex_holes_image
         self.after_quant_image,self.diff_vals = self.kmeans_clean_up(cut_out_image)
 
@@ -513,11 +517,26 @@ class Brain_segmant:
 
 
     def sperate_to_two_brains(self,segmantation):
-        convex_seg = self.flood_fill_hull(segmantation)
+        print('im here not working')
+        segmantation = segmantation.transpose(1, 2, 0)
+        # convex_seg = self.flood_fill_hull(segmantation)
+        print('im here not working2')
+        for slice in segmantation:
+            if np.any(slice):
+                new_seg = np.zeros(slice.shape)
+                polygon_cuntor = measure.find_contours(slice,level=0.5)[0]
+                print(polygon_cuntor)
+                new_seg[polygon_cuntor] = 1
+                if False:
 
-        for i in convex_seg:
-            labels = measure.regionprops(convex_seg)[0]
-        print(labels.orientation)
+                    display_image = new_seg.transpose(self.get_display_axis(np.argmin(new_seg.shape)))
+                    self.multi_slice_viewer(display_image, do_gray=True)
+                    plt.show()
+            else:
+                pass
+
+            # labels = measure.regionprops(slice)[0]
+
 
 
 
