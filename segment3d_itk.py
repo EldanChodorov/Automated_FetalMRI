@@ -517,6 +517,7 @@ class Brain_segmant:
 
 
     def sperate_to_two_brains(self,segmantation):
+        # segmantation = np.array(segmantation)
         print('im here not working')
         segmantation = segmantation.transpose(1, 2, 0)
         # convex_seg = self.flood_fill_hull(segmantation)
@@ -524,7 +525,7 @@ class Brain_segmant:
         for slice in segmantation:
             if np.any(slice):
                 new_seg = np.zeros(slice.shape)
-                polygon_cuntor = measure.find_contours(slice,level=0.5)[0]
+                polygon_cuntor = measure.find_contours(slice,level=0.5)
                 print(polygon_cuntor)
                 new_seg[polygon_cuntor] = 1
                 if False:
@@ -543,7 +544,7 @@ class Brain_segmant:
 
 def confidance_evaluation(alg_seg, gt_seg):
     union_seg = alg_seg + gt_seg
-    union_seg[np.where(union_seg  > 0 )] = 1
+    union_seg[np.where(union_seg > 0)] = 1
     union_num = np.count_nonzero(union_seg)
 
     intersection_seg = alg_seg * gt_seg
