@@ -113,7 +113,7 @@ border-style: outset;</string>
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
+                  <normaloff>../../../../.designer/backup/images/paintbrush.png</normaloff>../../../../.designer/backup/images/paintbrush.png</iconset>
                 </property>
                </widget>
               </item>
@@ -160,7 +160,7 @@ border-style: outset;
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
+                  <normaloff>../../../../.designer/backup/images/erase.jpg</normaloff>../../../../.designer/backup/images/erase.jpg</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -236,7 +236,7 @@ font: 75 8pt &quot;MS Shell Dlg 2&quot;;
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>images/purple_square.png</normaloff>images/purple_square.png</iconset>
+                  <normaloff>../../../../.designer/backup/images/purple_square.png</normaloff>../../../../.designer/backup/images/purple_square.png</iconset>
                 </property>
                </widget>
               </item>
@@ -257,7 +257,7 @@ border-style: outset;</string>
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>images/red_square.png</normaloff>images/red_square.png</iconset>
+                  <normaloff>../../../../.designer/backup/images/red_square.png</normaloff>../../../../.designer/backup/images/red_square.png</iconset>
                 </property>
                </widget>
               </item>
@@ -424,7 +424,7 @@ border-style: outset;
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,20,5">
+        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,20,0">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
@@ -443,7 +443,7 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="runAll_btn">
              <property name="styleSheet">
               <string notr="true">background-color:#88abdb; color: black; font-weight: regular; font-size: 12pt;
 border-radius: 15px; border-color: black; border-width: 3px; 
@@ -480,43 +480,73 @@ background-color: rgb(4, 51, 57)</string>
           </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="QLabel" name="quantizationLabel">
-             <property name="text">
-              <string>Play with quantization</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="quantizationSlider">
-             <property name="autoFillBackground">
-              <bool>false</bool>
-             </property>
-             <property name="styleSheet">
-              <string notr="true"/>
-             </property>
-             <property name="maximum">
-              <number>10</number>
-             </property>
-             <property name="sliderPosition">
-              <number>5</number>
-             </property>
-             <property name="tracking">
-              <bool>false</bool>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="tickPosition">
-              <enum>QSlider::TicksBelow</enum>
-             </property>
-             <property name="tickInterval">
-              <number>1</number>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <widget class="QFrame" name="verticalFrame">
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QLabel" name="quantizationLabel">
+              <property name="text">
+               <string>Play with quantization</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="quantizationSlider">
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="maximum">
+               <number>10</number>
+              </property>
+              <property name="sliderPosition">
+               <number>5</number>
+              </property>
+              <property name="tracking">
+               <bool>false</bool>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::TicksBelow</enum>
+              </property>
+              <property name="tickInterval">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="brain_volume_label">
+              <property name="text">
+               <string>Brain Volume: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="show_convex_btn">
+              <property name="text">
+               <string>Show Convex</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="show_brain_halves_btn">
+              <property name="text">
+               <string>Show Brain Halves</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="show_full_seg_btn">
+              <property name="text">
+               <string>Show Full Segmentation</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </item>
         </layout>
        </item>

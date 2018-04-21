@@ -60,6 +60,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._seg_queue = []
         self.segmentation_finished.connect(self._run_next_seg)
 
+        # holds the row index of the scan currently performing segmentation
+        self._segmentation_running = NO_SEG_RUNNING
+
     def _init_ui(self):
 
         # store original stylesheets
@@ -103,11 +106,31 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # set up table ui
         self.tableWidget.setHorizontalHeaderLabels(['File', 'Status', 'Remove'])
         self.tableWidget.cellDoubleClicked.connect(self._switch_scan)
+        self.runAll_btn.clicked.connect(self._run_all_segmentations)
 
-        # hide features relevant only after segmentation
-        self.quantizationLabel.hide()
-        self.quantizationSlider.hide()
+        # connect buttons and sliders contained in the info box
         self.quantizationSlider.valueChanged.connect(self._toggle_quantization)
+        self.show_convex_btn.clicked.connect(self._toggle_convex)
+        self.show_brain_halves_btn.clicked.connect(self._toggle_brain_halves)
+        self.show_full_seg_btn.clicked.connect(self._toggle_show_seg)
+
+        # hide info box which is relevant only after segmentation is shown
+        self.verticalFrame.hide()
+
+    @QtCore.pyqtSlot()
+    def _toggle_convex(self):
+        self._all_scans[self._current_scan_idx].show_convex()
+
+    @QtCore.pyqtSlot()
+    def _toggle_brain_halves(self):
+        self._all_scans[self._current_scan_idx].show_brain_halves()
+
+    @QtCore.pyqtSlot()
+    def _toggle_show_seg(self):
+        try:
+            self._all_scans[self._current_scan_idx].show_segmentation()
+        except Exception as ex:
+            print('toggle show seg', ex)
 
     @QtCore.pyqtSlot(int, int)
     def _switch_scan(self, row, col):
@@ -135,10 +158,17 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.tableWidget.setCellWidget(full_rows, 2, button)
 
     def _run_all_segmentations(self):
-        # todo CREATE SEG QUEUE CLASS AND JUST PUSH IN TASKS
-        pass
-        self._seg_queue = range(len(self._all_scans))
+        '''
+        Insert all scans which have yet to be segmented, into queue to be segmented, and run them one by one.
+        '''
+        for i in range(len(self._all_scans)):
+            if self._all_scans[i].status == '':
+                self._seg_queue.append(i)
+                self._all_scans[i].status = QUEUED
+                self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem(QUEUED))
 
+        # will execute segmentation on first scan in queue
+        self._run_next_seg()
 
     @QtCore.pyqtSlot(int)
     def _remove_scan(self, scan_idx):
@@ -237,14 +267,22 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
         # if another segmentation is already running, insert request to waiting queue
         # Todo use lock in case current seg finishes at same time, and then does not know that someone is waiting
-        if len(self._seg_queue) > 0:
+        if self._segmentation_running != NO_SEG_RUNNING:
+            # insert to waiting queue
             self._seg_queue.append(self._current_scan_idx)
+
+            # set status in workspace table
+            item = QtWidgets.QTableWidgetItem(QUEUED)
+            self.tableWidget.setItem(self._current_scan_idx, 1, item)
+
         else:
+            self._segmentation_running = self._current_scan_idx
+
             # run perform_segmentation from thread so that progress bar will run in background
             self._all_scans[self._current_scan_idx].run_segmentation()
 
             # set status in workspace table
-            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
+            item = QtWidgets.QTableWidgetItem(PROCESSING)
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
     def _remove_progress_bar(self):
@@ -262,15 +300,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                                       'Calculating <\p><p>Segmentation...</p><p '
                                       'align="center">(please wait)</p></body></html>')
 
-            segmentation_array = self._all_scans[self._current_scan_idx].perform_segmentation()
-
-            # update workspace table
-            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            self.tableWidget.setItem(self._current_scan_idx, 1, item)
-
-            # show hidden features which are now relevant to work on segmentation
-            self.quantizationLabel.show()
-            self.quantizationSlider.show()
+            segmentation_array = self._all_scans[self._segmentation_running].perform_segmentation()
 
             if segmentation_array is None:
                 warn('An error occurred while computing the segmentation. Please perform better markings, '
@@ -278,12 +308,19 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                 self.instructions.setText(
                     '<html><head/><body><p align="center">Stage 1 [retry]: Boundary Marking...</p><p '
                     'align="center">(hover for instructions)</p></body></html>')
+
+                # reset status in workspace table
+                item = QtWidgets.QTableWidgetItem('')
+                self.tableWidget.setItem(self._segmentation_running, 1, item)
+
                 return
 
-            # set status in workspace table
-            item = QtWidgets.QTableWidgetItem(self._all_scans[self._current_scan_idx].status)
-            self.tableWidget.setItem(self._current_scan_idx, 1, item)
+            # update finished status in workspace table
+            item = QtWidgets.QTableWidgetItem(SEGMENTED)
+            self.tableWidget.setItem(self._segmentation_running, 1, item)
 
+            # show hidden features which are now relevant to work on segmentation
+            self.verticalFrame.show()
 
             self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
                                       'align="center">(hover for instructions)</p></body></html>')
@@ -298,19 +335,23 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     def _run_next_seg(self):
         '''If there is a scan waiting in queue, perform its segmentation.'''
-        print('run next seg, queue size: %d' % len(self._seg_queue))
         if len(self._seg_queue) > 0:
             waiting_idx = self._seg_queue.pop(0)
+            self._segmentation_running = waiting_idx
             self._all_scans[waiting_idx].run_segmentation()
 
             # update status in workspace table
-            item = QtWidgets.QTableWidgetItem(self._all_scans[waiting_idx].status)
+            item = QtWidgets.QTableWidgetItem(PROCESSING)
             self.tableWidget.setItem(waiting_idx, 1, item)
+        else:
+            self._segmentation_running = NO_SEG_RUNNING
 
     def _toggle_quantization(self):
-        tick_val = self.quantizationSlider.value()
-        updated_segmentation = self._all_scans[self._current_scan_idx].get_quantization_segmentation(tick_val)
-        self._all_scans[self._current_scan_idx].set_segmentation(updated_segmentation)
+        try:
+            tick_val = self.quantizationSlider.value()
+            self._all_scans[self._current_scan_idx].show_quantization_segmentation(tick_val)
+        except Exception as ex:
+            print('quati error', ex)
 
     def toggle_segmentation(self, show):
         '''
@@ -363,8 +404,11 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     @QtCore.pyqtSlot()
     def _toggle_contrast(self):
-        tick_val = self.contrast_slider.value()
-        self._all_scans[self._current_scan_idx].image_label.change_view(tick_val)
+        try:
+            tick_val = self.contrast_slider.value()
+            self._all_scans[self._current_scan_idx].image_label.change_view(tick_val)
+        except Exception as ex:
+            print('toggle contrast error', ex)
 
 
 class ScrollArea(QtWidgets.QScrollArea):

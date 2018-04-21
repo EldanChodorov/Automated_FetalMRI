@@ -61,20 +61,22 @@ class ScanFile:
         self._segment_worker = Brain_segmant()
 
     def load_image_label(self):
-        try:
-            self.image_label.activate_image()
-        except Exception as ex:
-            print(ex)
+        self.image_label.activate_image()
 
     def run_segmentation(self):
-        print('run_segmentation!  %s' % self._nifti_path)
-        self.status = 'Processing'
+        self.status = PROCESSING
         self._segmentation_thread.start()
 
     def perform_segmentation(self):
         all_points = self.image_label.shapes.all_points()
-        if not all_points:
-            return
+
+        # do not attempt segmentation if user did not mark enough frames
+        frames_marked = 0
+        for items_list in all_points.values():
+            if items_list:
+                frames_marked += 1
+        if frames_marked < 3:
+            return None
 
         seeds = []
         for frame_idx, frame_points in all_points.items():
@@ -85,39 +87,64 @@ class ScanFile:
 
         segmentation_array = self._segment_worker.segmentation_3d(self.frames, seeds) * 255
 
-        if segmentation_array is not None:
+        if segmentation_array is None:
+            self.status = ''
+        else:
             self.set_segmentation(segmentation_array)
+            self.status = SEGMENTED
 
         return segmentation_array
 
-    def volume(self, segmentation_array):
+    def volume(self):
         '''
         Calculate volume of segmentation, based on the vixel spacing of the nifti file.
-        :param segmentation_array: [numpy.ndarray]
         :return: [float] volume in mm.
         '''
+        segmentation_array = self.image_label.points_to_image()
         pixel_dims = self._nifti._header['pixdim']
         if len(pixel_dims) == 8:
             num_pixels = np.sum(segmentation_array)
             return num_pixels * pixel_dims[1] * pixel_dims[2] * pixel_dims[3]
 
-    def get_quantization_segmentation(self, level):
+    def show_brain_halves(self):
+        if self._segment_worker:
+            # TODO maybe wasteful and unnecessary to calculate this each time? think about it
+            self._segmentation_array = self.image_label.points_to_image()
+            try:
+                self._segment_worker.sperate_to_two_brains(self._segmentation_array)
+            except Exception as ex:
+                print('error in sperate_to_two_brains', ex)
+
+    def show_segmentation(self):
+        '''Show original segmentation in image label.'''
+        if self._segmentation_array is not None:
+            self.image_label.set_segmentation(self._segmentation_array)
+
+    def show_convex(self):
         '''
-        Get segmentation after applying quantization stage with different quantum values.
+        Calculate convex for given segmentation of brain, and display it.
+        :param segmentation_array: [numpy.ndarray]
+        '''
+        # save aside the given segmentation as the most updated one
+        self._segmentation_array = self.image_label.points_to_image()
+        if self._segment_worker:
+            convex = self._segment_worker.flood_fill_hull(self._segmentation_array)
+            self.image_label.set_segmentation(convex)
+
+    def show_quantization_segmentation(self, level):
+        '''
+        Get segmentation after applying quantization stage with different quantum values, and display it.
         :param level: [int] the quantum value to be used, in proportion.
-        :return: [numpy.ndarray] same shape as array returned from perform_segmentation()
         '''
-        try:
-            print(level)
-            return self._segment_worker.get_quant_segment(level)
-        except Exception as ex:
-            print("quantization", ex)
+        updated_seg = self.image_label.points_to_image()
+        segmentation_array = self._segment_worker.get_quant_segment(level, updated_seg)
+        self._segmentation_array = segmentation_array
+        self.set_segmentation(segmentation_array)
 
     def set_segmentation(self, segmentation_array):
         self._segmentation_array = segmentation_array
         self.image_label.set_segmentation(segmentation_array)
         self.image_label.set_image(self.image_label.frames[self.image_label.frame_displayed_index])
-        self.status = 'Segmented'
 
     def __str__(self):
         return self._nifti_path.split('/')[-1].split('.')[0]
