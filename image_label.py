@@ -210,6 +210,7 @@ class ImageLabel(QtWidgets.QLabel):
         '''
         try:
             all_points = self.shapes.all_points()
+            print('points to image all points', len(all_points.items()))
             image = np.zeros(self.frames.shape)
             for frame, points_list in all_points.items():
                 for point in points_list:
@@ -217,10 +218,11 @@ class ImageLabel(QtWidgets.QLabel):
                     label_x, label_y = float(point.x()), float(point.y())
                     image_x = (label_x / self.width()) * 512
                     image_y = (label_y / self.height()) * 512  # TODO: make modular, might not be 512 (in all code)
+                    print(frame, image_x, image_y)
                     image[frame, image_x, image_y] = 1
             return image
         except Exception as ex:
-            print(ex)
+            print('points to image', ex)
 
     def set_segmentation(self, segmentation_array):
         '''

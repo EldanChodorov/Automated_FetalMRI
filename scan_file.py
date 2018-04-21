@@ -113,7 +113,7 @@ class ScanFile:
             try:
                 self._segment_worker.sperate_to_two_brains(self._segmentation_array)
             except Exception as ex:
-                print('error in sperate_to_two_brains', ex)
+                print('error in separate_to_two_brains', ex)
 
     def show_segmentation(self):
         '''Show original segmentation in image label.'''
