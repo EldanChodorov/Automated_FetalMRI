@@ -211,12 +211,13 @@ class ImageLabel(QtWidgets.QLabel):
         try:
             all_points = self.shapes.all_points()
             image = np.zeros(self.frames.shape)
+            print('image to points', image.shape)
             for frame, points_list in all_points.items():
                 for point in points_list:
                     point /= self._zoom
                     label_x, label_y = float(point.x()), float(point.y())
-                    image_x = int(label_x / self.width()) * 512
-                    image_y = int(label_y / self.height()) * 512  # TODO: make modular, might not be 512 (in all code)
+                    image_x = int((label_x / self.width()) * 512)
+                    image_y = int((label_y / self.height()) * 512)  # TODO: make modular, might not be 512 (in all code)
                     image[frame, image_x, image_y] = 1
             return image
         except Exception as ex:

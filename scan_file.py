@@ -137,6 +137,7 @@ class ScanFile:
         :param level: [int] the quantum value to be used, in proportion.
         '''
         updated_seg = self.image_label.points_to_image()
+        print(np.count_nonzero(updated_seg))
         segmentation_array = self._segment_worker.get_quant_segment(level, updated_seg)
         self._segmentation_array = segmentation_array
         self.set_segmentation(segmentation_array)
