@@ -210,7 +210,6 @@ class ImageLabel(QtWidgets.QLabel):
         '''
         try:
             all_points = self.shapes.all_points()
-            print('points to image all points', len(all_points.items()), image.shape, self.frames.shape)
             image = np.zeros(self.frames.shape)
             for frame, points_list in all_points.items():
                 for point in points_list:
