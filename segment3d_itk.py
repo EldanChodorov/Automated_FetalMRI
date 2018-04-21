@@ -499,7 +499,6 @@ class Brain_segmant:
         cut_out_image = self.brain_image * convex_holes_image
         self.after_quant_image,self.diff_vals = self.kmeans_clean_up(cut_out_image)
 
-
         index = 1 if index == 0 else index
         index = int(index/10 * self.diff_vals.shape[0]) - 1
 
@@ -515,7 +514,9 @@ class Brain_segmant:
 
     def sperate_to_two_brains(self,segmantation):
         convex_seg = self.flood_fill_hull(segmantation)
-        labels = measure.regionprops(convex_seg)[0]
+
+        for i in convex_seg:
+            labels = measure.regionprops(convex_seg)[0]
         print(labels.orientation)
 
 
