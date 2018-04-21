@@ -398,7 +398,7 @@ class Brain_segmant:
             #     display_image = amp.transpose(self.get_display_axis(np.argmin(amp.shape)))
             #     self.multi_slice_viewer(display_image, do_gray=True)
             #     plt.show()
-            self.orig_segment = np.copy(closed_holes_image)
+
             val_of_quant = diff_vals[int(diff_vals.shape[0]/2)]
             convex_holes_image[np.where(lables >= val_of_quant)] = 0
             # lables = nd.morphology.binary_closing(closed_holes_image,iterations=1)
@@ -406,7 +406,7 @@ class Brain_segmant:
             final_image = np.zeros(array_data.shape)
             h, w, z = convex_holes_image.shape
             final_image[X_top:X_top + h,Y_top:Y_top + w,:] = convex_holes_image
-
+            self.orig_segment = np.copy(final_image)
             final_image = final_image.transpose(2, 0, 1)
 
             # self.sperate_to_two_brains(final_image.copy())
@@ -494,12 +494,14 @@ class Brain_segmant:
 
 
     def get_quant_segment(self,index,segmantation):
+        # print(type(segmentation))
+        # if not(np.any(segmentation)):
+        #     print('problam')
+        #     return segmentation
         segmantation = segmantation.transpose(1, 2, 0)
         convex_holes_image = self.flood_fill_hull(segmantation)
-
         # save convex segmantation
         self.convex_segment = convex_holes_image.copy()
-
         cut_out_image = self.brain_image * convex_holes_image
         self.after_quant_image,self.diff_vals = self.kmeans_clean_up(cut_out_image)
 
@@ -507,37 +509,86 @@ class Brain_segmant:
         index = int(index/10 * self.diff_vals.shape[0]) - 1
 
         cur_seg = copy.deepcopy(self.orig_segment)
-        cur_seg[np.where(self.after_quant_image >= self.quant_val[index])] = 0
+        cur_seg[np.where(self.after_quant_image >= self.diff_vals[index])] = 0
+        if False:
 
-        final_image = np.zeros(self.brain_image.shape)
-        h, w, z = cur_seg.shape
-        final_image[self.BB[0]:self.BB[0] + h,self.BB[1]:self.BB[1] + w,:] = cur_seg
+            display_image = cur_seg.transpose(self.get_display_axis(np.argmin(cur_seg.shape)))
+            self.multi_slice_viewer(display_image, do_gray=True)
+            plt.show()
 
-        return final_image.transpose(2, 0, 1)
+        return cur_seg.transpose(2, 0, 1)
 
 
     def sperate_to_two_brains(self,segmantation):
         # segmantation = np.array(segmantation)
-        print('im here not working')
-        segmantation = segmantation.transpose(1, 2, 0)
+        print('im here working')
+        print(np.max(segmantation))
         # convex_seg = self.flood_fill_hull(segmantation)
-        print('im here not working2')
-        for slice in segmantation:
+        left_side = np.zeros(segmantation.shape)
+        right_side = np.zeros(segmantation.shape)
+        sub_divide_image = np.zeros(segmantation.shape)
+        print(segmantation.shape)
+        for j, slice in enumerate(segmantation):
+            new_seg = np.zeros(slice.shape)
+
             if np.any(slice):
-                new_seg = np.zeros(slice.shape)
-                polygon_cuntor = measure.find_contours(slice,level=0.5)
-                print(polygon_cuntor)
-                new_seg[polygon_cuntor] = 1
-                if False:
+                print(slice.shape)
 
-                    display_image = new_seg.transpose(self.get_display_axis(np.argmin(new_seg.shape)))
-                    self.multi_slice_viewer(display_image, do_gray=True)
+                convex = self.flood_fill_hull(slice)
+                # polygon_cuntor = measure.find_contours(convex,level=0.5,fully_connected= 'high')[0]
+                # convex = np.zeros(convex.shape)
+                polygon_cuntor = convex.astype(np.int32)
+                # convex[polygon_cuntor[:,0],polygon_cuntor[:,1]] = 1
+                polygon_label_data = measure.regionprops(polygon_cuntor)
+                # a = [c.centroid for c in polygon_label_data]
+                centroid = polygon_label_data[0].centroid
+                print(centroid)
+
+                angle = polygon_label_data[0].orientation + np.pi/2
+                print(np.rad2deg(angle))
+                slope = -1*np.tan(angle)
+                print(slope)
+
+                x_1 = np.linspace(0,convex.shape[1],convex.shape[1]*10)
+
+                extra_c = slope*centroid[1] - centroid[0]
+                print(extra_c)
+                y_1 = np.array([int(slope*(x) - extra_c) for x in x_1])
+                new_x = x_1[np.where((y_1 < convex.shape[0]))]
+                new_y = y_1[np.where((y_1 < convex.shape[0]))]
+                new_x = new_x[np.where((new_y > 0))]
+                new_y = new_y[np.where((new_y > 0))]
+                new_seg[new_y,new_x.astype(np.int32)] = 1
+                new_seg = nd.binary_dilation(new_seg)
+                segmantation[j,new_y,new_x.astype(np.int32)] = 1
+
+
+                # polygon_cuntor = measure.find_contours(slice,level=0.5,fully_connected= 'high')[0]
+                # print(polygon_cuntor.shape)
+                # polygon_cuntor = polygon_cuntor.astype(np.int32)
+                # new_seg[polygon_cuntor[:,0],polygon_cuntor[:,1]] = 1
+                # sub_polygon_cuntor = measure.subdivide_polygon(polygon_cuntor, degree=2)
+                # print(len(sub_polygon_cuntor))
+                # for i,countor in enumerate(sub_polygon_cuntor):
+                #     countor = countor.astype(np.int32)
+                #     print(countor.shape)
+                #     new_seg[countor[0],countor[1]] = i + 1
+
+                if True:
+                    plt.imshow(new_seg)
                     plt.show()
+                    # display_image = new_seg.transpose(self.get_display_axis(np.argmin(new_seg.shape)))
+                    # self.multi_slice_viewer(display_image, do_gray=True)
+                    # plt.show()
             else:
-                pass
-
+                segmantation[j,:,:] = segmantation[j,:,:]
             # labels = measure.regionprops(slice)[0]
 
+        if True:
+
+            display_image = segmantation.transpose(self.get_display_axis(np.argmin(segmantation.shape)))
+            self.multi_slice_viewer(display_image, do_gray=True)
+            plt.show()
 
 
 
