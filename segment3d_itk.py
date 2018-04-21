@@ -574,7 +574,7 @@ class Brain_segmant:
                 #     print(countor.shape)
                 #     new_seg[countor[0],countor[1]] = i + 1
 
-                if True:
+                if False:
                     plt.imshow(new_seg)
                     plt.show()
                     # display_image = new_seg.transpose(self.get_display_axis(np.argmin(new_seg.shape)))
