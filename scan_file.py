@@ -85,11 +85,12 @@ class ScanFile:
                     translated_pos = self.image_label.label_to_image_pos(pos)
                     seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
 
-        segmentation_array = self._segment_worker.segmentation_3d(self.frames, seeds) * 255
+        segmentation_array = self._segment_worker.segmentation_3d(self.frames, seeds)
 
         if segmentation_array is None:
             self.status = ''
         else:
+            segmentation_array *= 255
             self.set_segmentation(segmentation_array)
             self.status = SEGMENTED
 
@@ -97,7 +98,7 @@ class ScanFile:
 
     def volume(self):
         '''
-        Calculate volume of segmentation, based on the vixel spacing of the nifti file.
+        Calculate volume of segmentation, based on the voxel spacing of the nifti file.
         :return: [float] volume in mm.
         '''
         segmentation_array = self.image_label.points_to_image()
@@ -105,6 +106,9 @@ class ScanFile:
         if len(pixel_dims) == 8:
             num_pixels = np.sum(segmentation_array)
             return num_pixels * pixel_dims[1] * pixel_dims[2] * pixel_dims[3]
+        else:
+            print('Error in calculating volume from Nifti Header.')
+            return 0
 
     def show_brain_halves(self):
         if self._segment_worker:
@@ -137,7 +141,6 @@ class ScanFile:
         :param level: [int] the quantum value to be used, in proportion.
         '''
         updated_seg = self.image_label.points_to_image()
-        print(np.count_nonzero(updated_seg))
         segmentation_array = self._segment_worker.get_quant_segment(level, updated_seg)
         self._segmentation_array = segmentation_array
         self.set_segmentation(segmentation_array)
