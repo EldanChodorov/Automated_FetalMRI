@@ -60,6 +60,9 @@ class ScanFile:
         # class which performs the segmentation process
         self._segment_worker = Brain_segmant()
 
+        # what is currently displayed: USER MARKS / SEGMENTATION / CONVEX / BRAIN HALVES
+        self.display_state = ''
+
     def load_image_label(self):
         self.image_label.activate_image()
 
@@ -91,11 +94,13 @@ class ScanFile:
         if segmentation_array is None:
             self.status = ''
         else:
-            segmentation_array *= 255
             # store marks aside before setting segmentation
             self.image_label.shapes.store_marks()
+
+            segmentation_array *= 255
             self.set_segmentation(segmentation_array)
             self.status = SEGMENTED
+            self.display_state = SEGMENTATION
 
         return segmentation_array
 
@@ -116,9 +121,12 @@ class ScanFile:
     def show_brain_halves(self):
         if self._segment_worker:
             # TODO maybe wasteful and unnecessary to calculate this each time? think about it
-            self._segmentation_array = self.image_label.points_to_image()
+            if self.display_state == SEGMENTATION:
+                self._segmentation_array = self.image_label.points_to_image()
             try:
                 self._segment_worker.sperate_to_two_brains(self._segmentation_array)
+                # TODO get return value and set_segmentation()
+                self.display_state = HALVES
             except Exception as ex:
                 print('error in separate_to_two_brains', ex)
 
@@ -133,20 +141,23 @@ class ScanFile:
         :param segmentation_array: [numpy.ndarray]
         '''
         # save aside the given segmentation as the most updated one
-        self._segmentation_array = self.image_label.points_to_image()
         if self._segment_worker:
+            if self.display_state == SEGMENTATION:
+                self._segmentation_array = self.image_label.points_to_image()
             convex = self._segment_worker.flood_fill_hull(self._segmentation_array)
             self.image_label.set_segmentation(convex)
+            self.display_state = CONVEX
 
     def show_quantization_segmentation(self, level):
         '''
         Get segmentation after applying quantization stage with different quantum values, and display it.
         :param level: [int] the quantum value to be used, in proportion.
         '''
-        updated_seg = self.image_label.points_to_image()
-        segmentation_array = self._segment_worker.get_quant_segment(level, updated_seg)
-        self._segmentation_array = segmentation_array
-        self.set_segmentation(segmentation_array)
+        if self.display_state == SEGMENTATION:
+            updated_seg = self.image_label.points_to_image()
+            segmentation_array = self._segment_worker.get_quant_segment(level, updated_seg)
+            self._segmentation_array = segmentation_array
+            self.set_segmentation(segmentation_array)
 
     def set_segmentation(self, segmentation_array):
         self._segmentation_array = segmentation_array

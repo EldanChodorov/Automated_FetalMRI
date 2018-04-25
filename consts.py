@@ -27,3 +27,9 @@ NO_SEG_RUNNING = -1
 SEGMENTED = 'Segmented'
 QUEUED = 'In Queue...'
 PROCESSING = 'Processing...'
+
+# different states being painted over scan image
+MARKS = 'User Marks'
+CONVEX = 'Convex'
+HALVES = 'Brain Halves'
+SEGMENTATION = 'Brain Segmentation Only'
