@@ -115,26 +115,20 @@ class ImageLabel(QtWidgets.QLabel):
         Set whether frames shown are regular or contrasted.
         :param contrast_index: [int] contrast level to show. if -1, show regular frames.
         '''
-        try:
-            if contrast_index == -1:
-                self.frames = self.standard_frames
-            else:
-                self.frames = self.contrasted_frames[contrast_index]
+        if contrast_index == -1:
+            self.frames = self.standard_frames
+        else:
+            self.frames = self.contrasted_frames[contrast_index]
 
-            self.set_image(self.frames[self.frame_displayed_index])
-        except Exception as ex:
-            print(ex)
+        self.set_image(self.frames[self.frame_displayed_index])
 
     @QtCore.pyqtSlot(int)
     def _update_tool_in_use(self, tool_chosen):
-        try:
-            self._tool_chosen = tool_chosen
-            if self._tool_chosen == USE_ERASER:
-                self._update_eraser_icon()
-            else:
-                self.setCursor(self._original_cursor)
-        except Exception as ex:
-            print(ex)
+        self._tool_chosen = tool_chosen
+        if self._tool_chosen == USE_ERASER:
+            self._update_eraser_icon()
+        else:
+            self.setCursor(self._original_cursor)
 
     def _update_eraser_icon(self):
         # display eraser icon in place of mouse cursor
@@ -151,6 +145,8 @@ class ImageLabel(QtWidgets.QLabel):
 
     def mouseMoveEvent(self, QMouseEvent):
         pos = self.widget2image_coord(QMouseEvent.pos())
+        print('pos', QMouseEvent.pos(), pos)
+
         if self._tool_chosen == USE_PAINTBRUSH:
             self.shapes.add_point(self.frame_displayed_index, pos)
         elif self._tool_chosen == USE_ERASER:
@@ -187,9 +183,12 @@ class ImageLabel(QtWidgets.QLabel):
         :param image: [numpy.ndarray] binary image, shape (num_images, row, col)
         :return: [default dict of lists of QPoints] translated 1 pixels from image
         '''
+        # width, height = self.width(), self.height()
+        width, height = self.sizeHint().width(), self.sizeHint().height()
+
         indices = np.where((image == 1) | (image == 255))  # todo stick to one
-        transformed_x = (indices[2] / image.shape[2]) * self.width()
-        transformed_y = (indices[1] / image.shape[1]) * self.height()
+        transformed_x = (indices[2] / image.shape[2]) * width
+        transformed_y = (indices[1] / image.shape[1]) * height
 
         points = defaultdict(list)
         for frame, x, y in zip(indices[0], transformed_x, transformed_y):
@@ -199,8 +198,12 @@ class ImageLabel(QtWidgets.QLabel):
     def label_to_image_pos(self, label_pos):
         # image is of size 512x512 pixels
         label_x, label_y = float(label_pos.x()), float(label_pos.y())
-        image_x = (label_x / self.width()) * 512
-        image_y = (label_y / self.height()) * 512
+
+        # width, height = self.width(), self.height()
+        width, height = self.sizeHint().width(), self.sizeHint().height()
+
+        image_x = (label_x / width) * 512
+        image_y = (label_y / height) * 512
         return QtCore.QPoint(image_x, image_y)
 
     def points_to_image(self):
@@ -209,15 +212,17 @@ class ImageLabel(QtWidgets.QLabel):
         :return: [numpy.ndarray] size of frames
         '''
         try:
+            # width, height = self.width(), self.height()
+            width, height = self.sizeHint().width(), self.sizeHint().height()
+
             all_points = self.shapes.all_points()
             image = np.zeros(self.frames.shape)
-            print('image to points', image.shape)
             for frame, points_list in all_points.items():
                 for point in points_list:
                     point /= self._zoom
                     label_x, label_y = float(point.x()), float(point.y())
-                    image_x = int((label_x / self.width()) * 512)
-                    image_y = int((label_y / self.height()) * 512)  # TODO: make modular, might not be 512 (in all code)
+                    image_x = int((label_x / width) * 512)
+                    image_y = int((label_y / height) * 512)  # TODO: make modular, might not be 512 (in all code)
                     image[frame, image_x, image_y] = 1
             return image
         except Exception as ex:
@@ -228,55 +233,48 @@ class ImageLabel(QtWidgets.QLabel):
         Draw transparent points of segmentation on top of image.
         :param segmentation_array: [numpy.ndarray] binary image
         '''
-        self.shapes.reset_segmentation()
+        self.shapes.clear_points()
         marked_points = self._image_to_QPoint(segmentation_array)
         for frame_num, points_list in marked_points.items():
-            self.shapes.add_points(frame_num, points_list, self._zoom, True)
+            self.shapes.add_points(frame_num, points_list, self._zoom)
         self._segmentation_added = True
         self.update()
 
     def paintEvent(self, paint_event):
+
+        if self._segmentation_added:
+            alpha_channel = ALPHA_TRANSPARENT
+        else:
+            alpha_channel = ALPHA_NON_TRANSPARENT
+
         try:
             painter = QtGui.QPainter(self)
 
             # draw image first so that points will be on top of image
             painter.drawPixmap(self.rect(), self._displayed_pixmap)
 
-            # draw segmentation and markings only if 'show segmentation' is defined
-            if self.show_segmentation:
+            pen = QtGui.QPen()
+            pen.setWidth(self.paintbrush_size)
 
-                pen = QtGui.QPen()
-                pen.setWidth(self.paintbrush_size)
+            # inner squares
+            pen.setColor(QtGui.QColor(138, 43, 226, alpha_channel))
+            painter.setPen(pen)
+            for square in self.shapes.inner_squares[self.frame_displayed_index]:
+                for point in square.points:
+                    painter.drawPoint(self.image2widget_coord(point))
 
-                # draw user markings only before segmentation has been added to image
-                if not self._segmentation_added:
+            # outer squares
+            pen.setColor(QtGui.QColor(255, 0, 0, alpha_channel))
+            painter.setPen(pen)
+            for square in self.shapes.outer_squares[self.frame_displayed_index]:
+                for point in square.points:
+                    painter.drawPoint(self.image2widget_coord(point))
 
-                    # inner squares
-                    pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_NON_TRANSPARENT))
-                    painter.setPen(pen)
-                    for square in self.shapes.inner_squares[self.frame_displayed_index]:
-                        for point in square.points:
-                            painter.drawPoint(self.image2widget_coord(point))
-
-                    # outer squares
-                    pen.setColor(QtGui.QColor(255, 0, 0, ALPHA_NON_TRANSPARENT))
-                    painter.setPen(pen)
-                    for square in self.shapes.outer_squares[self.frame_displayed_index]:
-                        for point in square.points:
-                            painter.drawPoint(self.image2widget_coord(point))
-
-                    # points
-                    pen.setColor(QtGui.QColor(0, 0, 255, ALPHA_NON_TRANSPARENT))
-                    painter.setPen(pen)
-                    for point in self.shapes.chosen_points[self.frame_displayed_index]:
-                        painter.drawPoint(self.image2widget_coord(point))
-
-                else:
-                    # segmentation points
-                    pen.setColor(QtGui.QColor(0, 0, 255, ALPHA_TRANSPARENT))
-                    painter.setPen(pen)
-                    for point in self.shapes.segmentation_points[self.frame_displayed_index]:
-                        painter.drawPoint(self.image2widget_coord(point))
+            # points
+            pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], alpha_channel))
+            painter.setPen(pen)
+            for point in self.shapes.chosen_points[self.frame_displayed_index]:
+                painter.drawPoint(self.image2widget_coord(point))
 
         except Exception as ex:
             print('paintEvent', ex)

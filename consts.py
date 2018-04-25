@@ -8,13 +8,15 @@ OUTER_SQUARE = 2
 INNER_SQUARE = 3
 USE_ERASER = 4
 
-BRUSH_WIDTH_SMALL = 3
+BRUSH_WIDTH_SMALL = 4
 BRUSH_WIDTH_MEDIUM = 6
-BRUSH_WIDTH_LARGE = 12
+BRUSH_WIDTH_LARGE = 9
 
 # alpha channel to show paint as transparent
-ALPHA_TRANSPARENT = 10
+ALPHA_TRANSPARENT = 20
 ALPHA_NON_TRANSPARENT = 255
+
+PAINT_COLOR = (255, 36, 36)
 
 MIN_ZOOM = 0
 INITIAL_ZOOM = 1
@@ -25,3 +27,9 @@ NO_SEG_RUNNING = -1
 SEGMENTED = 'Segmented'
 QUEUED = 'In Queue...'
 PROCESSING = 'Processing...'
+
+# different states being painted over scan image
+MARKS = 'User Marks'
+CONVEX = 'Convex'
+HALVES = 'Brain Halves'
+SEGMENTATION = 'Brain Segmentation Only'

@@ -73,6 +73,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.setAutoFillBackground(True)
         self.setStyleSheet('background-color: rgb(110, 137, 152)')
 
+        # set icons
+        self.paintbrush_btn.setIcon(QtGui.QIcon('images/paintbrush.png'))
+        self.eraser_btn.setIcon(QtGui.QIcon('images/erase.jpg'))
+
         # set sizes
         self.frame_number.setFixedSize(self.frame_number.width() + 2, self.frame_number.height())
 
@@ -301,37 +305,41 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                                       'align="center">(please wait)</p></body></html>')
 
             segmentation_array = self._all_scans[self._segmentation_running].perform_segmentation()
+        except Exception as ex:
+            print('perform_segmentation', ex)
 
-            if segmentation_array is None:
-                warn('An error occurred while computing the segmentation. Please perform better markings, '
-                     'and try again.')
-                self.instructions.setText(
-                    '<html><head/><body><p align="center">Stage 1 [retry]: Boundary Marking...</p><p '
-                    'align="center">(hover for instructions)</p></body></html>')
+        if segmentation_array is None:
+            warn('An error occurred while computing the segmentation. Please perform better markings, '
+                 'and try again.')
+            self.instructions.setText(
+                '<html><head/><body><p align="center">Stage 1 [retry]: Boundary Marking...</p><p '
+                'align="center">(hover for instructions)</p></body></html>')
 
-                # reset status in workspace table
-                item = QtWidgets.QTableWidgetItem('')
-                self.tableWidget.setItem(self._segmentation_running, 1, item)
-
-                return
-
-            # update finished status in workspace table
-            item = QtWidgets.QTableWidgetItem(SEGMENTED)
+            # reset status in workspace table
+            item = QtWidgets.QTableWidgetItem('')
             self.tableWidget.setItem(self._segmentation_running, 1, item)
 
-            # show hidden features which are now relevant to work on segmentation
-            self.verticalFrame.show()
+            return
 
-            self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
-                                      'align="center">(hover for instructions)</p></body></html>')
-            self.instructions.setToolTip('Use paintbrush and eraser to fix result segmentation.\nWhen finished, '
-                                         'save segmentation.')
+        # update finished status in workspace table
+        item = QtWidgets.QTableWidgetItem(SEGMENTED)
+        self.tableWidget.setItem(self._segmentation_running, 1, item)
 
-            self.save_seg_btn.setEnabled(True)
-            self.segmentation_finished.emit()  # next segmentation will be run
+        # show hidden features which are now relevant to work on segmentation
+        self.verticalFrame.show()
 
-        except Exception as ex:
-            print(ex, type(ex))
+        # set volume in frame TODO: change it on scan switch
+        brain_vol = self._all_scans[self._segmentation_running].volume() / 1000
+        brain_text = "Brain Volume: %.2f cm^3"
+        self.brain_volume_label.setText(brain_text % brain_vol)
+
+        self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
+                                  'align="center">(hover for instructions)</p></body></html>')
+        self.instructions.setToolTip('Use paintbrush and eraser to fix result segmentation.\nWhen finished, '
+                                     'save segmentation.')
+
+        self.save_seg_btn.setEnabled(True)
+        self.segmentation_finished.emit()  # next segmentation will be run
 
     def _run_next_seg(self):
         '''If there is a scan waiting in queue, perform its segmentation.'''

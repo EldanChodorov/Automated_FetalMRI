@@ -322,10 +322,10 @@ class Ui_workspace(object):
 "Segmentation"))
         self.save_seg_btn.setText(_translate("workspace", "Save \n"
 "Segmentation"))
-        self.contrast_label.setText(_translate("workspace", "Fix Contrast:"))
+        self.contrast_label.setText(_translate("workspace", "Adjust Contrast:"))
         self.label.setText(_translate("workspace", "Workspace"))
         self.runAll_btn.setText(_translate("workspace", "Run All"))
-        self.quantizationLabel.setText(_translate("workspace", "Play with quantization"))
+        self.quantizationLabel.setText(_translate("workspace", "Adjust Segmentation Level"))
         self.brain_volume_label.setText(_translate("workspace", "Brain Volume: "))
         self.show_convex_btn.setText(_translate("workspace", "Show Convex"))
         self.show_brain_halves_btn.setText(_translate("workspace", "Show Brain Halves"))

@@ -18,8 +18,8 @@ class Shapes:
         # dict of frame number: points chosen manually by user per each frame
         self.chosen_points = defaultdict(list)
 
-        # dict of frame number: points included in segmentation
-        self.segmentation_points = defaultdict(list)
+        # save aside points marked by user, same type as chosen_points
+        self._marked_points = None
 
         # dict of frame number: squares chosen manually by user per each frame
         # inner - contained in brain, outer - enclosing the brain
@@ -45,11 +45,11 @@ class Shapes:
         if square_type == OUTER_SQUARE:
             self.outer_squares[frame_number].append(Square(corner1, corner2))
 
-    def reset_segmentation(self):
-        # reset segmentation points (assume new segmentation was found)
-        self.segmentation_points = defaultdict(list)
+    def clear_points(self):
+        # clear all points, assume new segmentation was found and will be set
+        self.chosen_points = defaultdict(list)
 
-    def add_points(self, frame_number, points, zoom_factor, segmentation=False):
+    def add_points(self, frame_number, points, zoom_factor):
         '''
         Add given points to list of points.
         :param frame_number: [int] frame points were selected from.
@@ -57,23 +57,15 @@ class Shapes:
         :param zoom_factor: [int] multiply each point by this factor
         :param segmentation: [bool] If True, added points belong to segmentation and not user marks
         '''
-        # use two different function for segmentation/regular points, for speed
-        # faster than using one function + checking (if) on a boolean for every point in points
+        for point in points:
+            self.add_point(frame_number, point * zoom_factor)
 
-        if segmentation:
-            for point in points:
-                self.add_segmentation_point(frame_number, point * zoom_factor)
-        else:
-            for point in points:
-                self.add_point(frame_number, point * zoom_factor)
-
-    def add_segmentation_point(self, frame_number, point):
+    def store_marks(self):
         '''
-        Add given point to existing points container.
-        :param frame_number: [int] frame points were selected from.
-        :param point: [QtCore.QPoint]
+        Save aside all points present, to be used later.
         '''
-        self.segmentation_points[frame_number].append(point)
+        self._marked_points = self.chosen_points
+        self.chosen_points = defaultdict(list)
 
     def add_point(self, frame_number, point):
         '''
@@ -141,8 +133,6 @@ class Shapes:
         for frame, squares_list in self.outer_squares.items():
             for square in squares_list:
                 all_points[frame] += square.points
-        for frame, seg_points in self.segmentation_points.items():
-            all_points[frame] += seg_points
         return all_points
 
 
