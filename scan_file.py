@@ -68,6 +68,8 @@ class ScanFile:
         self._segmentation_thread.start()
 
     def perform_segmentation(self):
+
+        # collect points marked by user
         all_points = self.image_label.shapes.all_points()
 
         # do not attempt segmentation if user did not mark enough frames
@@ -84,13 +86,14 @@ class ScanFile:
                 for pos in frame_points:
                     translated_pos = self.image_label.label_to_image_pos(pos)
                     seeds.append((frame_idx, translated_pos.y(), translated_pos.x()))
-
         segmentation_array = self._segment_worker.segmentation_3d(self.frames, seeds)
 
         if segmentation_array is None:
             self.status = ''
         else:
             segmentation_array *= 255
+            # store marks aside before setting segmentation
+            self.image_label.shapes.store_marks()
             self.set_segmentation(segmentation_array)
             self.status = SEGMENTED
 

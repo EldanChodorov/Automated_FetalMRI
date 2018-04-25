@@ -395,7 +395,7 @@ border-style: outset;
 </string>
              </property>
              <property name="text">
-              <string>Fix Contrast:</string>
+              <string>Adjust Contrast:</string>
              </property>
             </widget>
            </item>
@@ -485,7 +485,7 @@ background-color: rgb(4, 51, 57)</string>
             <item>
              <widget class="QLabel" name="quantizationLabel">
               <property name="text">
-               <string>Play with quantization</string>
+               <string>Adjust Segmentation Level</string>
               </property>
              </widget>
             </item>

@@ -73,6 +73,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.setAutoFillBackground(True)
         self.setStyleSheet('background-color: rgb(110, 137, 152)')
 
+        # set icons
+        self.paintbrush_btn.setIcon(QtGui.QIcon('images/paintbrush.png'))
+        self.eraser_btn.setIcon(QtGui.QIcon('images/erase.jpg'))
+
         # set sizes
         self.frame_number.setFixedSize(self.frame_number.width() + 2, self.frame_number.height())
 
@@ -471,7 +475,6 @@ def warn(main_msg):
     '''
     Pop up a warning message box.
     '''
-    print('warning!')
     msg_box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning, main_msg, main_msg, QtWidgets.QMessageBox.Ok)
     msg_box.setWindowTitle('Seg Tool Warning')
     msg_box.setMinimumSize(100, 200)
