@@ -156,11 +156,11 @@ class ScanFile:
         if self.display_state == SEGMENTATION:
             updated_seg = self.image_label.points_to_image()
             segmentation_array = self._segment_worker.get_quant_segment(level, updated_seg)
-            self._segmentation_array = segmentation_array
             self.set_segmentation(segmentation_array)
 
     def set_segmentation(self, segmentation_array):
         self._segmentation_array = segmentation_array
+        print('scan file set seg', np.count_nonzero(self._segmentation_array))
         self.image_label.set_segmentation(segmentation_array)
         self.image_label.set_image(self.image_label.frames[self.image_label.frame_displayed_index])
 

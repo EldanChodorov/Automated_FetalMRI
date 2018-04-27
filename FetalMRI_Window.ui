@@ -191,6 +191,9 @@ border-color: rgb(209, 238, 242);</string>
     <addaction name="separator"/>
     <addaction name="actionSave_Points"/>
     <addaction name="actionLoad_Points"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_All_Segmentation"/>
+    <addaction name="actionRun_All_Workspace"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -327,6 +330,22 @@ border-color: rgb(209, 238, 242);</string>
    </property>
    <property name="shortcut">
     <string>S</string>
+   </property>
+  </action>
+  <action name="actionSave_All_Segmentation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save All Segmentation</string>
+   </property>
+  </action>
+  <action name="actionRun_All_Workspace">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Run All Workspace</string>
    </property>
   </action>
  </widget>

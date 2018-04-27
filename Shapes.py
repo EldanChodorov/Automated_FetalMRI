@@ -7,6 +7,7 @@ from collections import defaultdict
 import pickle
 import sys
 import os
+import copy
 from PyQt5 import QtCore, QtWidgets
 from consts import OUTER_SQUARE, INNER_SQUARE, BRUSH_WIDTH_MEDIUM
 
@@ -58,7 +59,7 @@ class Shapes:
         :param segmentation: [bool] If True, added points belong to segmentation and not user marks
         '''
         for point in points:
-            self.add_point(frame_number, point * zoom_factor)
+            self.add_point(frame_number, point)
 
     def store_marks(self):
         '''
@@ -126,13 +127,13 @@ class Shapes:
         ''':return: default dict of all points in shapes, without distinction to shape. '''
         all_points = defaultdict(list)
         for frame, points_list in self.chosen_points.items():
-            all_points[frame] = points_list
+            all_points[frame] = copy.deepcopy(points_list)
         for frame, squares_list in self.inner_squares.items():
             for square in squares_list:
-                all_points[frame] += square.points
+                all_points[frame] += copy.deepcopy(square.points)
         for frame, squares_list in self.outer_squares.items():
             for square in squares_list:
-                all_points[frame] += square.points
+                all_points[frame] += copy.deepcopy(square.points)
         return all_points
 
 

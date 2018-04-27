@@ -145,7 +145,6 @@ class ImageLabel(QtWidgets.QLabel):
 
     def mouseMoveEvent(self, QMouseEvent):
         pos = self.widget2image_coord(QMouseEvent.pos())
-        print('pos', QMouseEvent.pos(), pos)
 
         if self._tool_chosen == USE_PAINTBRUSH:
             self.shapes.add_point(self.frame_displayed_index, pos)
@@ -189,7 +188,6 @@ class ImageLabel(QtWidgets.QLabel):
         indices = np.where((image == 1) | (image == 255))  # todo stick to one
         transformed_x = (indices[2] / image.shape[2]) * width
         transformed_y = (indices[1] / image.shape[1]) * height
-
         points = defaultdict(list)
         for frame, x, y in zip(indices[0], transformed_x, transformed_y):
             points[frame].append(QtCore.QPoint(x, y))
@@ -253,6 +251,9 @@ class ImageLabel(QtWidgets.QLabel):
             # draw image first so that points will be on top of image
             painter.drawPixmap(self.rect(), self._displayed_pixmap)
 
+            if not self.show_segmentation:
+                return
+
             pen = QtGui.QPen()
             pen.setWidth(self.paintbrush_size)
 
@@ -273,8 +274,13 @@ class ImageLabel(QtWidgets.QLabel):
             # points
             pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], alpha_channel))
             painter.setPen(pen)
+            offset = int(np.ceil((self._zoom * 2) - 2))
             for point in self.shapes.chosen_points[self.frame_displayed_index]:
-                painter.drawPoint(self.image2widget_coord(point))
+                real_point = self.image2widget_coord(point)
+                painter.drawPoint(real_point)
+                # on zoom, draw in between points, to fill in gaps
+                for i in range(offset):
+                    painter.drawPoint(real_point + QtCore.QPoint(i+1, i+1))
 
         except Exception as ex:
             print('paintEvent', ex)

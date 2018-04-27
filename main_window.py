@@ -72,6 +72,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         # Workspace menu
         self.actionSave_Segmentation.triggered.connect(self._save_segmentation)
         self.actionOpen_Segmentation.triggered.connect(self._open_segmentation)
+        self.actionSave_All_Segmentation.triggered.connect(self._save_all_segmentations)
 
         # View menu
         self.actionShow_Segmentation.triggered.connect(self._toggle_segmentation)
@@ -88,6 +89,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.actionSave_Points.setEnabled(True)
         self.actionLoad_Points.setEnabled(True)
         self.actionShow_Segmentation.setEnabled(True)
+        self.actionSave_All_Segmentation.setEnabled(True)
 
     def _toggle_segmentation(self):
         '''Display/Hide segmentation from showing in workspace.'''
@@ -200,6 +202,10 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         if self._workspace:
             self._workspace.save_segmentation()
 
+    def _save_all_segmentations(self):
+        if self._workspace:
+            self._workspace.save_all_segmentations()
+
     def _user_choose_file(self, dir_only=False):
 
         file_dialog = QtWidgets.QFileDialog()
@@ -221,7 +227,8 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
                 print("Must choose Nifti format file.")
                 return
             segmentation = np.array(nib.load(nifti_path).get_data())
-            segmentation = segmentation.transpose(2, 0, 1)  # convert to (num_frames, x, y)
+            # todo check transpose...
+            segmentation = segmentation.transpose(1, 0, 2)  # convert to (num_frames, x, y)
             if self._workspace:
                 self._workspace.set_segmentation(segmentation)
         except Exception as ex:
