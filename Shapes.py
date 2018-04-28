@@ -19,6 +19,9 @@ class Shapes:
         # dict of frame number: points chosen manually by user per each frame
         self.chosen_points = defaultdict(list)
 
+        # dict of frame number: points included in segmentation
+        self.segmentation_points = defaultdict(list)
+
         # save aside points marked by user, same type as chosen_points
         self._marked_points = None
 
@@ -50,16 +53,29 @@ class Shapes:
         # clear all points, assume new segmentation was found and will be set
         self.chosen_points = defaultdict(list)
 
-    def add_points(self, frame_number, points, zoom_factor):
+    def add_points(self, frame_number, points, segmentation=False):
         '''
         Add given points to list of points.
         :param frame_number: [int] frame points were selected from.
         :param points: [list of QtCore.QPoint]
-        :param zoom_factor: [int] multiply each point by this factor
         :param segmentation: [bool] If True, added points belong to segmentation and not user marks
         '''
-        for point in points:
-            self.add_point(frame_number, point)
+        # use two different function for segmentation/regular points, for speed
+        # faster than using one function + checking (if) on a boolean for every point in points
+        if segmentation:
+            for point in points:
+                self.add_segmentation_point(frame_number, point)
+        else:
+            for point in points:
+                self.add_point(frame_number, point)
+
+    def add_segmentation_point(self, frame_number, point):
+        '''
+        Add given point to existing points container.
+        :param frame_number: [int] frame points were selected from.
+        :param point: [QtCore.QPoint]
+        '''
+        self.segmentation_points[frame_number].append(point)
 
     def store_marks(self):
         '''
@@ -134,6 +150,8 @@ class Shapes:
         for frame, squares_list in self.outer_squares.items():
             for square in squares_list:
                 all_points[frame] += copy.deepcopy(square.points)
+        for frame, seg_points_list in self.segmentation_points.items():
+            all_points[frame] += seg_points_list
         return all_points
 
 

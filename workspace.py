@@ -131,6 +131,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     @QtCore.pyqtSlot()
     def _toggle_show_seg(self):
+        '''Show full segmentation, and if more points were drawn, will add them.'''
         try:
             self._all_scans[self._current_scan_idx].show_segmentation()
         except Exception as ex:
@@ -412,8 +413,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             print(ex)
 
     def set_segmentation(self, segmentation_array):
-        print(segmentation_array.shape)
         self._all_scans[self._current_scan_idx].set_segmentation(segmentation_array)
+        self.verticalFrame.show()
 
     def save_points(self):
         '''If exists, save current points that were marked on screen by user.'''
