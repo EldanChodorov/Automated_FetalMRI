@@ -52,6 +52,7 @@ class Shapes:
     def clear_points(self):
         # clear all points, assume new segmentation was found and will be set
         self.chosen_points = defaultdict(list)
+        self.segmentation_points = defaultdict(list)
 
     def add_points(self, frame_number, points, segmentation=False):
         '''

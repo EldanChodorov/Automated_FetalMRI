@@ -1,3 +1,4 @@
+import math
 import copy
 from collections import defaultdict
 import numpy as np
@@ -219,9 +220,10 @@ class ImageLabel(QtWidgets.QLabel):
             for frame, points_list in all_points.items():
                 for point in points_list:
                     label_x, label_y = float(point.x()), float(point.y())
-                    image_x = int((label_x / width) * 512)
-                    image_y = int((label_y / height) * 512)  # TODO: make modular, might not be 512 (in all code)
-                    image[frame, image_x, image_y] = 1
+                    # TODO: make modular, might not be 512 (in all code)
+                    image_x = math.ceil((label_x / width) * 512)
+                    image_y = math.ceil((label_y / height) * 512)
+                    image[frame, image_y, image_x] = 1
             return image
         except Exception as ex:
             print('points to image', ex)
