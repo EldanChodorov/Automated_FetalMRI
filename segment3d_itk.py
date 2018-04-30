@@ -402,7 +402,7 @@ class Brain_segmant:
             val_of_quant = diff_vals[int(diff_vals.shape[0]/2)]
             convex_holes_image[np.where(lables >= val_of_quant)] = 0
             # lables = nd.morphology.binary_closing(closed_holes_image,iterations=1)
-            # lables = nd.morphology.binary_opening(lables,iterations=1)
+            convex_holes_image = nd.morphology.binary_opening(convex_holes_image,iterations=1)
             final_image = np.zeros(array_data.shape)
             h, w, z = convex_holes_image.shape
             final_image[X_top:X_top + h,Y_top:Y_top + w,:] = convex_holes_image
