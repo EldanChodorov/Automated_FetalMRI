@@ -131,6 +131,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     @QtCore.pyqtSlot()
     def _toggle_show_seg(self):
+        '''Show full segmentation, and if more points were drawn, will add them.'''
         try:
             self._all_scans[self._current_scan_idx].show_segmentation()
         except Exception as ex:
@@ -289,6 +290,18 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             item = QtWidgets.QTableWidgetItem(PROCESSING)
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
+    def keyPressEvent(self, QKeyEvent):
+        if QKeyEvent.key() == QtCore.Qt.Key_F:
+            self.jump_frame_lineedit.setFocus()
+        elif QKeyEvent.key == QtCore.Qt.Key_E:
+            pass
+            # Todo implement change focus to Eraser
+        elif QKeyEvent.key == QtCore.Qt.Key_P:
+            pass
+            # Todo implement change focus to Paint
+        else:
+            QtWidgets.QWidget.keyPressEvent(self, QKeyEvent)
+
     def _remove_progress_bar(self):
         self.MainLayout.removeWidget(self._progress_bar)
         self._progress_bar.deleteLater()
@@ -369,8 +382,22 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self._all_scans[self._current_scan_idx].image_label.show_segmentation = show
         self._all_scans[self._current_scan_idx].image_label.update()
 
-    def save_segmentation(self):
-        segmentation = self._all_scans[self._current_scan_idx].image_label.points_to_image()
+    def save_all_segmentations(self):
+        for i in range(len(self._all_scans)):
+            if self._all_scans[i].status == SEGMENTED:
+                try:
+                    self.save_segmentation(i)
+                except Exception as ex:
+                    print('save segmentation', i, ex)
+
+    def save_segmentation(self, scan_idx=None):
+        if not scan_idx:
+            scan_idx = self._current_scan_idx
+        segmentation = self._all_scans[scan_idx].image_label.points_to_image()
+        if segmentation is None:
+            print("Error saving segmentation for scan #%d" %scan_idx)
+            return
+
         segmentation = segmentation.transpose(2, 0, 1)  # convert to (x, y, num_frames)
         try:
             file_dialog = QtWidgets.QFileDialog()
@@ -379,12 +406,15 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save segmentation", "",
                                         "Nifti Files (*.nii, *.nii.gz)", options=options)
             if fileName:
-                print('saving size', segmentation.shape)
                 nifti = nib.Nifti1Image(segmentation, np.eye(4))
                 nib.save(nifti, fileName)
                 print('Segmentation saved to %s' % fileName)
         except Exception as ex:
             print(ex)
+
+    def set_segmentation(self, segmentation_array):
+        self._all_scans[self._current_scan_idx].set_segmentation(segmentation_array)
+        self.verticalFrame.show()
 
     def save_points(self):
         '''If exists, save current points that were marked on screen by user.'''

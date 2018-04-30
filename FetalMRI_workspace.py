@@ -146,6 +146,7 @@ class Ui_workspace(object):
         self.toolkitLayout.addWidget(self.tool_kit)
         self.jump_frame_lineedit = QtWidgets.QLineEdit(workspace)
         self.jump_frame_lineedit.setStyleSheet("font: 75 12pt \"MS Shell Dlg 2\";\n"
+        # self.jump_paint = QtWidgets.(workspace)
 "color: black;\n"
 "font-family: Courier;\n"
 "background-color: rgb(209, 211, 211);\n"

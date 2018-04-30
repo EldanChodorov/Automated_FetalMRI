@@ -99,8 +99,6 @@ class ScanFile:
 
             segmentation_array *= 255
             self.set_segmentation(segmentation_array)
-            self.status = SEGMENTED
-            self.display_state = SEGMENTATION
 
         return segmentation_array
 
@@ -131,8 +129,10 @@ class ScanFile:
                 print('error in separate_to_two_brains', ex)
 
     def show_segmentation(self):
-        '''Show original segmentation in image label.'''
-        if self._segmentation_array is not None:
+        '''Show original segmentation in image label, and add extra points drawn.'''
+        if self.display_state == SEGMENTATION:
+            print('show segmentation')
+            self._segmentation_array = self.image_label.points_to_image()
             self.image_label.set_segmentation(self._segmentation_array)
 
     def show_convex(self):
@@ -156,10 +156,11 @@ class ScanFile:
         if self.display_state == SEGMENTATION:
             updated_seg = self.image_label.points_to_image()
             segmentation_array = self._segment_worker.get_quant_segment(level, updated_seg)
-            self._segmentation_array = segmentation_array
             self.set_segmentation(segmentation_array)
 
     def set_segmentation(self, segmentation_array):
+        self.display_state = SEGMENTATION
+        self.status = SEGMENTED
         self._segmentation_array = segmentation_array
         self.image_label.set_segmentation(segmentation_array)
         self.image_label.set_image(self.image_label.frames[self.image_label.frame_displayed_index])
