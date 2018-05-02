@@ -211,22 +211,19 @@ class ImageLabel(QtWidgets.QLabel):
         Convert all points in Shapes object to a binary 3d image.
         :return: [numpy.ndarray] size of frames
         '''
-        try:
-            # width, height = self.width(), self.height()
-            width, height = self.sizeHint().width(), self.sizeHint().height()
+        # width, height = self.width(), self.height()
+        width, height = self.sizeHint().width(), self.sizeHint().height()
 
-            all_points = self.shapes.all_points()
-            image = np.zeros(self.frames.shape)
-            for frame, points_list in all_points.items():
-                for point in points_list:
-                    label_x, label_y = float(point.x()), float(point.y())
-                    # TODO: make modular, might not be 512 (in all code)
-                    image_x = math.ceil((label_x / width) * 512)
-                    image_y = math.ceil((label_y / height) * 512)
-                    image[frame, image_y, image_x] = 1
-            return image
-        except Exception as ex:
-            print('points to image', ex)
+        all_points = self.shapes.all_points()
+        image = np.zeros(self.frames.shape)
+        for frame, points_list in all_points.items():
+            for point in points_list:
+                label_x, label_y = float(point.x()), float(point.y())
+                # TODO: make modular, might not be 512 (in all code)
+                image_x = math.ceil((label_x / width) * 512)
+                image_y = math.ceil((label_y / height) * 512)
+                image[frame, image_y, image_x] = 1
+        return image
 
     def set_segmentation(self, segmentation_array):
         '''
@@ -242,58 +239,53 @@ class ImageLabel(QtWidgets.QLabel):
 
     def paintEvent(self, paint_event):
 
-        try:
-            painter = QtGui.QPainter(self)
+        painter = QtGui.QPainter(self)
 
-            # draw image first so that points will be on top of image
-            painter.drawPixmap(self.rect(), self._displayed_pixmap)
+        # draw image first so that points will be on top of image
+        painter.drawPixmap(self.rect(), self._displayed_pixmap)
 
-            if not self.paint_over:
-                return
+        if not self.paint_over:
+            return
 
-            pen = QtGui.QPen()
-            pen.setWidth(self.paintbrush_size)
+        pen = QtGui.QPen()
+        pen.setWidth(self.paintbrush_size)
 
-            # inner squares
-            pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_NON_TRANSPARENT))
-            painter.setPen(pen)
-            for square in self.shapes.inner_squares[self.frame_displayed_index]:
-                for point in square.points:
-                    painter.drawPoint(self.image2widget_coord(point))
+        # inner squares
+        pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_NON_TRANSPARENT))
+        painter.setPen(pen)
+        for square in self.shapes.inner_squares[self.frame_displayed_index]:
+            for point in square.points:
+                painter.drawPoint(self.image2widget_coord(point))
 
-            # outer squares
-            pen.setColor(QtGui.QColor(255, 0, 0, ALPHA_NON_TRANSPARENT))
-            painter.setPen(pen)
-            for square in self.shapes.outer_squares[self.frame_displayed_index]:
-                for point in square.points:
-                    painter.drawPoint(self.image2widget_coord(point))
+        # outer squares
+        pen.setColor(QtGui.QColor(255, 0, 0, ALPHA_NON_TRANSPARENT))
+        painter.setPen(pen)
+        for square in self.shapes.outer_squares[self.frame_displayed_index]:
+            for point in square.points:
+                painter.drawPoint(self.image2widget_coord(point))
 
+        # on zoom, draw in between points, to fill in gaps
+        offset = int(np.ceil((self._zoom * 2) - 2))
+
+        # points
+        pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_NON_TRANSPARENT))
+        painter.setPen(pen)
+        for point in self.shapes.chosen_points[self.frame_displayed_index]:
+            real_point = self.image2widget_coord(point)
+            painter.drawPoint(real_point)
             # on zoom, draw in between points, to fill in gaps
-            offset = int(np.ceil((self._zoom * 2) - 2))
+            for i in range(offset):
+                painter.drawPoint(real_point + QtCore.QPoint(i+1, i+1))
 
-            # points
-            pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_NON_TRANSPARENT))
-            painter.setPen(pen)
-            for point in self.shapes.chosen_points[self.frame_displayed_index]:
-                print('paint regular point')
-                real_point = self.image2widget_coord(point)
-                painter.drawPoint(real_point)
-                # on zoom, draw in between points, to fill in gaps
-                for i in range(offset):
-                    painter.drawPoint(real_point + QtCore.QPoint(i+1, i+1))
-
-            # segmentation points
-            pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_TRANSPARENT))
-            painter.setPen(pen)
-            for idx, point in enumerate(self.shapes.segmentation_points[self.frame_displayed_index]):
-                real_point = self.image2widget_coord(point)
-                painter.drawPoint(real_point)
-                # on zoom, draw in between points, to fill in gaps
-                for i in range(offset):
-                    painter.drawPoint(real_point + QtCore.QPoint(i+1, i+1))
-
-        except Exception as ex:
-            print('paintEvent', ex)
+        # segmentation points
+        pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_TRANSPARENT))
+        painter.setPen(pen)
+        for idx, point in enumerate(self.shapes.segmentation_points[self.frame_displayed_index]):
+            real_point = self.image2widget_coord(point)
+            painter.drawPoint(real_point)
+            # on zoom, draw in between points, to fill in gaps
+            for i in range(offset):
+                painter.drawPoint(real_point + QtCore.QPoint(i+1, i+1))
 
     def _initial_image_size(self):
         ''':return Original size of images.'''
@@ -333,11 +325,11 @@ class ImageLabel(QtWidgets.QLabel):
 
         self._zoom *= factor
         self.resize(self._zoom * self.sizeHint())
-        try:
-            self._adjust_scroll_bar(self._parent.scroll_area.horizontalScrollBar(), factor)
-            self._adjust_scroll_bar(self._parent.scroll_area.verticalScrollBar(), factor)
-        except Exception as ex:
-            print(ex)
+
+        # adjust both scroll bars
+        self._adjust_scroll_bar(self._parent.scroll_area.horizontalScrollBar(), factor)
+        self._adjust_scroll_bar(self._parent.scroll_area.verticalScrollBar(), factor)
+
 
     @staticmethod
     def _adjust_scroll_bar(scroll_bar, factor):

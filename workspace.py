@@ -130,20 +130,14 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
     @QtCore.pyqtSlot()
     def _toggle_show_seg(self):
         '''Show full segmentation, and if more points were drawn, will add them.'''
-        try:
-            self._all_scans[self._current_scan_idx].show_segmentation()
-        except Exception as ex:
-            print('toggle show seg', ex)
+        self._all_scans[self._current_scan_idx].show_segmentation()
 
     @QtCore.pyqtSlot(int, int)
     def _switch_scan(self, row, col):
         assert row < len(self._all_scans)
         self._current_scan_idx = row
-        try:
-            self._all_scans[self._current_scan_idx].load_image_label()
-            self.scroll_area.set_image(self._all_scans[self._current_scan_idx].image_label)
-        except Exception as ex:
-            print(ex)
+        self._all_scans[self._current_scan_idx].load_image_label()
+        self.scroll_area.set_image(self._all_scans[self._current_scan_idx].image_label)
 
     def add_scan(self, nifti_path):
         new_scan = ScanFile(nifti_path, self)
@@ -377,7 +371,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         Show/hide the segmentation over the scan displaying.
         :param show: [bool]
         '''
-        self._all_scans[self._current_scan_idx].image_label.show_segmentation = show
+        self._all_scans[self._current_scan_idx].image_label.paint_over = show
         self._all_scans[self._current_scan_idx].image_label.update()
 
     def save_all_segmentations(self):
@@ -389,15 +383,14 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
                     print('save segmentation', i, ex)
 
     def save_segmentation(self, scan_idx=None):
-        if not scan_idx:
-            scan_idx = self._current_scan_idx
-        segmentation = self._all_scans[scan_idx].image_label.points_to_image()
-        if segmentation is None:
-            print("Error saving segmentation for scan #%d" %scan_idx)
-            return
-
-        segmentation = segmentation.transpose(2, 0, 1)  # convert to (x, y, num_frames)
         try:
+            if not scan_idx:
+                scan_idx = self._current_scan_idx
+            segmentation = self._all_scans[scan_idx].image_label.points_to_image()
+            if segmentation is None:
+                print("Error saving segmentation for scan #%d" %scan_idx)
+                return
+
             file_dialog = QtWidgets.QFileDialog()
             options = QtWidgets.QFileDialog.Options()
             options |= QtWidgets.QFileDialog.DontUseNativeDialog
@@ -440,11 +433,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     @QtCore.pyqtSlot()
     def _toggle_contrast(self):
-        try:
-            tick_val = self.contrast_slider.value()
-            self._all_scans[self._current_scan_idx].image_label.change_view(tick_val)
-        except Exception as ex:
-            print('toggle contrast error', ex)
+        tick_val = self.contrast_slider.value()
+        self._all_scans[self._current_scan_idx].image_label.change_view(tick_val)
 
 
 class ScrollArea(QtWidgets.QScrollArea):

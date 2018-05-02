@@ -227,8 +227,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
                 print("Must choose Nifti format file.")
                 return
             segmentation = np.array(nib.load(nifti_path).get_data())
-            # todo check transpose...
-            segmentation = segmentation.transpose(1, 0, 2)  # convert to (num_frames, x, y)
+
             if self._workspace:
                 self._workspace.set_segmentation(segmentation)
         except Exception as ex:
