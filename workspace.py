@@ -397,6 +397,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save segmentation", "",
                                         "Nifti Files (*.nii, *.nii.gz)", options=options)
             if fileName:
+                if not fileName.endswith('.gz'):
+                    fileName += '.gz'
                 nifti = nib.Nifti1Image(segmentation, np.eye(4))
                 nib.save(nifti, fileName)
                 print('Segmentation saved to %s' % fileName)
