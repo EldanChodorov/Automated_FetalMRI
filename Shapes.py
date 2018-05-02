@@ -110,6 +110,10 @@ class Shapes:
                 if pos in self.chosen_points[frame]:
                     self.chosen_points[frame].remove(pos)
 
+                # erase segmentation
+                if pos in self.segmentation_points[frame]:
+                    self.segmentation_points[frame].remove(pos)
+
                 # erase squares
                 squares = self.inner_squares[frame] + self.outer_squares[frame]
                 for square in squares:
@@ -145,6 +149,16 @@ class Shapes:
         all_points = defaultdict(list)
         for frame, points_list in self.chosen_points.items():
             all_points[frame] = copy.deepcopy(points_list)
+            # add extra point to fill in gaps created
+            all_points[frame] += [QtCore.QPoint(point.x()+1, point.y()+1) for point in points_list]
+            all_points[frame] += [QtCore.QPoint(point.x()+1, point.y()-1) for point in points_list]
+            all_points[frame] += [QtCore.QPoint(point.x()+1, point.y()) for point in points_list]
+            all_points[frame] += [QtCore.QPoint(point.x(), point.y()+1) for point in points_list]
+            all_points[frame] += [QtCore.QPoint(point.x(), point.y()-1) for point in points_list]
+            all_points[frame] += [QtCore.QPoint(point.x(), point.y()) for point in points_list]
+            all_points[frame] += [QtCore.QPoint(point.x()-1, point.y()-1) for point in points_list]
+            all_points[frame] += [QtCore.QPoint(point.x()-1, point.y()+1) for point in points_list]
+            all_points[frame] += [QtCore.QPoint(point.x()-1, point.y()) for point in points_list]
         for frame, squares_list in self.inner_squares.items():
             for square in squares_list:
                 all_points[frame] += copy.deepcopy(square.points)

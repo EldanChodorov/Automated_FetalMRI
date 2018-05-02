@@ -5,7 +5,6 @@ ScanFile class represents a nifti file holding its scan files, segmentation, use
 from PyQt5 import QtWidgets, QtCore
 from image_label import ImageLabel
 from threading import Thread
-import Shapes
 from consts import *
 import nibabel as nib
 import numpy as np
@@ -131,7 +130,6 @@ class ScanFile:
     def show_segmentation(self):
         '''Show original segmentation in image label, and add extra points drawn.'''
         if self.display_state == SEGMENTATION:
-            print('show segmentation')
             self._segmentation_array = self.image_label.points_to_image()
             self.image_label.set_segmentation(self._segmentation_array)
 

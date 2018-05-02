@@ -5,9 +5,7 @@ import nibabel as nib
 from threading import Thread
 from PyQt5 import QtGui, QtCore, QtWidgets
 import FetalMRI_workspace
-import segment3d_itk
 from skimage.exposure import equalize_adapthist
-from image_label import ImageLabel
 from Shapes import Shapes
 from consts import *
 from scan_file import ScanFile
