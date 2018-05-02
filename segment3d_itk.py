@@ -402,7 +402,7 @@ class Brain_segmant:
             val_of_quant = diff_vals[int(diff_vals.shape[0]/2)]
             convex_holes_image[np.where(lables >= val_of_quant)] = 0
             # lables = nd.morphology.binary_closing(closed_holes_image,iterations=1)
-            # lables = nd.morphology.binary_opening(lables,iterations=1)
+            convex_holes_image = nd.morphology.binary_opening(convex_holes_image,iterations=1)
             final_image = np.zeros(array_data.shape)
             h, w, z = convex_holes_image.shape
             final_image[X_top:X_top + h,Y_top:Y_top + w,:] = convex_holes_image
@@ -518,74 +518,90 @@ class Brain_segmant:
 
         return cur_seg.transpose(2, 0, 1)
 
+    def get_convex_seg(self,segmantation):
+        segmantation = segmantation.transpose(1, 2, 0)
+        final_seg = self.flood_fill_hull(segmantation)
+        return final_seg.transpose(2, 0, 1)
+
+
 
     def sperate_to_two_brains(self,segmantation):
         # segmantation = np.array(segmantation)
         print('im here working')
         print(np.max(segmantation))
-        # convex_seg = self.flood_fill_hull(segmantation)
+        convex_seg = self.flood_fill_hull(segmantation)
         left_side = np.zeros(segmantation.shape)
         right_side = np.zeros(segmantation.shape)
         sub_divide_image = np.zeros(segmantation.shape)
         print(segmantation.shape)
-        for j, slice in enumerate(segmantation):
-            new_seg = np.zeros(slice.shape)
+        ralv_slice = []
+        ralv_slop = []
+        ralv_centroid = []
+        slice_shape = 0
+        for j, slice in enumerate(convex_seg):
+            slice_shape = slice.shape
+            new_seg = np.zeros(slice_shape)
 
             if np.any(slice):
                 print(slice.shape)
 
-                convex = self.flood_fill_hull(slice)
-                # polygon_cuntor = measure.find_contours(convex,level=0.5,fully_connected= 'high')[0]
-                # convex = np.zeros(convex.shape)
+                convex = slice
                 polygon_cuntor = convex.astype(np.int32)
-                # convex[polygon_cuntor[:,0],polygon_cuntor[:,1]] = 1
                 polygon_label_data = measure.regionprops(polygon_cuntor)
-                # a = [c.centroid for c in polygon_label_data]
                 centroid = polygon_label_data[0].centroid
-                print(centroid)
-
                 angle = polygon_label_data[0].orientation + np.pi/2
-                print(np.rad2deg(angle))
                 slope = -1*np.tan(angle)
-                print(slope)
-
-                x_1 = np.linspace(0,convex.shape[1],convex.shape[1]*10)
-
-                extra_c = slope*centroid[1] - centroid[0]
-                print(extra_c)
-                y_1 = np.array([int(slope*(x) - extra_c) for x in x_1])
-                new_x = x_1[np.where((y_1 < convex.shape[0]))]
-                new_y = y_1[np.where((y_1 < convex.shape[0]))]
-                new_x = new_x[np.where((new_y > 0))]
-                new_y = new_y[np.where((new_y > 0))]
-                new_seg[new_y,new_x.astype(np.int32)] = 1
-                new_seg = nd.binary_dilation(new_seg)
-                segmantation[j,new_y,new_x.astype(np.int32)] = 1
-
-
-                # polygon_cuntor = measure.find_contours(slice,level=0.5,fully_connected= 'high')[0]
-                # print(polygon_cuntor.shape)
-                # polygon_cuntor = polygon_cuntor.astype(np.int32)
-                # new_seg[polygon_cuntor[:,0],polygon_cuntor[:,1]] = 1
-                # sub_polygon_cuntor = measure.subdivide_polygon(polygon_cuntor, degree=2)
-                # print(len(sub_polygon_cuntor))
-                # for i,countor in enumerate(sub_polygon_cuntor):
-                #     countor = countor.astype(np.int32)
-                #     print(countor.shape)
-                #     new_seg[countor[0],countor[1]] = i + 1
-
-                if False:
-                    plt.imshow(new_seg)
-                    plt.show()
-                    # display_image = new_seg.transpose(self.get_display_axis(np.argmin(new_seg.shape)))
-                    # self.multi_slice_viewer(display_image, do_gray=True)
-                    # plt.show()
+                ralv_slice.append(j)
+                ralv_slop.append(slope)
+                ralv_centroid.append(centroid)
+                # x_1 = np.linspace(0,convex.shape[1],convex.shape[1]*2)
+                # extra_c = slope*centroid[1] - centroid[0]
+                # print(extra_c)
+                # y_1 = np.array([int(slope*(x) - extra_c) for x in x_1])
+                # new_x = x_1[np.where((y_1 < convex.shape[0]))]
+                # new_y = y_1[np.where((y_1 < convex.shape[0]))]
+                # new_x = new_x[np.where(new_y > 0)]
+                # new_y = new_y[np.where(new_y > 0)]
+                # new_seg[new_y,new_x] = 1
+        slope_mean = []
+        print('im here')
+        for h in range(len(ralv_slop)):
+            if h == 0:
+                slope_mean.append(np.mean(ralv_slop[h:h+3]))
+            elif h == len(ralv_slop)-1:
+                slope_mean.append(np.mean(ralv_slop[h-2:]))
             else:
-                segmantation[j,:,:] = segmantation[j,:,:]
-            # labels = measure.regionprops(slice)[0]
+                slope_mean.append(np.mean(ralv_slop[h-1:h+2]))
 
+        print('im here1')
+        print(ralv_slop)
+        print(slope_mean)
+        for glob_slice, index in enumerate(ralv_slice):
+            print(slice_shape)
+            cur_slope = slope_mean[glob_slice]
+            cur_centroid = ralv_centroid[glob_slice]
+            x_1 = np.linspace(0,slice_shape[1],slice_shape[1]*20)
+            extra_c = cur_slope*cur_centroid[1] - cur_centroid[0]
+            print(extra_c)
+            y_1 = np.array([int(cur_slope*(x) - extra_c) for x in x_1])
+            new_x = x_1[np.where((y_1 < slice_shape[0]))]
+            new_y = y_1[np.where((y_1 < slice_shape[0]))]
+            new_x = new_x[np.where(new_y > 0)].astype(np.int32)
+            new_y = new_y[np.where(new_y > 0)].astype(np.int32)
+            if glob_slice == 0:
+                segmantation[:index+1,new_y,new_x] = 1
+                sub_divide_image[:index+1,new_y,new_x] = 1
+            elif index == ralv_slice[-1]:
+                sub_divide_image[index:,new_y,new_x] = 1
+                segmantation[index:,new_y,new_x] = 1
+            else:
+                sub_divide_image[index,new_y,new_x] = 1
+                segmantation[index,new_y,new_x] = 1
         if True:
 
+            display_image = sub_divide_image.transpose(self.get_display_axis(np.argmin(sub_divide_image.shape)))
+            self.multi_slice_viewer(display_image, do_gray=True)
+            plt.show()
             display_image = segmantation.transpose(self.get_display_axis(np.argmin(segmantation.shape)))
             self.multi_slice_viewer(display_image, do_gray=True)
             plt.show()
@@ -601,7 +617,7 @@ def confidance_evaluation(alg_seg, gt_seg):
     intersection_seg = alg_seg * gt_seg
     intersection_num = np.count_nonzero(intersection_seg)
 
-    return intersection_num / union_num
+    return (2*intersection_num) / union_num
 
 if __name__ == '__main__':
     pass
