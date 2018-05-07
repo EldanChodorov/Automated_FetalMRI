@@ -32,6 +32,7 @@ class Ui_workspace(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tool_kit.sizePolicy().hasHeightForWidth())
         self.tool_kit.setSizePolicy(sizePolicy)
+        self.tool_kit.setMinimumSize(QtCore.QSize(0, 400))
         self.tool_kit.setStyleSheet("border-color: rgb(0, 85, 127);\n"
 "background-color: rgb(237, 240, 247);\n"
 "border-radius: 15px; border-width: 3px; border-style: outset")
@@ -61,14 +62,17 @@ class Ui_workspace(object):
         self.eraser_size2_btn.setObjectName("eraser_size2_btn")
         self.gridLayout_3.addWidget(self.eraser_size2_btn, 2, 1, 1, 1)
         self.paintbrush_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.paintbrush_btn.setMinimumSize(QtCore.QSize(50, 50))
+        self.paintbrush_btn.setMaximumSize(QtCore.QSize(16777215, 500))
         self.paintbrush_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: black; \n"
 "border-radius: 8px; border-color: black; border-width: 3px; \n"
 "border-style: outset;")
         self.paintbrush_btn.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../../../../.designer/backup/images/paintbrush.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("images/paintbrush.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.paintbrush_btn.setIcon(icon)
+        self.paintbrush_btn.setIconSize(QtCore.QSize(50, 50))
         self.paintbrush_btn.setObjectName("paintbrush_btn")
         self.gridLayout_3.addWidget(self.paintbrush_btn, 0, 0, 1, 1)
         self.eraser_size1_btn = QtWidgets.QPushButton(self.tool_kit)
@@ -81,6 +85,7 @@ class Ui_workspace(object):
         self.eraser_size1_btn.setObjectName("eraser_size1_btn")
         self.gridLayout_3.addWidget(self.eraser_size1_btn, 1, 1, 1, 1)
         self.eraser_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.eraser_btn.setMinimumSize(QtCore.QSize(50, 50))
         self.eraser_btn.setMaximumSize(QtCore.QSize(16777, 16777215))
         self.eraser_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: black; \n"
@@ -89,9 +94,9 @@ class Ui_workspace(object):
 "")
         self.eraser_btn.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("../../../../.designer/backup/images/erase.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("images/erase.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.eraser_btn.setIcon(icon1)
-        self.eraser_btn.setIconSize(QtCore.QSize(24, 24))
+        self.eraser_btn.setIconSize(QtCore.QSize(50, 50))
         self.eraser_btn.setObjectName("eraser_btn")
         self.gridLayout_3.addWidget(self.eraser_btn, 0, 1, 1, 1)
         self.paintbrush_size1_btn = QtWidgets.QPushButton(self.tool_kit)
@@ -122,7 +127,8 @@ class Ui_workspace(object):
         self.inner_square_btn = QtWidgets.QPushButton(self.tool_kit)
         self.inner_square_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: rgb(133, 13, 255);\n"
-"border-radius: 12px; border-color: purple; border-width:3px;\n"
+"border-radius: 12px; border-color:  rgb(133, 13, 255); \n"
+"border-width:3px;\n"
 "border-style: outset;\n"
 "font: 75 8pt \"MS Shell Dlg 2\";\n"
 "")
@@ -142,11 +148,24 @@ class Ui_workspace(object):
         self.outer_square_btn.setIcon(icon3)
         self.outer_square_btn.setObjectName("outer_square_btn")
         self.gridLayout_3.addWidget(self.outer_square_btn, 1, 3, 1, 1)
+        self.pushButton = QtWidgets.QPushButton(self.tool_kit)
+        self.pushButton.setStyleSheet("background-color:\'white\'; \n"
+"color: rgb(0, 0, 255);\n"
+"font: 75 8pt \"MS Shell Dlg 2\";\n"
+"border-radius: 12px; \n"
+"border-color: rgb(0, 0, 255);\n"
+"border-width: 3px;\n"
+"border-style: outset;")
+        self.pushButton.setObjectName("pushButton")
+        self.gridLayout_3.addWidget(self.pushButton, 2, 3, 1, 1)
+        self.gridLayout_3.setRowMinimumHeight(0, 5)
+        self.gridLayout_3.setRowMinimumHeight(1, 1)
+        self.gridLayout_3.setRowMinimumHeight(2, 1)
+        self.gridLayout_3.setRowMinimumHeight(3, 1)
         self.gridLayout.addLayout(self.gridLayout_3, 0, 0, 1, 1)
         self.toolkitLayout.addWidget(self.tool_kit)
         self.jump_frame_lineedit = QtWidgets.QLineEdit(workspace)
         self.jump_frame_lineedit.setStyleSheet("font: 75 12pt \"MS Shell Dlg 2\";\n"
-        # self.jump_paint = QtWidgets.(workspace)
 "color: black;\n"
 "font-family: Courier;\n"
 "background-color: rgb(209, 211, 211);\n"
@@ -174,7 +193,7 @@ class Ui_workspace(object):
         self.frame_number.setObjectName("frame_number")
         self.toolkitLayout.addWidget(self.frame_number)
         self.instructions = QtWidgets.QLabel(workspace)
-        self.instructions.setMaximumSize(QtCore.QSize(800, 800))
+        self.instructions.setMaximumSize(QtCore.QSize(800, 200))
         self.instructions.setStyleSheet("background-color: rgb(56, 112, 83);\n"
 " color: white; font-weight: regular; font-size: 12pt;\n"
 "border-radius: 15px; border-color: black; border-width: 3px; \n"
@@ -201,6 +220,8 @@ class Ui_workspace(object):
         self.save_seg_btn.setObjectName("save_seg_btn")
         self.horizontalLayout_3.addWidget(self.save_seg_btn)
         self.verticalLayout_3.addLayout(self.horizontalLayout_3)
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.contrast_label = QtWidgets.QLabel(workspace)
         self.contrast_label.setStyleSheet("background-color: rgb(158, 51, 158);\n"
 " color: white; font-weight: regular; font-size: 12pt;\n"
@@ -208,18 +229,24 @@ class Ui_workspace(object):
 "border-style: outset;\n"
 "")
         self.contrast_label.setObjectName("contrast_label")
-        self.verticalLayout_3.addWidget(self.contrast_label)
+        self.verticalLayout_4.addWidget(self.contrast_label)
         self.contrast_slider = QtWidgets.QSlider(workspace)
+        self.contrast_slider.setStyleSheet("background-color: rgb(158, 51, 158);\n"
+"color: rgb(158, 51, 158);")
         self.contrast_slider.setMaximum(10)
         self.contrast_slider.setProperty("value", 5)
         self.contrast_slider.setOrientation(QtCore.Qt.Horizontal)
         self.contrast_slider.setObjectName("contrast_slider")
-        self.verticalLayout_3.addWidget(self.contrast_slider)
+        self.verticalLayout_4.addWidget(self.contrast_slider)
+        self.verticalLayout_4.setStretch(1, 10)
+        self.verticalLayout_3.addLayout(self.verticalLayout_4)
+        self.verticalLayout_3.setStretch(0, 1)
         self.toolkitLayout.addLayout(self.verticalLayout_3)
         self.toolkitLayout.setStretch(0, 1)
         self.toolkitLayout.setStretch(1, 1)
         self.toolkitLayout.setStretch(2, 1)
         self.toolkitLayout.setStretch(3, 1)
+        self.toolkitLayout.setStretch(4, 1)
         self.ImageLayout.addLayout(self.toolkitLayout)
         self.scrollLayout = QtWidgets.QVBoxLayout()
         self.scrollLayout.setSpacing(9)
@@ -310,9 +337,11 @@ class Ui_workspace(object):
         self.paintbrush_size3_btn.setText(_translate("workspace", "3"))
         self.eraser_size3_btn.setText(_translate("workspace", "3"))
         self.inner_square_btn.setToolTip(_translate("workspace", "Mark middle first and last frame with square CONTAINED in brain."))
-        self.inner_square_btn.setText(_translate("workspace", "Inner"))
+        self.inner_square_btn.setText(_translate("workspace", "Inner Square"))
         self.outer_square_btn.setToolTip(_translate("workspace", "Mark middle frame with square ENCLOSING brain."))
-        self.outer_square_btn.setText(_translate("workspace", "Outer"))
+        self.outer_square_btn.setText(_translate("workspace", "Outer Square"))
+        self.pushButton.setText(_translate("workspace", "Polygon"))
+        self.jump_frame_lineedit.setToolTip(_translate("workspace", "Shortcut: F"))
         self.jump_frame_lineedit.setPlaceholderText(_translate("workspace", "Jump to Frame..."))
         self.frame_number.setText(_translate("workspace", "<html><head/><body><p align=\"center\">20/20</p></body></html>"))
         self.instructions.setToolTip(_translate("workspace", "<html><head/><body><pre style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;\"><span style=\" font-family:\'Courier New\'; font-size:9pt; font-weight:600; color:#008080;\">Choose the first and last frames in which the brain can be seen.</span></pre><pre style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; background-color:#ffffff;\"><span style=\" font-family:\'Courier New\'; font-size:9pt; font-weight:600; color:#008080;\">When finished, load more scans to mark, or press \'Perform Segmentation\'</span></pre></body></html>"))
@@ -330,5 +359,5 @@ class Ui_workspace(object):
         self.brain_volume_label.setText(_translate("workspace", "Brain Volume: "))
         self.show_convex_btn.setText(_translate("workspace", "Show Convex"))
         self.show_brain_halves_btn.setText(_translate("workspace", "Show Brain Halves"))
-        self.show_full_seg_btn.setText(_translate("workspace", "Show Full Segmentation"))
+        self.show_full_seg_btn.setText(_translate("workspace", "Show Merged Segmentation"))
 

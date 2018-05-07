@@ -37,7 +37,7 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QVBoxLayout" name="toolkitLayout" stretch="1,1,1,1,0">
+        <layout class="QVBoxLayout" name="toolkitLayout" stretch="1,1,1,1,1">
          <item>
           <widget class="QFrame" name="tool_kit">
            <property name="sizePolicy">
@@ -45,6 +45,12 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>400</height>
+            </size>
            </property>
            <property name="styleSheet">
             <string notr="true">border-color: rgb(0, 85, 127);
@@ -62,7 +68,7 @@ border-radius: 15px; border-width: 3px; border-style: outset</string>
              <number>9</number>
             </property>
             <item row="0" column="0">
-             <layout class="QGridLayout" name="gridLayout_3">
+             <layout class="QGridLayout" name="gridLayout_3" rowminimumheight="5,1,1,1">
               <item row="2" column="0">
                <widget class="QPushButton" name="paintbrush_size2_btn">
                 <property name="styleSheet">
@@ -99,6 +105,18 @@ font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
               </item>
               <item row="0" column="0">
                <widget class="QPushButton" name="paintbrush_btn">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>500</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use paintbrush to mark points on image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -113,7 +131,13 @@ border-style: outset;</string>
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>../../../../.designer/backup/images/paintbrush.png</normaloff>../../../../.designer/backup/images/paintbrush.png</iconset>
+                  <normaloff>images/paintbrush.png</normaloff>images/paintbrush.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>50</width>
+                  <height>50</height>
+                 </size>
                 </property>
                </widget>
               </item>
@@ -139,6 +163,12 @@ font: 8pt &quot;MS Shell Dlg 2&quot;;</string>
               </item>
               <item row="0" column="1">
                <widget class="QPushButton" name="eraser_btn">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>50</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777</width>
@@ -160,12 +190,12 @@ border-style: outset;
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>../../../../.designer/backup/images/erase.jpg</normaloff>../../../../.designer/backup/images/erase.jpg</iconset>
+                  <normaloff>images/erase.jpg</normaloff>images/erase.jpg</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
-                  <width>24</width>
-                  <height>24</height>
+                  <width>50</width>
+                  <height>50</height>
                  </size>
                 </property>
                </widget>
@@ -226,13 +256,14 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
                 <property name="styleSheet">
                  <string notr="true">background-color:'white'; 
 color: rgb(133, 13, 255);
-border-radius: 12px; border-color: purple; border-width:3px;
+border-radius: 12px; border-color:  rgb(133, 13, 255); 
+border-width:3px;
 border-style: outset;
 font: 75 8pt &quot;MS Shell Dlg 2&quot;;
 </string>
                 </property>
                 <property name="text">
-                 <string>Inner</string>
+                 <string>Inner Square</string>
                 </property>
                 <property name="icon">
                  <iconset>
@@ -253,11 +284,27 @@ border-radius: 12px; border-color: red; border-width: 3px;
 border-style: outset;</string>
                 </property>
                 <property name="text">
-                 <string>Outer</string>
+                 <string>Outer Square</string>
                 </property>
                 <property name="icon">
                  <iconset>
                   <normaloff>../../../../.designer/backup/images/red_square.png</normaloff>../../../../.designer/backup/images/red_square.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QPushButton" name="pushButton">
+                <property name="styleSheet">
+                 <string notr="true">background-color:'white'; 
+color: rgb(0, 0, 255);
+font: 75 8pt &quot;MS Shell Dlg 2&quot;;
+border-radius: 12px; 
+border-color: rgb(0, 0, 255);
+border-width: 3px;
+border-style: outset;</string>
+                </property>
+                <property name="text">
+                 <string>Polygon</string>
                 </property>
                </widget>
               </item>
@@ -268,6 +315,9 @@ border-style: outset;</string>
          </item>
          <item>
           <widget class="QLineEdit" name="jump_frame_lineedit">
+           <property name="toolTip">
+            <string>Shortcut: F</string>
+           </property>
            <property name="styleSheet">
             <string notr="true">font: 75 12pt &quot;MS Shell Dlg 2&quot;;
 color: black;
@@ -325,7 +375,7 @@ border-radius: 12px; border-color: rgb(4, 51, 57); border-width: 3px;
            <property name="maximumSize">
             <size>
              <width>800</width>
-             <height>800</height>
+             <height>200</height>
             </size>
            </property>
            <property name="toolTip">
@@ -350,7 +400,7 @@ border-style: outset;
           </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,0">
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
@@ -386,31 +436,39 @@ Segmentation</string>
             </layout>
            </item>
            <item>
-            <widget class="QLabel" name="contrast_label">
-             <property name="styleSheet">
-              <string notr="true">background-color: rgb(158, 51, 158);
+            <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,10">
+             <item>
+              <widget class="QLabel" name="contrast_label">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(158, 51, 158);
  color: white; font-weight: regular; font-size: 12pt;
 border-radius: 15px; border-color: black; border-width: 3px; 
 border-style: outset;
 </string>
-             </property>
-             <property name="text">
-              <string>Adjust Contrast:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSlider" name="contrast_slider">
-             <property name="maximum">
-              <number>10</number>
-             </property>
-             <property name="value">
-              <number>5</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
+               </property>
+               <property name="text">
+                <string>Adjust Contrast:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSlider" name="contrast_slider">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(158, 51, 158);
+color: rgb(158, 51, 158);</string>
+               </property>
+               <property name="maximum">
+                <number>10</number>
+               </property>
+               <property name="value">
+                <number>5</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
@@ -541,7 +599,7 @@ background-color: rgb(4, 51, 57)</string>
             <item>
              <widget class="QPushButton" name="show_full_seg_btn">
               <property name="text">
-               <string>Show Full Segmentation</string>
+               <string>Show Merged Segmentation</string>
               </property>
              </widget>
             </item>

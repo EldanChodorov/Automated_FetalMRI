@@ -5,8 +5,6 @@ These polygons may have missing points, if erased by user.
 
 from collections import defaultdict
 import pickle
-import sys
-import os
 import copy
 from PyQt5 import QtCore, QtWidgets
 from consts import OUTER_SQUARE, INNER_SQUARE, BRUSH_WIDTH_MEDIUM
@@ -168,6 +166,30 @@ class Shapes:
         for frame, seg_points_list in self.segmentation_points.items():
             all_points[frame] += seg_points_list
         return all_points
+
+
+class Polygon:
+
+    def __init__(self, vertices):
+
+        # vertices defining the polygon boundary
+        self._vertices = vertices
+
+        # all points inside polygon
+        self.points = []
+
+    def __contains__(self, item):
+        raise NotImplementedError
+
+    def _set_all_points(self):
+
+        # define bounding box of polygon
+
+        # get all points inside the bounding box
+
+        # check per point if it is inside the polygon
+
+        pass
 
 
 class Square:

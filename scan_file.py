@@ -31,6 +31,7 @@ class ScanFile:
             x_orig_index, y_orig_index = 0, 2
         elif num_frames_index == 2:
             x_orig_index, y_orig_index = 0, 1
+
         self._array_data = self._array_data.transpose(num_frames_index, x_orig_index, y_orig_index)
 
         # normalize images
@@ -128,9 +129,10 @@ class ScanFile:
                 print('error in separate_to_two_brains', ex)
 
     def show_segmentation(self):
-        '''Show original segmentation in image label, and add extra points drawn.'''
-        if self.display_state == SEGMENTATION:
-            self._segmentation_array = self.image_label.points_to_image()
+        '''Show current segmentation over image label.'''
+        if self.display_state != MARKS:
+            if self.display_state == SEGMENTATION:
+                self._segmentation_array = self.image_label.points_to_image()
             self.image_label.set_segmentation(self._segmentation_array)
 
     def show_convex(self):
