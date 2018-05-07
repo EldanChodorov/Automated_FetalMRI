@@ -135,9 +135,12 @@ class ScanFile:
 
     def show_segmentation(self):
         '''Show current segmentation over image label.'''
-        if self.display_state != MARKS:
-            if self.display_state == SEGMENTATION:
-                self._segmentation_array = self.image_label.points_to_image()
+        if self.display_state == MARKS:
+            return
+        if self.display_state == SEGMENTATION:
+            self._segmentation_array = self.image_label.points_to_image()
+        if self.status == SEGMENTED:
+            self.display_state = SEGMENTATION
             self.image_label.set_segmentation(self._segmentation_array)
 
     def show_convex(self):
