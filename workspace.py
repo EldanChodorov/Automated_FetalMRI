@@ -99,6 +99,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
         self.outer_square_btn.clicked.connect(lambda: self.tool_chosen.emit(OUTER_SQUARE))
         self.inner_square_btn.clicked.connect(lambda: self.tool_chosen.emit(INNER_SQUARE))
+        self.polygon_btn.clicked.connect(lambda: self.tool_chosen.emit(POLYGON))
 
         # set initially chosen buttons with different style
         self.paintbrush_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')

@@ -148,16 +148,16 @@ class Ui_workspace(object):
         self.outer_square_btn.setIcon(icon3)
         self.outer_square_btn.setObjectName("outer_square_btn")
         self.gridLayout_3.addWidget(self.outer_square_btn, 1, 3, 1, 1)
-        self.pushButton = QtWidgets.QPushButton(self.tool_kit)
-        self.pushButton.setStyleSheet("background-color:\'white\'; \n"
+        self.polygon_btn = QtWidgets.QPushButton(self.tool_kit)
+        self.polygon_btn.setStyleSheet("background-color:\'white\'; \n"
 "color: rgb(0, 0, 255);\n"
 "font: 75 8pt \"MS Shell Dlg 2\";\n"
 "border-radius: 12px; \n"
 "border-color: rgb(0, 0, 255);\n"
 "border-width: 3px;\n"
 "border-style: outset;")
-        self.pushButton.setObjectName("pushButton")
-        self.gridLayout_3.addWidget(self.pushButton, 2, 3, 1, 1)
+        self.polygon_btn.setObjectName("polygon_btn")
+        self.gridLayout_3.addWidget(self.polygon_btn, 2, 3, 1, 1)
         self.gridLayout_3.setRowMinimumHeight(0, 5)
         self.gridLayout_3.setRowMinimumHeight(1, 1)
         self.gridLayout_3.setRowMinimumHeight(2, 1)
@@ -346,7 +346,7 @@ class Ui_workspace(object):
         self.inner_square_btn.setText(_translate("workspace", "Inner Square"))
         self.outer_square_btn.setToolTip(_translate("workspace", "Mark middle frame with square ENCLOSING brain."))
         self.outer_square_btn.setText(_translate("workspace", "Outer Square"))
-        self.pushButton.setText(_translate("workspace", "Polygon"))
+        self.polygon_btn.setText(_translate("workspace", "Polygon"))
         self.jump_frame_lineedit.setToolTip(_translate("workspace", "Shortcut: F"))
         self.jump_frame_lineedit.setPlaceholderText(_translate("workspace", "Jump to Frame..."))
         self.frame_number.setText(_translate("workspace", "<html><head/><body><p align=\"center\">20/20</p></body></html>"))

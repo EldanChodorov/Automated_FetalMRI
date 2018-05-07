@@ -293,7 +293,7 @@ border-style: outset;</string>
                </widget>
               </item>
               <item row="2" column="3">
-               <widget class="QPushButton" name="pushButton">
+               <widget class="QPushButton" name="polygon_btn">
                 <property name="styleSheet">
                  <string notr="true">background-color:'white'; 
 color: rgb(0, 0, 255);
