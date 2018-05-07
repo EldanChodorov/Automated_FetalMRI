@@ -30,15 +30,19 @@ class Brain_segmant:
 
     def __init__(self, brain_image = None,display_work = False):
         self.init_points = []
-        self.prev_segmantation = []
-        self.brain_image = brain_image
+        self.prev_segmantation = None
+        if brain_image != None:
+            self.brain_image = np.copy(brain_image.transpose(1, 2, 0))
+        else:
+            self.brain_image = brain_image
         self.seed_vec = []
         self.display_work = display_work
         self.convex_segment = 0
         self.differant_threshold = []
-        self.after_quant_image = []
+        self.after_quant_image = None
         self.quant_val = []
         self.BB = []
+        self.orig_segment = None
 
 
     def add_init_points(self,seed_list ):
@@ -388,17 +392,8 @@ class Brain_segmant:
 
             #clean up with kmeans
             lables,diff_vals = self.kmeans_clean_up(cut_out_image)
-            # print('the shae of quant vals = ', diff_vals.shape)
             self.after_quant_image = lables.copy()
             self.quant_val = diff_vals.copy()
-
-            # cut_out_image = cut_out_image * lables
-            # amp = np.zeros(convex_holes_image.shape)
-            # for i in diff_vals:
-            #     amp[np.where(lables == i)] = 1
-            #     display_image = amp.transpose(self.get_display_axis(np.argmin(amp.shape)))
-            #     self.multi_slice_viewer(display_image, do_gray=True)
-            #     plt.show()
 
             val_of_quant = diff_vals[int(diff_vals.shape[0]/2)]
             convex_holes_image[np.where(lables >= val_of_quant)] = 0
@@ -409,8 +404,6 @@ class Brain_segmant:
             final_image[X_top:X_top + h,Y_top:Y_top + w,:] = convex_holes_image
             self.orig_segment = np.copy(final_image)
             final_image = final_image.transpose(2, 0, 1)
-
-            # self.sperate_to_two_brains(final_image.copy())
 
             return final_image
 
@@ -495,12 +488,23 @@ class Brain_segmant:
 
 
     def get_quant_segment(self,index,segmantation):
-        # print(type(segmentation))
-        # if not(np.any(segmentation)):
-        #     print('problam')
-        #     return segmentation
-        segmantation = segmantation.transpose(1, 2, 0)
-        convex_holes_image = self.flood_fill_hull(segmantation)
+
+        if self.orig_segment != None:
+            cur_segmantation = self.orig_segment
+        else:
+            self.orig_segment = copy.deepcopy(segmantation.transpose(1, 2, 0))
+            cur_segmantation = segmantation.transpose(1, 2, 0)
+
+        convex_holes_image = self.flood_fill_hull(cur_segmantation)
+        if False:
+
+            display_image = convex_holes_image.transpose(self.get_display_axis(np.argmin(convex_holes_image.shape)))
+            self.multi_slice_viewer(display_image, do_gray=True)
+            plt.show()
+            display_image = self.brain_image.transpose(self.get_display_axis(np.argmin(self.brain_image.shape)))
+            self.multi_slice_viewer(display_image, do_gray=True)
+            plt.show()
+
         # save convex segmantation
         self.convex_segment = convex_holes_image.copy()
         cut_out_image = self.brain_image * convex_holes_image
@@ -511,11 +515,6 @@ class Brain_segmant:
 
         cur_seg = copy.deepcopy(self.orig_segment)
         cur_seg[np.where(self.after_quant_image >= self.diff_vals[index])] = 0
-        if False:
-
-            display_image = cur_seg.transpose(self.get_display_axis(np.argmin(cur_seg.shape)))
-            self.multi_slice_viewer(display_image, do_gray=True)
-            plt.show()
 
         return cur_seg.transpose(2, 0, 1)
 
@@ -526,21 +525,16 @@ class Brain_segmant:
 
 
 
-    def sperate_to_two_brains(self,segmantation):
-        # segmantation = np.array(segmantation)
-        print('im here working')
-        print(np.max(segmantation))
+    def separate_to_two_brains(self,segmantation):
         convex_seg = self.flood_fill_hull(segmantation)
         left_side = np.zeros(segmantation.shape)
         right_side = np.zeros(segmantation.shape)
-        sub_divide_image = np.zeros(segmantation.shape)
         ralv_slice = []
         ralv_slop = []
         ralv_centroid = []
         slice_shape = 0
         for j, slice in enumerate(convex_seg):
             slice_shape = slice.shape
-            new_seg = np.zeros(slice_shape)
             if np.count_nonzero(slice) > 100:
                 convex = slice
                 polygon_cuntor = convex.astype(np.int32)
@@ -583,7 +577,7 @@ class Brain_segmant:
                     left_side[index,rr[j],:i] = segmantation[index,rr[j],:i]
                     right_side[index,rr[j],i:] = segmantation[index,rr[j],i:]
 
-        if True:
+        if False:
 
             display_image = left_side.transpose(self.get_display_axis(np.argmin(left_side.shape)))
             self.multi_slice_viewer(display_image, do_gray=True)
