@@ -302,6 +302,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         '''
         Worker function, runs as code in ScanFile._segmentation_thread
         Calculates and sets the segmentation on the image.
+        Do not return anything from this method.
         '''
         try:
             # change stage title
@@ -324,6 +325,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             item = QtWidgets.QTableWidgetItem('')
             self.tableWidget.setItem(self._segmentation_running, 1, item)
 
+            self.segmentation_finished.emit()
             return
 
         # update finished status in workspace table

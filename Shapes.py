@@ -31,6 +31,11 @@ class Shapes:
         # size of brushes
         self.eraser_width = BRUSH_WIDTH_MEDIUM
 
+        # store brain halves separately
+        self._brain_half1 = defaultdict(list)
+        self._brain_half2 = defaultdict(list)
+        self.brain_halves_set = False
+
     def __repr__(self):
         return str(self.chosen_points) + '\n' + str(self.inner_squares) + '\n' + str(self.outer_squares)
 
@@ -51,6 +56,9 @@ class Shapes:
         # clear all points, assume new segmentation was found and will be set
         self.chosen_points = defaultdict(list)
         self.segmentation_points = defaultdict(list)
+        self._brain_half1 = defaultdict(list)
+        self._brain_half2 = defaultdict(list)
+        self.brain_halves_set = False
 
     def add_points(self, frame_number, points, segmentation=False):
         '''
@@ -141,6 +149,14 @@ class Shapes:
                     print('Error saving file.')
         except Exception as ex:
             print(ex)
+
+    def set_brain_halves(self, half1, half2):
+        self._brain_half1, self._brain_half2 = half1, half2
+        self.brain_halves_set = True
+
+    def brain_halves(self):
+        ''':return: two dictionaries: default dicts of all points in each brain half.'''
+        return self._brain_half1, self._brain_half2
 
     def all_points(self):
         ''':return: default dict of all points in shapes, without distinction to shape. '''

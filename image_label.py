@@ -250,6 +250,23 @@ class ImageLabel(QtWidgets.QLabel):
         pen = QtGui.QPen()
         pen.setWidth(self.paintbrush_size)
 
+        # on zoom, draw in between points, to fill in gaps
+        offset = int(np.ceil((self._zoom * 2) - 2))
+
+        # brain halves
+        if self.shapes.brain_halves_set:
+            first_half, second_half = self.shapes.brain_halves()
+
+            # first half
+            pen.setColor(138, 43, 226, ALPHA_TRANSPARENT)
+            painter.setPen(pen)
+            self._paint_points(first_half[self.frame_displayed_index], painter, offset)
+
+            # second half
+            pen.setColor(255, 0, 0, ALPHA_TRANSPARENT)
+            painter.setPen(pen)
+            self._paint_points(second_half[self.frame_displayed_index], painter, offset)
+
         # inner squares
         pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_NON_TRANSPARENT))
         painter.setPen(pen)
@@ -264,23 +281,24 @@ class ImageLabel(QtWidgets.QLabel):
             for point in square.points:
                 painter.drawPoint(self.image2widget_coord(point))
 
-        # on zoom, draw in between points, to fill in gaps
-        offset = int(np.ceil((self._zoom * 2) - 2))
-
         # points
         pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_NON_TRANSPARENT))
         painter.setPen(pen)
-        for point in self.shapes.chosen_points[self.frame_displayed_index]:
-            real_point = self.image2widget_coord(point)
-            painter.drawPoint(real_point)
-            # on zoom, draw in between points, to fill in gaps
-            for i in range(offset):
-                painter.drawPoint(real_point + QtCore.QPoint(i+1, i+1))
+        self._paint_points(self.shapes.chosen_points[self.frame_displayed_index], painter, offset)
 
         # segmentation points
         pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_TRANSPARENT))
         painter.setPen(pen)
-        for idx, point in enumerate(self.shapes.segmentation_points[self.frame_displayed_index]):
+        self._paint_points(self.shapes.segmentation_points[self.frame_displayed_index], painter, offset)
+
+    def _paint_points(self, points, painter, offset):
+        '''
+        sub method from overridden paintEvent, paint given points.
+        :param points: [list] of QtCore.QPoints
+        :param painter: [QtGui.QPainter] with already set color & thickness
+        :param offset: [int] how many extra points to draw per each given point
+        '''
+        for point in points:
             real_point = self.image2widget_coord(point)
             painter.drawPoint(real_point)
             # on zoom, draw in between points, to fill in gaps

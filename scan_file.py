@@ -118,8 +118,8 @@ class ScanFile:
 
     def show_brain_halves(self):
         if self._segment_worker:
-            # TODO maybe wasteful and unnecessary to calculate this each time? think about it
             if self.display_state == SEGMENTATION:
+                # TODO maybe wasteful and unnecessary to calculate this each time? think about it
                 self._segmentation_array = self.image_label.points_to_image()
             try:
                 self._segment_worker.sperate_to_two_brains(self._segmentation_array)
