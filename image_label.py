@@ -225,6 +225,12 @@ class ImageLabel(QtWidgets.QLabel):
                 image[frame, image_y, image_x] = 1
         return image
 
+    def set_brain_halves(self, half1, half2):
+        self.shapes.clear_points()
+        points_half1 = self._image_to_QPoint(half1)
+        points_half2 = self._image_to_QPoint(half2)
+        self.shapes.set_brain_halves(points_half1, points_half2)
+
     def set_segmentation(self, segmentation_array):
         '''
         Draw transparent points of segmentation on top of image.
@@ -253,43 +259,48 @@ class ImageLabel(QtWidgets.QLabel):
         # on zoom, draw in between points, to fill in gaps
         offset = int(np.ceil((self._zoom * 2) - 2))
 
-        # brain halves
-        if self.shapes.brain_halves_set:
-            first_half, second_half = self.shapes.brain_halves()
+        try:
 
-            # first half
-            pen.setColor(138, 43, 226, ALPHA_TRANSPARENT)
+            # brain halves
+            if self.shapes.brain_halves_set:
+                first_half, second_half = self.shapes.brain_halves()
+
+                # first half
+                pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_TRANSPARENT))
+                painter.setPen(pen)
+                self._paint_points(first_half[self.frame_displayed_index], painter, offset)
+
+                # second half
+                pen.setColor(QtGui.QColor(30, 144, 255, ALPHA_TRANSPARENT))
+                painter.setPen(pen)
+                self._paint_points(second_half[self.frame_displayed_index], painter, offset)
+
+            # inner squares
+            pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_NON_TRANSPARENT))
             painter.setPen(pen)
-            self._paint_points(first_half[self.frame_displayed_index], painter, offset)
+            for square in self.shapes.inner_squares[self.frame_displayed_index]:
+                for point in square.points:
+                    painter.drawPoint(self.image2widget_coord(point))
 
-            # second half
-            pen.setColor(255, 0, 0, ALPHA_TRANSPARENT)
+            # outer squares
+            pen.setColor(QtGui.QColor(255, 0, 0, ALPHA_NON_TRANSPARENT))
             painter.setPen(pen)
-            self._paint_points(second_half[self.frame_displayed_index], painter, offset)
+            for square in self.shapes.outer_squares[self.frame_displayed_index]:
+                for point in square.points:
+                    painter.drawPoint(self.image2widget_coord(point))
 
-        # inner squares
-        pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_NON_TRANSPARENT))
-        painter.setPen(pen)
-        for square in self.shapes.inner_squares[self.frame_displayed_index]:
-            for point in square.points:
-                painter.drawPoint(self.image2widget_coord(point))
+            # points
+            pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_NON_TRANSPARENT))
+            painter.setPen(pen)
+            self._paint_points(self.shapes.chosen_points[self.frame_displayed_index], painter, offset)
 
-        # outer squares
-        pen.setColor(QtGui.QColor(255, 0, 0, ALPHA_NON_TRANSPARENT))
-        painter.setPen(pen)
-        for square in self.shapes.outer_squares[self.frame_displayed_index]:
-            for point in square.points:
-                painter.drawPoint(self.image2widget_coord(point))
+            # segmentation points
+            pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_TRANSPARENT))
+            painter.setPen(pen)
+            self._paint_points(self.shapes.segmentation_points[self.frame_displayed_index], painter, offset)
 
-        # points
-        pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_NON_TRANSPARENT))
-        painter.setPen(pen)
-        self._paint_points(self.shapes.chosen_points[self.frame_displayed_index], painter, offset)
-
-        # segmentation points
-        pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_TRANSPARENT))
-        painter.setPen(pen)
-        self._paint_points(self.shapes.segmentation_points[self.frame_displayed_index], painter, offset)
+        except Exception as ex:
+            print('paintEvent', ex)
 
     def _paint_points(self, points, painter, offset):
         '''

@@ -58,7 +58,7 @@ class ScanFile:
         self.status = ''
 
         # class which performs the segmentation process
-        self._segment_worker = Brain_segmant()
+        self._segment_worker = Brain_segmant(self.frames)
 
         # what is currently displayed: USER MARKS / SEGMENTATION / CONVEX / BRAIN HALVES
         self.display_state = ''
@@ -122,8 +122,8 @@ class ScanFile:
                 # TODO maybe wasteful and unnecessary to calculate this each time? think about it
                 self._segmentation_array = self.image_label.points_to_image()
             try:
-                self._segment_worker.sperate_to_two_brains(self._segmentation_array)
-                # TODO get return value and set_segmentation()
+                half1, half2 = self._segment_worker.seperate_to_two_brains(self._segmentation_array)
+                self.image_label.set_brain_halves(half1, half2)
                 self.display_state = HALVES
             except Exception as ex:
                 print('error in separate_to_two_brains', ex)
