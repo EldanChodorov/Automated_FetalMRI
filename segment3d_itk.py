@@ -9,6 +9,7 @@ import numpy as np
 from scipy import ndimage as nd
 from skimage import segmentation
 from skimage import measure
+from skimage import draw
 # import pysegbase.pycut as pspc
 # import sitk_show
 from sklearn.cluster import KMeans
@@ -533,7 +534,6 @@ class Brain_segmant:
         left_side = np.zeros(segmantation.shape)
         right_side = np.zeros(segmantation.shape)
         sub_divide_image = np.zeros(segmantation.shape)
-        print(segmantation.shape)
         ralv_slice = []
         ralv_slop = []
         ralv_centroid = []
@@ -541,10 +541,7 @@ class Brain_segmant:
         for j, slice in enumerate(convex_seg):
             slice_shape = slice.shape
             new_seg = np.zeros(slice_shape)
-
-            if np.any(slice):
-                print(slice.shape)
-
+            if np.count_nonzero(slice) > 100:
                 convex = slice
                 polygon_cuntor = convex.astype(np.int32)
                 polygon_label_data = measure.regionprops(polygon_cuntor)
@@ -554,17 +551,7 @@ class Brain_segmant:
                 ralv_slice.append(j)
                 ralv_slop.append(slope)
                 ralv_centroid.append(centroid)
-                # x_1 = np.linspace(0,convex.shape[1],convex.shape[1]*2)
-                # extra_c = slope*centroid[1] - centroid[0]
-                # print(extra_c)
-                # y_1 = np.array([int(slope*(x) - extra_c) for x in x_1])
-                # new_x = x_1[np.where((y_1 < convex.shape[0]))]
-                # new_y = y_1[np.where((y_1 < convex.shape[0]))]
-                # new_x = new_x[np.where(new_y > 0)]
-                # new_y = new_y[np.where(new_y > 0)]
-                # new_seg[new_y,new_x] = 1
         slope_mean = []
-        print('im here')
         for h in range(len(ralv_slop)):
             if h == 0:
                 slope_mean.append(np.mean(ralv_slop[h:h+3]))
@@ -572,39 +559,40 @@ class Brain_segmant:
                 slope_mean.append(np.mean(ralv_slop[h-2:]))
             else:
                 slope_mean.append(np.mean(ralv_slop[h-1:h+2]))
-
-        print('im here1')
-        print(ralv_slop)
-        print(slope_mean)
         for glob_slice, index in enumerate(ralv_slice):
-            print(slice_shape)
             cur_slope = slope_mean[glob_slice]
             cur_centroid = ralv_centroid[glob_slice]
-            x_1 = np.linspace(0,slice_shape[1],slice_shape[1]*20)
+            x_1 = np.linspace(0,slice_shape[1],slice_shape[1]/10)
             extra_c = cur_slope*cur_centroid[1] - cur_centroid[0]
-            print(extra_c)
             y_1 = np.array([int(cur_slope*(x) - extra_c) for x in x_1])
-            new_x = x_1[np.where((y_1 < slice_shape[0]))]
-            new_y = y_1[np.where((y_1 < slice_shape[0]))]
+            new_x = x_1[np.where((y_1 < slice_shape[1]))]
+            new_y = y_1[np.where((y_1 < slice_shape[1]))]
             new_x = new_x[np.where(new_y > 0)].astype(np.int32)
             new_y = new_y[np.where(new_y > 0)].astype(np.int32)
+            rr,cc = draw.line(new_y[0],new_x[0],new_y[-1]-1,new_x[-1]-1)
             if glob_slice == 0:
-                segmantation[:index+1,new_y,new_x] = 1
-                sub_divide_image[:index+1,new_y,new_x] = 1
+                index = range(0,index+1)
             elif index == ralv_slice[-1]:
-                sub_divide_image[index:,new_y,new_x] = 1
-                segmantation[index:,new_y,new_x] = 1
+                index = range(index+1,segmantation.shape[0])
+            if cur_slope < 1:
+               for j,i in enumerate(rr):
+                    left_side[index,:i,cc[j]] = segmantation[index,:i,cc[j]]
+                    right_side[index,i:,cc[j]] = segmantation[index,i:,cc[j]]
             else:
-                sub_divide_image[index,new_y,new_x] = 1
-                segmantation[index,new_y,new_x] = 1
+                for j,i in enumerate(cc):
+                    left_side[index,rr[j],:i] = segmantation[index,rr[j],:i]
+                    right_side[index,rr[j],i:] = segmantation[index,rr[j],i:]
+
         if True:
 
-            display_image = sub_divide_image.transpose(self.get_display_axis(np.argmin(sub_divide_image.shape)))
+            display_image = left_side.transpose(self.get_display_axis(np.argmin(left_side.shape)))
             self.multi_slice_viewer(display_image, do_gray=True)
             plt.show()
-            display_image = segmantation.transpose(self.get_display_axis(np.argmin(segmantation.shape)))
+            display_image = right_side.transpose(self.get_display_axis(np.argmin(right_side.shape)))
             self.multi_slice_viewer(display_image, do_gray=True)
             plt.show()
+
+        return left_side,right_side
 
 
 
