@@ -335,9 +335,9 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # show hidden features which are now relevant to work on segmentation
         self.verticalFrame.show()
 
-        # set volume in frame TODO: change it on scan switch
-        brain_vol = self._all_scans[self._segmentation_running].volume() / 1000
-        brain_text = "Brain Volume: %.2f cm^3"
+        # set volume in frame TODO: change it on scan switch!
+        brain_vol = self._all_scans[self._segmentation_running].volume()
+        brain_text = "Brain Volume: %.2f mm^3"
         self.brain_volume_label.setText(brain_text % brain_vol)
 
         self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
@@ -347,6 +347,12 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
         self.save_seg_btn.setEnabled(True)
         self.segmentation_finished.emit()  # next segmentation will be run
+
+    def set_brain_halves_volume(self, left_volume, right_volume):
+        left_text = "Left Brain Volume: %.2f mm^3"
+        right_text = "Right Brain Volume: %.2f mm^3"
+        self.left_brain_volume_label.setText(left_text % left_volume)
+        self.right_brain_volume_label.setText(right_text % right_volume)
 
     def _run_next_seg(self):
         '''If there is a scan waiting in queue, perform its segmentation.'''

@@ -102,16 +102,18 @@ class ScanFile:
 
         return segmentation_array
 
-    def volume(self):
+    def volume(self, segmentation_array=None):
         '''
         Calculate volume of segmentation, based on the voxel spacing of the nifti file.
+        :param segmentation_array [numpy.ndarray] to calculate volume
         :return: [float] volume in mm.
         '''
-        segmentation_array = self.image_label.points_to_image()
+        if segmentation_array is None:
+            segmentation_array = self.image_label.points_to_image()
         pixel_dims = self._nifti._header['pixdim']
         if len(pixel_dims) == 8:
             num_pixels = np.sum(segmentation_array)
-            return num_pixels * pixel_dims[1] * pixel_dims[2] * pixel_dims[3]
+            return (num_pixels * pixel_dims[1] * pixel_dims[2] * pixel_dims[3]) / 1000
         else:
             print('Error in calculating volume from Nifti Header.')
             return 0
@@ -122,8 +124,11 @@ class ScanFile:
                 # TODO maybe wasteful and unnecessary to calculate this each time? think about it
                 self._segmentation_array = self.image_label.points_to_image()
             try:
-                half1, half2 = self._segment_worker.seperate_to_two_brains(self._segmentation_array)
-                self.image_label.set_brain_halves(half1, half2)
+                left_half, right_half = self._segment_worker.separate_to_two_brains(self._segmentation_array)
+                self.image_label.set_brain_halves(left_half, right_half)
+                left_brain, right_brain = self.image_label.points_to_image(True)
+                left_volume, right_volume = self.volume(left_brain), self.volume(right_brain)
+                self._workspace_parent.set_brain_halves_volume(left_volume, right_volume)
                 self.display_state = HALVES
             except Exception as ex:
                 print('error in separate_to_two_brains', ex)

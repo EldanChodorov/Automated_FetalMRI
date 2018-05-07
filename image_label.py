@@ -206,30 +206,38 @@ class ImageLabel(QtWidgets.QLabel):
         image_y = (label_y / height) * 512
         return QtCore.QPoint(image_x, image_y)
 
-    def points_to_image(self):
+    def points_to_image(self, brain_halves=False):
         '''
         Convert all points in Shapes object to a binary 3d image.
+        :param brain_halves: [bool] extract only points from brain_halves if True
         :return: [numpy.ndarray] size of frames
         '''
         # width, height = self.width(), self.height()
         width, height = self.sizeHint().width(), self.sizeHint().height()
 
-        all_points = self.shapes.all_points()
-        image = np.zeros(self.frames.shape)
-        for frame, points_list in all_points.items():
-            for point in points_list:
-                label_x, label_y = float(point.x()), float(point.y())
-                # TODO: make modular, might not be 512 (in all code)
-                image_x = math.ceil((label_x / width) * 512)
-                image_y = math.ceil((label_y / height) * 512)
-                image[frame, image_y, image_x] = 1
-        return image
+        def p2i_helper(all_points):
+            image = np.zeros(self.frames.shape)
+            for frame, points_list in all_points.items():
+                for point in points_list:
+                    label_x, label_y = float(point.x()), float(point.y())
+                    # TODO: make modular, might not be 512 (in all code)
+                    image_x = math.ceil((label_x / width) * 512)
+                    image_y = math.ceil((label_y / height) * 512)
+                    image[frame, image_y, image_x] = 1
+            return image
+
+        if not brain_halves:
+            return p2i_helper(self.shapes.all_points())
+        else:
+            half1, half2 = self.shapes.brain_halves()
+            return p2i_helper(half1), p2i_helper(half2)
 
     def set_brain_halves(self, half1, half2):
         self.shapes.clear_points()
         points_half1 = self._image_to_QPoint(half1)
         points_half2 = self._image_to_QPoint(half2)
         self.shapes.set_brain_halves(points_half1, points_half2)
+        self.update()
 
     def set_segmentation(self, segmentation_array):
         '''
@@ -271,7 +279,7 @@ class ImageLabel(QtWidgets.QLabel):
                 self._paint_points(first_half[self.frame_displayed_index], painter, offset)
 
                 # second half
-                pen.setColor(QtGui.QColor(30, 144, 255, ALPHA_TRANSPARENT))
+                pen.setColor(QtGui.QColor(50, 205, 50, ALPHA_TRANSPARENT))
                 painter.setPen(pen)
                 self._paint_points(second_half[self.frame_displayed_index], painter, offset)
 

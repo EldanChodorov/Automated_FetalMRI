@@ -583,6 +583,20 @@ background-color: rgb(4, 51, 57)</string>
              </widget>
             </item>
             <item>
+             <widget class="QLabel" name="left_brain_volume_label">
+              <property name="text">
+               <string>Left Brain Volume:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="right_brain_volume_label">
+              <property name="text">
+               <string>Right Brain Volume:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="show_convex_btn">
               <property name="text">
                <string>Show Convex</string>
