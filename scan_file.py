@@ -169,6 +169,7 @@ class ScanFile:
         self._segmentation_array = segmentation_array
         self.image_label.set_segmentation(segmentation_array)
         self.image_label.set_image(self.image_label.frames[self.image_label.frame_displayed_index])
+        self._workspace_parent.set_brain_volume(self.volume())
 
     def __str__(self):
         return self._nifti_path.split('/')[-1].split('.')[0]

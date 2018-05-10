@@ -335,11 +335,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # show hidden features which are now relevant to work on segmentation
         self.verticalFrame.show()
 
-        # set volume in frame TODO: change it on scan switch!
-        brain_vol = self._all_scans[self._segmentation_running].volume()
-        brain_text = "Brain Volume: %.2f mm^3"
-        self.brain_volume_label.setText(brain_text % brain_vol)
-
         self.instructions.setText('<html><head/><body><p align="center">Stage 3: Review Segmentation...</p><p '
                                   'align="center">(hover for instructions)</p></body></html>')
         self.instructions.setToolTip('Use paintbrush and eraser to fix result segmentation.\nWhen finished, '
@@ -347,6 +342,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
         self.save_seg_btn.setEnabled(True)
         self.segmentation_finished.emit()  # next segmentation will be run
+
+    def set_brain_volume(self, volume):
+        brain_text = "Brain Volume: %.2f mm^3"
+        self.brain_volume_label.setText(brain_text % volume)
 
     def set_brain_halves_volume(self, left_volume, right_volume):
         left_text = "Left Brain Volume: %.2f mm^3"
