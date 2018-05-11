@@ -564,13 +564,30 @@ class Brain_segmant:
         segmentation = segmentation.transpose(1, 2, 0)
         convex = self.get_convex_seg(segmentation)
         dialet_convex_seg = nd.binary_dilation(convex, iterations=2)
-        csf_cut = dialet_convex_seg - segmentation
+        csf_cut = np.abs(dialet_convex_seg - segmentation)
         seg_brain_cut_out = self.brain_image * segmentation
-        brain_flat = segmentation[np.nonzero(seg_brain_cut_out)]
+        brain_flat = seg_brain_cut_out[np.nonzero(segmentation)]
+
         seg_mean = np.mean(brain_flat)
         seg_std = np.std(brain_flat)
         csf_cut_out_image = self.brain_image * csf_cut
-        csf_seg = csf_cut_out_image > (seg_mean + seg_std)
+        csf_seg = csf_cut_out_image > (seg_mean + seg_std*1.5)
+        blobes = measure.label(nd.binary_dilation(csf_seg))
+        if np.max(blobes) > 1:
+            props = measure.regionprops(blobes)
+            for i in props[1:]:
+                csf_seg[np.where(blobes == i.label)] = 0
+        if False:
+            display_image = dialet_convex_seg.transpose(self.get_display_axis(np.argmin(dialet_convex_seg.shape)))
+            self.multi_slice_viewer(display_image, do_gray=True)
+            plt.show()
+            display_image = csf_cut_out_image.transpose(self.get_display_axis(np.argmin(csf_cut_out_image.shape)))
+            self.multi_slice_viewer(display_image, do_gray=True)
+            plt.show()
+            display_image = csf_seg.transpose(self.get_display_axis(np.argmin(csf_seg.shape)))
+            self.multi_slice_viewer(display_image, do_gray=True)
+            plt.show()
+            
         return np.transpose(csf_seg, (2, 0, 1))
 
 
