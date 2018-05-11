@@ -31,7 +31,7 @@ class Brain_segmant:
     def __init__(self, brain_image = None,display_work = False):
         self.init_points = []
         self.prev_segmantation = None
-        if brain_image != None:
+        if brain_image is not None:
             self.brain_image = np.copy(brain_image.transpose(1, 2, 0))
         else:
             self.brain_image = brain_image
@@ -489,14 +489,14 @@ class Brain_segmant:
 
     def get_quant_segment(self,index,segmantation):
 
-        if self.orig_segment != None:
+        if self.orig_segment is not None:
             cur_segmantation = self.orig_segment
         else:
             self.orig_segment = copy.deepcopy(segmantation.transpose(1, 2, 0))
             cur_segmantation = segmantation.transpose(1, 2, 0)
 
         convex_holes_image = self.flood_fill_hull(cur_segmantation)
-        if False:
+        if True:
 
             display_image = convex_holes_image.transpose(self.get_display_axis(np.argmin(convex_holes_image.shape)))
             self.multi_slice_viewer(display_image, do_gray=True)
@@ -582,6 +582,7 @@ class Brain_segmant:
             display_image = left_side.transpose(self.get_display_axis(np.argmin(left_side.shape)))
             self.multi_slice_viewer(display_image, do_gray=True)
             plt.show()
+            plt.show()
             display_image = right_side.transpose(self.get_display_axis(np.argmin(right_side.shape)))
             self.multi_slice_viewer(display_image, do_gray=True)
             plt.show()
@@ -589,6 +590,34 @@ class Brain_segmant:
         return left_side,right_side
 
 
+
+
+    def get_csf_seg(self,segmantation):
+        convex = self.get_convex_seg(segmantation)
+        dialet_convex_seg = nd.binary_dilation(convex,iterations=2)
+        csf_cut = dialet_convex_seg - segmentation
+        seg_brain_cut_out = self.brain_image * segmentation
+        brain_flat = segmentation[np.nonzero(seg_brain_cut_out)]
+        seg_mean = np.mean(brain_flat)
+        seg_std = np.std(brain_flat)
+        csf_cut_out_image = self.brain_image * csf_cut
+        csf_seg = csf_cut_out_image > (seg_mean + seg_std)
+        return csf_seg
+
+
+
+
+
+def get_polygon_cordinats(polygon_vertices):
+    '''
+
+    :param polygon_vertices:
+    :return:
+    '''
+    r = polygon_vertices[0]
+    c = polygon_vertices[1]
+    rr,cc = draw.polygon(r,c)
+    return np.hstack((rr,cc))
 
 
 def confidance_evaluation(alg_seg, gt_seg):
