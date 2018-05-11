@@ -315,6 +315,9 @@ class Ui_workspace(object):
         self.show_brain_halves_btn = QtWidgets.QPushButton(self.verticalFrame)
         self.show_brain_halves_btn.setObjectName("show_brain_halves_btn")
         self.verticalLayout.addWidget(self.show_brain_halves_btn)
+        self.show_csf_btn = QtWidgets.QPushButton(self.verticalFrame)
+        self.show_csf_btn.setObjectName("show_csf_btn")
+        self.verticalLayout.addWidget(self.show_csf_btn)
         self.show_full_seg_btn = QtWidgets.QPushButton(self.verticalFrame)
         self.show_full_seg_btn.setObjectName("show_full_seg_btn")
         self.verticalLayout.addWidget(self.show_full_seg_btn)
@@ -367,5 +370,6 @@ class Ui_workspace(object):
         self.right_brain_volume_label.setText(_translate("workspace", "Right Brain Volume:"))
         self.show_convex_btn.setText(_translate("workspace", "Show Convex"))
         self.show_brain_halves_btn.setText(_translate("workspace", "Show Brain Halves"))
+        self.show_csf_btn.setText(_translate("workspace", "Show CSF"))
         self.show_full_seg_btn.setText(_translate("workspace", "Show Merged Segmentation"))
 

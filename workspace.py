@@ -116,9 +116,14 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.show_convex_btn.clicked.connect(self._toggle_convex)
         self.show_brain_halves_btn.clicked.connect(self._toggle_brain_halves)
         self.show_full_seg_btn.clicked.connect(self._toggle_show_seg)
+        self.show_csf_btn.clicked.connect(self._toggle_csf)
 
         # hide info box which is relevant only after segmentation is shown
         self.verticalFrame.hide()
+
+    @QtCore.pyqtSlot()
+    def _toggle_csf(self):
+        self._all_scans[self._current_scan_idx].show_csf()
 
     @QtCore.pyqtSlot()
     def _toggle_convex(self):
@@ -284,7 +289,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
     def keyPressEvent(self, QKeyEvent):
-        print(QKeyEvent.key())
         if QKeyEvent.key() == QtCore.Qt.Key_F:
             self.jump_frame_lineedit.setFocus()
         elif QKeyEvent.key() == QtCore.Qt.Key_E:
@@ -297,10 +301,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self._all_scans[self._current_scan_idx].image_label.submit_polygon()
         else:
             QtWidgets.QWidget.keyPressEvent(self, QKeyEvent)
-
-    def _remove_progress_bar(self):
-        self.MainLayout.removeWidget(self._progress_bar)
-        self._progress_bar.deleteLater()
 
     def perform_segmentation(self):
         '''
@@ -375,7 +375,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             tick_val = self.quantizationSlider.value()
             self._all_scans[self._current_scan_idx].show_quantization_segmentation(tick_val)
         except Exception as ex:
-            print('quati error', ex)
+            print('_toggle_quantization error', ex)
 
     def toggle_segmentation(self, show):
         '''
@@ -506,6 +506,7 @@ def warn(main_msg):
     '''
     Pop up a warning message box.
     '''
+    # TODO: sometimes when this box shows, it causes the whole program to freeze and crash.
     msg_box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning, main_msg, main_msg, QtWidgets.QMessageBox.Ok)
     msg_box.setWindowTitle('Seg Tool Warning')
     msg_box.setMinimumSize(100, 200)

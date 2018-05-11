@@ -611,6 +611,13 @@ background-color: rgb(4, 51, 57)</string>
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="show_csf_btn">
+              <property name="text">
+               <string>Show CSF</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="show_full_seg_btn">
               <property name="text">
                <string>Show Merged Segmentation</string>

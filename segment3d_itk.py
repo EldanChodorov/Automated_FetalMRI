@@ -3,20 +3,14 @@ import copy
 from scipy import spatial
 from skimage import feature
 import SimpleITK as sitk
-import nibabel as nib
 from matplotlib import pyplot as plt
 import numpy as np
 from scipy import ndimage as nd
 from skimage import segmentation
 from skimage import measure
 from skimage import draw
-# import pysegbase.pycut as pspc
-# import sitk_show
-from sklearn.cluster import KMeans
-from sklearn.cluster import k_means
 import chan_vese
 from multiprocessing import Pool, Lock
-import chan_vese_3d
 
 MORPH_NUM_ITERS = 3
 LABEL_SEGMENTED_COLOR = 1
@@ -25,12 +19,12 @@ LABEL_SEGMENTED_COLOR = 1
 segmentations_container = dict()
 segmentations_lock = Lock()
 
+
 class Brain_segmant:
 
-
-    def __init__(self, brain_image = None,display_work = False):
+    def __init__(self, brain_image=None, display_work=False):
         self.init_points = []
-        self.prev_segmantation = None
+        self.prev_segmentation = None
         if brain_image is not None:
             self.brain_image = np.copy(brain_image.transpose(1, 2, 0))
         else:
@@ -38,20 +32,18 @@ class Brain_segmant:
         self.seed_vec = []
         self.display_work = display_work
         self.convex_segment = 0
-        self.differant_threshold = []
+        self.different_threshold = []
         self.after_quant_image = None
         self.quant_val = []
         self.BB = []
         self.orig_segment = None
-
 
     def add_init_points(self,seed_list ):
         for seed in seed_list:
             self.seed_vec.append([seed[1], seed[2], seed[0]])
         pass
 
-
-    def sitk_show(self,img, title=None, margin=0.05, dpi=40):
+    def sitk_show(self, img, title=None, margin=0.05, dpi=40):
         nda = sitk.GetArrayFromImage(img)
         spacing = img.GetSpacing()
         figsize = (1 + margin) * nda.shape[0] / dpi, (1 + margin) * nda.shape[1] / dpi
@@ -67,7 +59,6 @@ class Brain_segmant:
 
         # #plt.show()
 
-
     def remove_keymap_conflicts(self,new_keys_set):
         for prop in plt.rcParams:
             if prop.startswith('keymap.'):
@@ -76,18 +67,16 @@ class Brain_segmant:
                 for key in remove_list:
                     keys.remove(key)
 
-
-    def multi_slice_viewer(self,volume, do_gray = True):
+    def multi_slice_viewer(self, volume, do_gray=True):
         self.remove_keymap_conflicts({'j', 'k'})
         fig, ax = plt.subplots()
         ax.volume = volume
         ax.index = volume.shape[0] // 2
         if do_gray:
-            ax.imshow(volume[ax.index],cmap = 'gray')
+            ax.imshow(volume[ax.index], cmap='gray')
         else:
             ax.imshow(volume[ax.index])
         fig.canvas.mpl_connect('key_press_event', self.process_key)
-
 
     def process_key(self,event):
         fig = event.canvas.figure
@@ -98,20 +87,17 @@ class Brain_segmant:
             self.next_slice(ax)
         fig.canvas.draw()
 
-
     def previous_slice(self,ax):
         volume = ax.volume
         ax.index = (ax.index - 1) % volume.shape[0]  # wrap around using %
         ax.images[0].set_array(volume[ax.index])
-
 
     def next_slice(self,ax):
         volume = ax.volume
         ax.index = (ax.index + 1) % volume.shape[0]
         ax.images[0].set_array(volume[ax.index])
 
-
-    def get_correct_order(self,min_axis):
+    def get_correct_order(self, min_axis):
         '''
         returns the order of the image matrix according as required, frame and then X Y
         :param min_axis: The smallest axis
@@ -124,8 +110,7 @@ class Brain_segmant:
         else:
             return (0, 1, 2)
 
-
-    def get_display_axis(self,min_axis):
+    def get_display_axis(self, min_axis):
         if min_axis == 0:
             return (0, 1, 2)
         elif min_axis == 1:
@@ -133,8 +118,7 @@ class Brain_segmant:
         else:
             return (2, 0, 1)
 
-
-    def close_holes_opening_closing(self,data_array):
+    def close_holes_opening_closing(self, data_array):
         '''
         Close holes in image by using morphological operations.
         :param data_array: numpy array
@@ -151,7 +135,6 @@ class Brain_segmant:
                                                          foregroundValue=LABEL_SEGMENTED_COLOR)
         return fixed_again_image
 
-
     def segmentation_sitk_vector_confidence(self,sitk_image, seeds):
         sitk_image = sitk.Cast(sitk_image, sitk.sitkVectorFloat64)
         CC_image = sitk.VectorConfidenceConnected(image1=sitk_image,
@@ -161,20 +144,18 @@ class Brain_segmant:
                                                   replaceValue=LABEL_SEGMENTED_COLOR)
         return sitk.GetImageFromArray(CC_image)
 
-
-    def get_intrinsic_component(self,image, seed_list,with_care = True):
+    def get_intrinsic_component(self, image, seed_list, with_care=True):
         data_array = sitk.GetArrayFromImage(image)
         image1 = data_array.copy()
         if with_care:
             image1 = nd.morphology.binary_opening(data_array, iterations=1).astype(np.int32)
             image1 = nd.morphology.binary_erosion(image1 , iterations=2).astype(np.int32)
 
-        image1 = self.find_conected_comp(image1, seed_list).astype(np.int)
+        image1 = self.find_connected_comp(image1, seed_list).astype(np.int)
         image1 = nd.morphology.binary_dilation(image1, iterations=2).astype(np.int32)
         return sitk.GetImageFromArray(image1)
 
-
-    def find_conected_comp(self,seg_image, seed_list):
+    def find_connected_comp(self, seg_image, seed_list):
         '''
 
         :param seg_image:
@@ -193,8 +174,7 @@ class Brain_segmant:
 
         return new_seg_imag
 
-
-    def cut_image_out(self,image, BB_object):
+    def cut_image_out(self, image, BB_object):
         '''
 
         :param image:
@@ -225,7 +205,6 @@ class Brain_segmant:
         return image[r_top_cut: r_bot_cut ,c_left_cut:c_right_cut, :], r_top_cut,r_bot_cut-r_top_cut, \
                c_left_cut,c_right_cut-c_left_cut
 
-
     def worker_chanvese(self,index, cur_img, cur_mask):
         '''
         Worker method for threading, performs chan vese.
@@ -243,8 +222,7 @@ class Brain_segmant:
 
         return (segmentation_mat, index)
 
-
-    def worker_contur(self,index, cur_img, snake,cur_mask):
+    def worker_contour(self, index, cur_img, snake, cur_mask):
         '''
         Worker method for threading, performs chan vese.
         Save fixed segmentation_mat in global variable.
@@ -299,7 +277,7 @@ class Brain_segmant:
                              % (axis, m.ndim))
         return m[tuple(indexer)]
 
-    def flood_fill_hull(self,image):
+    def flood_fill_hull(self, image):
         points = np.transpose(np.where(image))
         hull = spatial.ConvexHull(points)
         deln = spatial.Delaunay(points[hull.vertices])
@@ -309,9 +287,7 @@ class Brain_segmant:
         out_img[out_idx] = 1
         return out_img
 
-
-
-    def segmentation_3d(self,array_data,seed_list):
+    def segmentation_3d(self, array_data, seed_list):
         '''
         :param array_data: [numpy array] shape: (frame_num, x, y)
         :param seed_list: list of tuples (frame_num, x, y)
@@ -411,8 +387,6 @@ class Brain_segmant:
             print('segmentation', type(ex), ex)
             return None
 
-
-
     def quantize(self,im, levels, qtype='uniform', maxCount=255, displayLevels=None):
         """
         Function to run uniform gray-level and improved gray-scale Quantization.
@@ -486,8 +460,7 @@ class Brain_segmant:
 
         return np.array(returnImage, dtype)
 
-
-    def get_quant_segment(self,index,segmantation):
+    def get_quant_segment(self, index, segmantation):
 
         if self.orig_segment is not None:
             cur_segmantation = self.orig_segment
@@ -522,8 +495,6 @@ class Brain_segmant:
         segmantation = segmantation.transpose(1, 2, 0)
         final_seg = self.flood_fill_hull(segmantation)
         return final_seg.transpose(2, 0, 1)
-
-
 
     def separate_to_two_brains(self,segmantation):
         convex_seg = self.flood_fill_hull(segmantation)
@@ -589,12 +560,10 @@ class Brain_segmant:
 
         return left_side,right_side
 
-
-
-
-    def get_csf_seg(self,segmantation):
-        convex = self.get_convex_seg(segmantation)
-        dialet_convex_seg = nd.binary_dilation(convex,iterations=2)
+    def get_csf_seg(self, segmentation):
+        segmentation = segmentation.transpose(1, 2, 0)
+        convex = self.get_convex_seg(segmentation)
+        dialet_convex_seg = nd.binary_dilation(convex, iterations=2)
         csf_cut = dialet_convex_seg - segmentation
         seg_brain_cut_out = self.brain_image * segmentation
         brain_flat = segmentation[np.nonzero(seg_brain_cut_out)]
@@ -602,13 +571,10 @@ class Brain_segmant:
         seg_std = np.std(brain_flat)
         csf_cut_out_image = self.brain_image * csf_cut
         csf_seg = csf_cut_out_image > (seg_mean + seg_std)
-        return csf_seg
+        return np.transpose(csf_seg, (2, 0, 1))
 
 
-
-
-
-def get_polygon_cordinats(polygon_vertices):
+def get_polygon_coordinates(polygon_vertices):
     '''
 
     :param polygon_vertices:
@@ -616,11 +582,11 @@ def get_polygon_cordinats(polygon_vertices):
     '''
     r = polygon_vertices[0]
     c = polygon_vertices[1]
-    rr,cc = draw.polygon(r,c)
-    return np.hstack((rr,cc))
+    rr, cc = draw.polygon(r, c)
+    return np.hstack((rr, cc))
 
 
-def confidance_evaluation(alg_seg, gt_seg):
+def confidence_evaluation(alg_seg, gt_seg):
     union_seg = alg_seg + gt_seg
     union_seg[np.where(union_seg > 0)] = 1
     union_num = np.count_nonzero(union_seg)

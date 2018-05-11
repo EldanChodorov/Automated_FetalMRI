@@ -60,7 +60,7 @@ class ScanFile:
         # class which performs the segmentation process
         self._segment_worker = Brain_segmant(self.frames)
 
-        # what is currently displayed: USER MARKS / SEGMENTATION / CONVEX / BRAIN HALVES
+        # what is currently displayed: USER MARKS / SEGMENTATION / CONVEX / BRAIN HALVES / CSF
         self.display_state = ''
 
     def load_image_label(self):
@@ -146,7 +146,6 @@ class ScanFile:
     def show_convex(self):
         '''
         Calculate convex for given segmentation of brain, and display it.
-        :param segmentation_array: [numpy.ndarray]
         '''
         # save aside the given segmentation as the most updated one
         if self._segment_worker:
@@ -155,6 +154,22 @@ class ScanFile:
             convex = self._segment_worker.flood_fill_hull(self._segmentation_array)
             self.image_label.set_segmentation(convex)
             self.display_state = CONVEX
+
+    def show_csf(self):
+        '''
+        Display segmentation of brain CSF only.
+        '''
+        if self._segment_worker:
+            if self.display_state == SEGMENTATION:
+                self._segmentation_array = self.image_label.points_to_image()
+            try:
+                # todo need to send copy so that _segmentation_array is not changed?
+                csf = self._segment_worker.get_csf_seg(self._segmentation_array)
+            except Exception as ex:
+                print("CSF", ex)
+            else:
+                self.image_label.set_segmentation(csf)
+                self.display_state = CSF
 
     def show_quantization_segmentation(self, level):
         '''
