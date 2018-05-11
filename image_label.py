@@ -101,6 +101,10 @@ class ImageLabel(QtWidgets.QLabel):
         # whether segmentation has been added to the image yet
         self._segmentation_added = False
 
+        # points chosen as vertices for a polygon, by user with paintbrush
+        # contains frame_num: list of vertices
+        self._polygon_vertices = defaultdict(list)
+
     def activate_image(self):
         '''Set image to be displayed. Deactivated until image should be shown.'''
         self.set_image(self.frames[self.frame_displayed_index])
@@ -167,16 +171,25 @@ class ImageLabel(QtWidgets.QLabel):
         return pos * self._zoom
 
     def mouseReleaseEvent(self, cursor_event):
+
+        pos = self.widget2image_coord(cursor_event.pos())
         if self._tool_chosen in [OUTER_SQUARE, INNER_SQUARE] and self._square_corner:
-            # using square tool
-            pos = self.widget2image_coord(cursor_event.pos())
             self.shapes.add_square(self.frame_displayed_index, self._square_corner, pos, self._tool_chosen)
             self._square_corner = None
+            self.update()
+        elif self._tool_chosen == POLYGON:
+            self._polygon_vertices[self.frame_displayed_index].append(pos)
             self.update()
         else:
             # using eraser or paintbrush tool
             self.mouseMoveEvent(cursor_event)
             # update() is called in mouseMoveEvent
+
+    def submit_polygon(self):
+        if self._tool_chosen == POLYGON:
+            self.shapes.add_polygon(self.frame_displayed_index, self._polygon_vertices[self.frame_displayed_index])
+            self._polygon_vertices[self.frame_displayed_index] = []
+            self.update()
 
     def _image_to_QPoint(self, image):
         '''
@@ -282,6 +295,16 @@ class ImageLabel(QtWidgets.QLabel):
                 pen.setColor(QtGui.QColor(50, 205, 50, ALPHA_TRANSPARENT))
                 painter.setPen(pen)
                 self._paint_points(second_half[self.frame_displayed_index], painter, offset)
+
+                # don't draw over brain halves
+                return
+
+            # polygon vertices
+            if self._tool_chosen == POLYGON:
+                pen.setColor(QtGui.QColor(30, 144, 255, ALPHA_NON_TRANSPARENT))
+                painter.setPen(pen)
+                for pos in self._polygon_vertices[self.frame_displayed_index]:
+                    painter.drawPoint(self.image2widget_coord(pos))
 
             # inner squares
             pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_NON_TRANSPARENT))

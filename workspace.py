@@ -284,14 +284,17 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self.tableWidget.setItem(self._current_scan_idx, 1, item)
 
     def keyPressEvent(self, QKeyEvent):
+        print(QKeyEvent.key())
         if QKeyEvent.key() == QtCore.Qt.Key_F:
             self.jump_frame_lineedit.setFocus()
-        elif QKeyEvent.key == QtCore.Qt.Key_E:
+        elif QKeyEvent.key() == QtCore.Qt.Key_E:
             pass
             # Todo implement change focus to Eraser
-        elif QKeyEvent.key == QtCore.Qt.Key_P:
+        elif QKeyEvent.key() == QtCore.Qt.Key_P:
             pass
             # Todo implement change focus to Paint
+        elif QKeyEvent.key() == QtCore.Qt.Key_Enter or QKeyEvent.key() == QtCore.Qt.Key_Return:
+            self._all_scans[self._current_scan_idx].image_label.submit_polygon()
         else:
             QtWidgets.QWidget.keyPressEvent(self, QKeyEvent)
 

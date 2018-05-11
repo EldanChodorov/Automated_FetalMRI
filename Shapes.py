@@ -6,6 +6,8 @@ These polygons may have missing points, if erased by user.
 from collections import defaultdict
 import pickle
 import copy
+import numpy as np
+from skimage import draw
 from PyQt5 import QtCore, QtWidgets
 from consts import OUTER_SQUARE, INNER_SQUARE, BRUSH_WIDTH_MEDIUM
 
@@ -38,6 +40,21 @@ class Shapes:
 
     def __repr__(self):
         return str(self.chosen_points) + '\n' + str(self.inner_squares) + '\n' + str(self.outer_squares)
+
+    def add_polygon(self, frame_number, vertices):
+        '''
+        Add points contained inside a given polygon.
+        :param frame_number: [int] frame polygon was marked in.
+        :param vertices: [list] of QtCore.QPos as vertices of the polygon
+        '''
+        vertices_array = np.zeros((len(vertices), 2))
+        for i in range(len(vertices)):
+            vertices_array[i, 0] = vertices[i].y()
+            vertices_array[i, 1] = vertices[i].x()
+
+        rows, cols = draw.polygon(vertices_array[:, 0], vertices_array[:, 1])
+        for x, y in zip(rows, cols):
+            self.add_point(frame_number, QtCore.QPoint(y, x))
 
     def add_square(self, frame_number, corner1, corner2, square_type):
         '''
@@ -182,30 +199,6 @@ class Shapes:
         for frame, seg_points_list in self.segmentation_points.items():
             all_points[frame] += seg_points_list
         return all_points
-
-
-class Polygon:
-
-    def __init__(self, vertices):
-
-        # vertices defining the polygon boundary
-        self._vertices = vertices
-
-        # all points inside polygon
-        self.points = []
-
-    def __contains__(self, item):
-        raise NotImplementedError
-
-    def _set_all_points(self):
-
-        # define bounding box of polygon
-
-        # get all points inside the bounding box
-
-        # check per point if it is inside the polygon
-
-        pass
 
 
 class Square:
