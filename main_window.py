@@ -76,6 +76,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
 
         # View menu
         self.actionShow_Segmentation.triggered.connect(self._toggle_segmentation)
+        self.actionShow_Scan.triggered.connect(self._toggle_scan)
 
         # Help menu
         self.actionAbout.triggered.connect(self._about_dialog)
@@ -95,6 +96,11 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         '''Display/Hide segmentation from showing in workspace.'''
         if self._workspace:
             self._workspace.toggle_segmentation(self.actionShow_Segmentation.isChecked())
+
+    def _toggle_scan(self):
+        '''Display/Hide scan from showing in workspace.'''
+        if self._workspace:
+            self._workspace.toggle_scan(self.actionShow_Scan.isChecked())
 
     def _open_workspace(self):
         '''

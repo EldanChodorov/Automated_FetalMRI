@@ -97,8 +97,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.eraser_size2_btn.clicked.connect(lambda: self._change_eraser_size(BRUSH_WIDTH_MEDIUM))
         self.eraser_size3_btn.clicked.connect(lambda: self._change_eraser_size(BRUSH_WIDTH_LARGE))
 
-        self.outer_square_btn.clicked.connect(lambda: self.tool_chosen.emit(OUTER_SQUARE))
-        self.inner_square_btn.clicked.connect(lambda: self.tool_chosen.emit(INNER_SQUARE))
+        # self.outer_square_btn.clicked.connect(lambda: self.tool_chosen.emit(OUTER_SQUARE))
+        # self.inner_square_btn.clicked.connect(lambda: self.tool_chosen.emit(INNER_SQUARE))
         self.polygon_btn.clicked.connect(lambda: self.tool_chosen.emit(POLYGON))
 
         # set initially chosen buttons with different style
@@ -196,8 +196,8 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # set all buttons to base style
         self.paintbrush_btn.setStyleSheet(self._base_tool_style)
         self.eraser_btn.setStyleSheet(self._base_tool_style)
-        self.inner_square_btn.setStyleSheet(self._base_tool_style)
-        self.outer_square_btn.setStyleSheet(self._base_tool_style)
+        # self.inner_square_btn.setStyleSheet(self._base_tool_style)
+        # self.outer_square_btn.setStyleSheet(self._base_tool_style)
 
         # emphasize chosen tool button
         if tool_chosen == USE_PAINTBRUSH:
@@ -294,10 +294,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         elif QKeyEvent.key() == QtCore.Qt.Key_E:
             pass
             # Todo implement change focus to Eraser
-        elif QKeyEvent.key() == QtCore.Qt.Key_P:
+        elif QKeyEvent.key() == QtCore.Qt.Key_B:
             pass
             # Todo implement change focus to Paint
-        elif QKeyEvent.key() == QtCore.Qt.Key_Enter or QKeyEvent.key() == QtCore.Qt.Key_Return:
+        elif QKeyEvent.key() == QtCore.Qt.Key_P:
             self._all_scans[self._current_scan_idx].image_label.submit_polygon()
         else:
             QtWidgets.QWidget.keyPressEvent(self, QKeyEvent)
@@ -351,6 +351,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         brain_text = "Brain Volume: %.2f mm^3"
         self.brain_volume_label.setText(brain_text % volume)
 
+    def set_csf_volume(self, volume):
+        csf_text = "CSF Volume: %.2f mm^3"
+        self.csf_volume_label.setText(csf_text % volume)
+
     def set_brain_halves_volume(self, left_volume, right_volume):
         left_text = "Left Brain Volume: %.2f mm^3"
         right_text = "Right Brain Volume: %.2f mm^3"
@@ -383,6 +387,14 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         :param show: [bool]
         '''
         self._all_scans[self._current_scan_idx].image_label.paint_over = show
+        self._all_scans[self._current_scan_idx].image_label.update()
+
+    def toggle_scan(self, show):
+        '''
+        Show/hide the scan (independant of the segmentation showing).
+        :param show: [bool]
+        '''
+        self._all_scans[self._current_scan_idx].image_label.show_scan = show
         self._all_scans[self._current_scan_idx].image_label.update()
 
     def save_all_segmentations(self):

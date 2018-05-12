@@ -124,40 +124,16 @@ class Ui_workspace(object):
 "font: 12pt \"MS Shell Dlg 2\";")
         self.eraser_size3_btn.setObjectName("eraser_size3_btn")
         self.gridLayout_3.addWidget(self.eraser_size3_btn, 3, 1, 1, 1)
-        self.inner_square_btn = QtWidgets.QPushButton(self.tool_kit)
-        self.inner_square_btn.setStyleSheet("background-color:\'white\'; \n"
-"color: rgb(133, 13, 255);\n"
-"border-radius: 12px; border-color:  rgb(133, 13, 255); \n"
-"border-width:3px;\n"
-"border-style: outset;\n"
-"font: 75 8pt \"MS Shell Dlg 2\";\n"
-"")
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("../../../../.designer/backup/images/purple_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.inner_square_btn.setIcon(icon2)
-        self.inner_square_btn.setObjectName("inner_square_btn")
-        self.gridLayout_3.addWidget(self.inner_square_btn, 0, 3, 1, 1)
-        self.outer_square_btn = QtWidgets.QPushButton(self.tool_kit)
-        self.outer_square_btn.setStyleSheet("background-color:\'white\'; \n"
-"color: rgb(255, 0, 0);\n"
-"font: 75 8pt \"MS Shell Dlg 2\";\n"
-"border-radius: 12px; border-color: red; border-width: 3px;\n"
-"border-style: outset;")
-        icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap("../../../../.designer/backup/images/red_square.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.outer_square_btn.setIcon(icon3)
-        self.outer_square_btn.setObjectName("outer_square_btn")
-        self.gridLayout_3.addWidget(self.outer_square_btn, 1, 3, 1, 1)
         self.polygon_btn = QtWidgets.QPushButton(self.tool_kit)
         self.polygon_btn.setStyleSheet("background-color:\'white\'; \n"
-"color: rgb(0, 0, 255);\n"
+"color: purple;\n"
 "font: 75 8pt \"MS Shell Dlg 2\";\n"
 "border-radius: 12px; \n"
-"border-color: rgb(0, 0, 255);\n"
+"border-color: purple;\n"
 "border-width: 3px;\n"
 "border-style: outset;")
         self.polygon_btn.setObjectName("polygon_btn")
-        self.gridLayout_3.addWidget(self.polygon_btn, 2, 3, 1, 1)
+        self.gridLayout_3.addWidget(self.polygon_btn, 0, 3, 1, 1)
         self.gridLayout_3.setRowMinimumHeight(0, 5)
         self.gridLayout_3.setRowMinimumHeight(1, 1)
         self.gridLayout_3.setRowMinimumHeight(2, 1)
@@ -309,6 +285,12 @@ class Ui_workspace(object):
         self.right_brain_volume_label = QtWidgets.QLabel(self.verticalFrame)
         self.right_brain_volume_label.setObjectName("right_brain_volume_label")
         self.verticalLayout.addWidget(self.right_brain_volume_label)
+        self.csf_volume_label = QtWidgets.QLabel(self.verticalFrame)
+        self.csf_volume_label.setObjectName("csf_volume_label")
+        self.verticalLayout.addWidget(self.csf_volume_label)
+        self.csf_brain_prop_label = QtWidgets.QLabel(self.verticalFrame)
+        self.csf_brain_prop_label.setObjectName("csf_brain_prop_label")
+        self.verticalLayout.addWidget(self.csf_brain_prop_label)
         self.show_convex_btn = QtWidgets.QPushButton(self.verticalFrame)
         self.show_convex_btn.setObjectName("show_convex_btn")
         self.verticalLayout.addWidget(self.show_convex_btn)
@@ -345,10 +327,6 @@ class Ui_workspace(object):
         self.paintbrush_size1_btn.setText(_translate("workspace", "1"))
         self.paintbrush_size3_btn.setText(_translate("workspace", "3"))
         self.eraser_size3_btn.setText(_translate("workspace", "3"))
-        self.inner_square_btn.setToolTip(_translate("workspace", "Mark middle first and last frame with square CONTAINED in brain."))
-        self.inner_square_btn.setText(_translate("workspace", "Inner Square"))
-        self.outer_square_btn.setToolTip(_translate("workspace", "Mark middle frame with square ENCLOSING brain."))
-        self.outer_square_btn.setText(_translate("workspace", "Outer Square"))
         self.polygon_btn.setText(_translate("workspace", "Polygon"))
         self.jump_frame_lineedit.setToolTip(_translate("workspace", "Shortcut: F"))
         self.jump_frame_lineedit.setPlaceholderText(_translate("workspace", "Jump to Frame..."))
@@ -368,6 +346,8 @@ class Ui_workspace(object):
         self.brain_volume_label.setText(_translate("workspace", "Brain Volume: "))
         self.left_brain_volume_label.setText(_translate("workspace", "Left Brain Volume:"))
         self.right_brain_volume_label.setText(_translate("workspace", "Right Brain Volume:"))
+        self.csf_volume_label.setText(_translate("workspace", "CSF Volume:"))
+        self.csf_brain_prop_label.setText(_translate("workspace", "CSF to Brain Proportion:"))
         self.show_convex_btn.setText(_translate("workspace", "Show Convex"))
         self.show_brain_halves_btn.setText(_translate("workspace", "Show Brain Halves"))
         self.show_csf_btn.setText(_translate("workspace", "Show CSF"))
