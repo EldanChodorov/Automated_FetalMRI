@@ -67,8 +67,11 @@ class ScanFile:
         self.image_label.activate_image()
 
     def run_segmentation(self):
-        self.status = PROCESSING
-        self._segmentation_thread.start()
+        # do not run if status is not initial, cannot start a thread more than once
+        # TODO: solve for a case one wants to remark and reperform segmentation
+        if self.status == '':
+            self.status = PROCESSING
+            self._segmentation_thread.start()
 
     def perform_segmentation(self):
 
@@ -166,9 +169,10 @@ class ScanFile:
                 # todo need to send copy so that _segmentation_array is not changed?
                 csf = self._segment_worker.get_csf_seg(self._segmentation_array)
             except Exception as ex:
-                print("CSF", ex)
+                print("CSF computation error", ex)
             else:
                 self.image_label.set_segmentation(csf)
+                self._workspace_parent.set_csf_volume(self.volume(csf))
                 self.display_state = CSF
 
     def show_quantization_segmentation(self, level):

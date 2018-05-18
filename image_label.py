@@ -98,6 +98,9 @@ class ImageLabel(QtWidgets.QLabel):
         # whether to paint markings and segmentation over image or not
         self.paint_over = True
 
+        # whether to show scan at all or not (independent of segmentation showing)
+        self.show_scan = True
+
         # whether segmentation has been added to the image yet
         self._segmentation_added = False
 
@@ -269,7 +272,11 @@ class ImageLabel(QtWidgets.QLabel):
         painter = QtGui.QPainter(self)
 
         # draw image first so that points will be on top of image
-        painter.drawPixmap(self.rect(), self._displayed_pixmap)
+        if self.show_scan:
+            painter.drawPixmap(self.rect(), self._displayed_pixmap)
+        else:
+            # black background
+            painter.fillRect(self.rect(), QtGui.QColor(0, 0, 0))
 
         if not self.paint_over:
             return
@@ -299,13 +306,6 @@ class ImageLabel(QtWidgets.QLabel):
                 # don't draw over brain halves
                 return
 
-            # polygon vertices
-            if self._tool_chosen == POLYGON:
-                pen.setColor(QtGui.QColor(30, 144, 255, ALPHA_NON_TRANSPARENT))
-                painter.setPen(pen)
-                for pos in self._polygon_vertices[self.frame_displayed_index]:
-                    painter.drawPoint(self.image2widget_coord(pos))
-
             # inner squares
             pen.setColor(QtGui.QColor(138, 43, 226, ALPHA_NON_TRANSPARENT))
             painter.setPen(pen)
@@ -326,9 +326,17 @@ class ImageLabel(QtWidgets.QLabel):
             self._paint_points(self.shapes.chosen_points[self.frame_displayed_index], painter, offset)
 
             # segmentation points
-            pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], ALPHA_TRANSPARENT))
+            transparency = ALPHA_TRANSPARENT if self.show_scan else ALPHA_NON_TRANSPARENT
+            pen.setColor(QtGui.QColor(PAINT_COLOR[0], PAINT_COLOR[1], PAINT_COLOR[2], transparency))
             painter.setPen(pen)
             self._paint_points(self.shapes.segmentation_points[self.frame_displayed_index], painter, offset)
+
+            # polygon vertices
+            if self._tool_chosen == POLYGON:
+                pen.setColor(QtGui.QColor(30, 144, 255, ALPHA_NON_TRANSPARENT))
+                painter.setPen(pen)
+                for pos in self._polygon_vertices[self.frame_displayed_index]:
+                    painter.drawPoint(self.image2widget_coord(pos))
 
         except Exception as ex:
             print('paintEvent', ex)

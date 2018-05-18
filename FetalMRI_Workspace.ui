@@ -249,57 +249,13 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
                </widget>
               </item>
               <item row="0" column="3">
-               <widget class="QPushButton" name="inner_square_btn">
-                <property name="toolTip">
-                 <string>Mark middle first and last frame with square CONTAINED in brain.</string>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">background-color:'white'; 
-color: rgb(133, 13, 255);
-border-radius: 12px; border-color:  rgb(133, 13, 255); 
-border-width:3px;
-border-style: outset;
-font: 75 8pt &quot;MS Shell Dlg 2&quot;;
-</string>
-                </property>
-                <property name="text">
-                 <string>Inner Square</string>
-                </property>
-                <property name="icon">
-                 <iconset>
-                  <normaloff>../../../../.designer/backup/images/purple_square.png</normaloff>../../../../.designer/backup/images/purple_square.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <widget class="QPushButton" name="outer_square_btn">
-                <property name="toolTip">
-                 <string>Mark middle frame with square ENCLOSING brain.</string>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">background-color:'white'; 
-color: rgb(255, 0, 0);
-font: 75 8pt &quot;MS Shell Dlg 2&quot;;
-border-radius: 12px; border-color: red; border-width: 3px;
-border-style: outset;</string>
-                </property>
-                <property name="text">
-                 <string>Outer Square</string>
-                </property>
-                <property name="icon">
-                 <iconset>
-                  <normaloff>../../../../.designer/backup/images/red_square.png</normaloff>../../../../.designer/backup/images/red_square.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3">
                <widget class="QPushButton" name="polygon_btn">
                 <property name="styleSheet">
                  <string notr="true">background-color:'white'; 
-color: rgb(0, 0, 255);
+color: purple;
 font: 75 8pt &quot;MS Shell Dlg 2&quot;;
 border-radius: 12px; 
-border-color: rgb(0, 0, 255);
+border-color: purple;
 border-width: 3px;
 border-style: outset;</string>
                 </property>
@@ -593,6 +549,20 @@ background-color: rgb(4, 51, 57)</string>
              <widget class="QLabel" name="right_brain_volume_label">
               <property name="text">
                <string>Right Brain Volume:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="csf_volume_label">
+              <property name="text">
+               <string>CSF Volume:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="csf_brain_prop_label">
+              <property name="text">
+               <string>CSF to Brain Proportion:</string>
               </property>
              </widget>
             </item>
