@@ -2,13 +2,13 @@
 ScanFile class represents a nifti file holding its scan files, segmentation, user marks, and status.
 '''
 
-from PyQt5 import QtWidgets, QtCore
 from image_label import ImageLabel
 from threading import Thread
 from consts import *
 import nibabel as nib
 import numpy as np
 from segment3d_itk import Brain_segmant
+import utils
 
 
 class ScanFile:
@@ -25,14 +25,7 @@ class ScanFile:
         self._array_data = self._nifti.get_data()
 
         # Nifti file does not show stable shape, sometimes as (num,x,y) and at times as (x,y,num) or (x,num,y)
-        num_frames_index = self._nifti.shape.index(min(self._nifti.shape))
-        x_orig_index, y_orig_index = 1, 2
-        if num_frames_index == 1:
-            x_orig_index, y_orig_index = 0, 2
-        elif num_frames_index == 2:
-            x_orig_index, y_orig_index = 0, 1
-
-        self._array_data = self._array_data.transpose(num_frames_index, x_orig_index, y_orig_index)
+        self._array_data = utils.shape_nifti_2_segtool(self._array_data)
 
         # normalize images
         self.frames = (self._array_data.astype(np.float64) / np.max(self._array_data)) * 255

@@ -8,6 +8,7 @@ import numpy as np
 import nibabel as nib
 import FetalMRI_mainwindow
 import FetalMRI_About
+import utils
 
 
 WINDOW_TITLE = 'Fetal Brain Seg Tool'
@@ -158,7 +159,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         :return [str]: path to nifti file, if successfully created
         '''
         local_folder = self._create_local_folder(os.path.normpath(directory))
-        dicom2nifti.convert_directory(self._source, local_folder)
+        dicom2nifti.convert_directory(self._source, local_folder, reorient=False)
         nii_files = os.listdir(local_folder)
         if nii_files:
             return local_folder + "\\" + nii_files[0]
@@ -173,18 +174,6 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         :param dir_only [bool]: if True, allow user to choose a directory. If false, must choose nifti file.
         '''
         chosen_file = self._user_choose_file(dir_only)
-        # file_dialog = QtWidgets.QFileDialog()
-        # options = QtWidgets.QFileDialog.Options()
-        # options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        # if dir_only:
-        #     file_dialog.setFileMode(QtWidgets.QFileDialog.Directory)
-        #     file_dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
-        # if not file_dialog.exec_():
-        #     print('Error in File Dialog.')
-        #     return
-
-        # create nifti if dicoms were selected, and open workspace with nifti object
-        # chosen_files = file_dialog.selectedFiles()
         if chosen_file:
             # user can choose only one file at a time
             self._source = chosen_file
@@ -233,6 +222,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
                 print("Must choose Nifti format file.")
                 return
             segmentation = np.array(nib.load(nifti_path).get_data())
+            segmentation = utils.shape_nifti_2_segtool(segmentation)
 
             if self._workspace:
                 self._workspace.set_segmentation(segmentation)

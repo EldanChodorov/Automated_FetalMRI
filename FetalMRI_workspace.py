@@ -327,6 +327,7 @@ class Ui_workspace(object):
         self.paintbrush_size1_btn.setText(_translate("workspace", "1"))
         self.paintbrush_size3_btn.setText(_translate("workspace", "3"))
         self.eraser_size3_btn.setText(_translate("workspace", "3"))
+        self.polygon_btn.setToolTip(_translate("workspace", "Mark vertices and press P"))
         self.polygon_btn.setText(_translate("workspace", "Polygon"))
         self.jump_frame_lineedit.setToolTip(_translate("workspace", "Shortcut: F"))
         self.jump_frame_lineedit.setPlaceholderText(_translate("workspace", "Jump to Frame..."))

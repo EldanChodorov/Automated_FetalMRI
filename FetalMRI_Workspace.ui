@@ -250,6 +250,9 @@ font: 12pt &quot;MS Shell Dlg 2&quot;;</string>
               </item>
               <item row="0" column="3">
                <widget class="QPushButton" name="polygon_btn">
+                <property name="toolTip">
+                 <string>Mark vertices and press P</string>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">background-color:'white'; 
 color: purple;

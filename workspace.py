@@ -2,13 +2,12 @@ import cv2
 import pickle
 import numpy as np
 import nibabel as nib
-from threading import Thread
 from PyQt5 import QtGui, QtCore, QtWidgets
 import FetalMRI_workspace
-from skimage.exposure import equalize_adapthist
 from Shapes import Shapes
 from consts import *
 from scan_file import ScanFile
+import utils
 
 
 class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
@@ -178,10 +177,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         # TODO: disable remove button while segmentation is performing
 
         if len(self._all_scans) == 1:
-            warn('At least one scan must remain in workspace.')
+            utils.warn('At least one scan must remain in workspace.')
             return
 
-        # TODO pop up warning message that all work will be lost, do you want to save?
+        # TODO pop up utils.warning message that all work will be lost, do you want to save?
         self.tableWidget.removeRow(scan_idx)
         self._all_scans.pop(scan_idx)
 
@@ -308,6 +307,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         Calculates and sets the segmentation on the image.
         Do not return anything from this method.
         '''
+        segmentation_array = None
         try:
             # change stage title
             self.instructions.setText('<html><head/><body><p align="center">Stage 2:</p><p align="center">'
@@ -319,7 +319,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             print('perform_segmentation', ex)
 
         if segmentation_array is None:
-            warn('An error occurred while computing the segmentation. Please perform better markings, '
+            utils.warn('An error occurred while computing the segmentation. Please perform better markings, '
                  'and try again.')
             self.instructions.setText(
                 '<html><head/><body><p align="center">Stage 1 [retry]: Boundary Marking...</p><p '
@@ -348,16 +348,16 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.segmentation_finished.emit()  # next segmentation will be run
 
     def set_brain_volume(self, volume):
-        brain_text = "Brain Volume: %.2f mm^3"
+        brain_text = "Brain Volume: %.2f mm<sup>3</sup>"
         self.brain_volume_label.setText(brain_text % volume)
 
     def set_csf_volume(self, volume):
-        csf_text = "CSF Volume: %.2f mm^3"
+        csf_text = "CSF Volume: %.2f mm<sup>3</sup>"
         self.csf_volume_label.setText(csf_text % volume)
 
     def set_brain_halves_volume(self, left_volume, right_volume):
-        left_text = "Left Brain Volume: %.2f mm^3"
-        right_text = "Right Brain Volume: %.2f mm^3"
+        left_text = "Left Brain Volume: %.2f mm<sup>3</sup>"
+        right_text = "Right Brain Volume: %.2f mm<sup>3</sup>"
         self.left_brain_volume_label.setText(left_text % left_volume)
         self.right_brain_volume_label.setText(right_text % right_volume)
 
@@ -413,6 +413,7 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             if segmentation is None:
                 print("Error saving segmentation for scan #%d" %scan_idx)
                 return
+            segmentation = utils.shape_segtool_2_nifti(segmentation)
 
             file_dialog = QtWidgets.QFileDialog()
             options = QtWidgets.QFileDialog.Options()
@@ -420,13 +421,15 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             fileName, _ = QtWidgets.QFileDialog.getSaveFileName(file_dialog, "Save segmentation", "",
                                         "Nifti Files (*.nii, *.nii.gz)", options=options)
             if fileName:
+                if not (fileName.endswith('.nii') or fileName.endswith('.nii.gz')):
+                    fileName += '.nii'
                 if not fileName.endswith('.gz'):
                     fileName += '.gz'
                 nifti = nib.Nifti1Image(segmentation, np.eye(4))
                 nib.save(nifti, fileName)
                 print('Segmentation saved to %s' % fileName)
         except Exception as ex:
-            print(ex)
+            print("Save segmentation error: {}".format(ex))
 
     def set_segmentation(self, segmentation_array):
         self._all_scans[self._current_scan_idx].set_segmentation(segmentation_array)
@@ -514,13 +517,4 @@ def overlap_images(background_img_list, mask_img_list):
     return colored
 
 
-def warn(main_msg):
-    '''
-    Pop up a warning message box.
-    '''
-    # TODO: sometimes when this box shows, it causes the whole program to freeze and crash.
-    msg_box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning, main_msg, main_msg, QtWidgets.QMessageBox.Ok)
-    msg_box.setWindowTitle('Seg Tool Warning')
-    msg_box.setMinimumSize(100, 200)
-    msg_box.exec_()
 
