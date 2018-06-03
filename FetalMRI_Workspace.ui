@@ -537,19 +537,25 @@ background-color: rgb(4, 51, 57)</string>
             <item>
              <widget class="QLabel" name="brain_volume_label">
               <property name="text">
-               <string>Brain Volume: </string>
+               <string>Brain Volume:</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QLabel" name="left_brain_volume_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;press &lt;span style=&quot; font-style:italic;&quot;&gt;Show Brain Halves&lt;/span&gt; button&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
-               <string>Left Brain Volume:</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Left Brain Volume:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QLabel" name="right_brain_volume_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;press &lt;span style=&quot; font-style:italic;&quot;&gt;Show Brain Halves&lt;/span&gt; button&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>Right Brain Volume:</string>
               </property>
@@ -557,6 +563,9 @@ background-color: rgb(4, 51, 57)</string>
             </item>
             <item>
              <widget class="QLabel" name="csf_volume_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;press &lt;span style=&quot; font-style:italic;&quot;&gt;Show CSF &lt;/span&gt;button&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>CSF Volume:</string>
               </property>
@@ -564,6 +573,9 @@ background-color: rgb(4, 51, 57)</string>
             </item>
             <item>
              <widget class="QLabel" name="csf_brain_prop_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;press &lt;span style=&quot; font-style:italic;&quot;&gt;Show CSF&lt;/span&gt; button&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>CSF to Brain Proportion:</string>
               </property>

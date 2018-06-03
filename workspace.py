@@ -354,6 +354,10 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
     def set_csf_volume(self, volume):
         csf_text = "CSF Volume: %.2f mm<sup>3</sup>"
         self.csf_volume_label.setText(csf_text % volume)
+        if self._all_scans[self._current_scan_idx].brain_volume != 0:
+            csf_ratio = float(volume / self._all_scans[self._current_scan_idx].brain_volume)
+            ratio_text = "CSF to Brain ratio: %.2f" % csf_ratio
+            self.csf_brain_prop_label.setText(ratio_text)
 
     def set_brain_halves_volume(self, left_volume, right_volume):
         left_text = "Left Brain Volume: %.2f mm<sup>3</sup>"

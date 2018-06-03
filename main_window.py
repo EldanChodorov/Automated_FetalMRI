@@ -183,6 +183,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
                 if '.nii' not in self._source:
                     self._source = None
                 self._create_local_nifti_copy(self._source)
+            print("Local Nifti file created: {}".format(self._source))
             try:
                 if not self._workspace:
                     # open new workspace

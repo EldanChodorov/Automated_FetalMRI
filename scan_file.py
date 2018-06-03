@@ -56,6 +56,11 @@ class ScanFile:
         # what is currently displayed: USER MARKS / SEGMENTATION / CONVEX / BRAIN HALVES / CSF
         self.display_state = ''
 
+        # volume calculated of different parts of the scan
+        self._full_brain_volume = 0
+        self._brain_halves_volume = [0, 0]
+        self._csf_volume = 0
+
     def load_image_label(self):
         self.image_label.activate_image()
 
@@ -125,6 +130,7 @@ class ScanFile:
                 left_brain, right_brain = self.image_label.points_to_image(True)
                 left_volume, right_volume = self.volume(left_brain), self.volume(right_brain)
                 self._workspace_parent.set_brain_halves_volume(left_volume, right_volume)
+                self._brain_halves_volume = [left_volume, right_volume]
                 self.display_state = HALVES
             except Exception as ex:
                 print('error in separate_to_two_brains', ex)
@@ -165,7 +171,8 @@ class ScanFile:
                 print("CSF computation error", ex)
             else:
                 self.image_label.set_segmentation(csf)
-                self._workspace_parent.set_csf_volume(self.volume(csf))
+                self._csf_volume = self.volume(csf)
+                self._workspace_parent.set_csf_volume(self._csf_volume)
                 self.display_state = CSF
 
     def show_quantization_segmentation(self, level):
@@ -184,10 +191,15 @@ class ScanFile:
         self._segmentation_array = segmentation_array
         self.image_label.set_segmentation(segmentation_array)
         self.image_label.set_image(self.image_label.frames[self.image_label.frame_displayed_index])
-        self._workspace_parent.set_brain_volume(self.volume())
+        self._full_brain_volume = self.volume()
+        self._workspace_parent.set_brain_volume(self._full_brain_volume)
 
     def __str__(self):
         return self._nifti_path.split('/')[-1].split('.')[0]
+
+    @property
+    def brain_volume(self):
+        return self._full_brain_volume
 
 
 def contrast_change(index, image):
