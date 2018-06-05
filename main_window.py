@@ -12,6 +12,7 @@ import utils
 
 
 WINDOW_TITLE = 'Fetal Brain Seg Tool'
+BASE_DIR = 'C://Users/Keren Meron/Documents/School Work/Fetal MRI/FetalSegBrainTool/'
 
 
 class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
@@ -42,7 +43,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
     def init_ui(self):
 
         self.setWindowTitle(WINDOW_TITLE)
-        self.setWindowIcon(QtGui.QIcon('images/buttons_PNG103.png'))
+        self.setWindowIcon(QtGui.QIcon(BASE_DIR + 'images/buttons_PNG103.png'))
         self.showMaximized()
 
         # connect buttons
@@ -52,8 +53,8 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self._connect_menus()
 
         # reset images - backup copies may not exist
-        self.label.setPixmap(QtGui.QPixmap('images/brain_large.jpg'))
-        self.label_2.setPixmap(QtGui.QPixmap('images/casmip.png'))
+        self.label.setPixmap(QtGui.QPixmap(BASE_DIR + 'images/brain_large.jpg'))
+        self.label_2.setPixmap(QtGui.QPixmap(BASE_DIR + 'images/casmip.png'))
 
     def _connect_menus(self):
 
