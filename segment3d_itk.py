@@ -1,7 +1,6 @@
 import time
 import copy
 from scipy import spatial
-from skimage import feature
 import SimpleITK as sitk
 from matplotlib import pyplot as plt
 import numpy as np
@@ -20,7 +19,7 @@ segmentations_container = dict()
 segmentations_lock = Lock()
 
 
-class Brain_segmant:
+class BrainSegment:
 
     def __init__(self, brain_image=None, display_work=False):
         self.init_points = []

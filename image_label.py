@@ -1,46 +1,17 @@
+
+"""
+ImageLabel class holds the image currently displayed.
+This class is used as singleton by ScanFile.
+Holds all the different frames of a scan, both regular and contrasted.
+"""
+
 import math
-import copy
-from collections import defaultdict
 import numpy as np
-from threading import Thread
-from PyQt5 import QtGui, QtCore, QtWidgets
 import qimage2ndarray
-from skimage import color
-import cv2
-import segment3d_itk
-import nibabel as nib
+from collections import defaultdict
+from PyQt5 import QtGui, QtCore, QtWidgets
 from Shapes import Shapes
 from consts import *
-
-
-def overlap_images(background_img_list, mask_img_list):
-    '''
-    Color mask in background image.
-    :param background_img_list: [numpy.ndarray] main image to be in background, shape: num_images, x, y
-    :param mask_img_list: [numpy.ndarray] binary image, display only white over image1
-    :return: numpy.ndarray
-    '''
-    if background_img_list.shape != mask_img_list.shape:
-        return mask_img_list
-    colored = []
-    for img, mask in zip(background_img_list, mask_img_list):
-        # add RGB channels
-        color_img = np.dstack((img,) * 3).astype(np.float64)
-        mask_img = np.dstack((mask,) * 3).astype(np.float64)
-        mask_img_orig = np.array(mask_img)
-
-        # place original image over mask where there is no segmentation
-        mask_img[np.where(mask_img_orig != 255)] = color_img[np.where(mask_img_orig != 255)]
-
-        # color mask in red  TODO fix, doesn't work
-        mask_img[np.where(mask_img_orig == 255), 0] = 255
-        mask_img[np.where(mask_img_orig == 255), 1] = 255
-        mask_img[np.where(mask_img_orig == 255), 2] = 255
-
-        alpha = 0.6
-        added_image = cv2.addWeighted(color_img, alpha, mask_img, 1-alpha, gamma=0)
-        colored.append(added_image)
-    return colored
 
 
 class ImageLabel(QtWidgets.QLabel):
@@ -88,8 +59,6 @@ class ImageLabel(QtWidgets.QLabel):
         # set view size
         self.setContentsMargins(0, 0, 0, 0)
         self.setAlignment(QtCore.Qt.AlignCenter)
-        # self.setFixedSize(1000, 1000)
-        # self.setMinimumSize(1000, 1000)
         self.setSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
 
         # decide what to do with point clicks (paint/square/erase)
@@ -397,7 +366,6 @@ class ImageLabel(QtWidgets.QLabel):
         # adjust both scroll bars
         self._adjust_scroll_bar(self._parent.scroll_area.horizontalScrollBar(), factor)
         self._adjust_scroll_bar(self._parent.scroll_area.verticalScrollBar(), factor)
-
 
     @staticmethod
     def _adjust_scroll_bar(scroll_bar, factor):

@@ -1,17 +1,28 @@
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui, QtCore
+
+"""
+MainWindow class for opening window of SegTool.
+Allows user to choose scan files from computer to load into program.
+Should be used as a singleton.
+"""
+
 import os
-from workspace import WorkSpace
-import dicom2nifti
 import shutil
 import numpy as np
+import dicom2nifti
 import nibabel as nib
+from PyQt5 import QtWidgets
+from PyQt5 import QtGui, QtCore
 import FetalMRI_mainwindow
 import FetalMRI_About
 import utils
+from workspace import WorkSpace
 
 
 WINDOW_TITLE = 'Fetal Brain Seg Tool'
+BASE_DIR = 'C://Users/Keren Meron/Documents/School Work/Fetal MRI/FetalSegBrainTool/'
+
+# TODO: replace with BASE_DIR=''
+# TODO fix: sometimes does not recognize images given as relative path when not run from same dir
 BASE_DIR = 'C://Users/Keren Meron/Documents/School Work/Fetal MRI/FetalSegBrainTool/'
 
 
@@ -35,6 +46,7 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.init_ui()
 
         # path to directory holding scans
+        # TODO: if this is not empty, then open a workspace
         self._source = data_dir_path
 
         # create local folder for files generated in any session
