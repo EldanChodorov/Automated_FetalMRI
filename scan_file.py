@@ -1,14 +1,16 @@
-'''
-ScanFile class represents a nifti file holding its scan files, segmentation, user marks, and status.
-'''
 
-from image_label import ImageLabel
+"""
+ScanFile class represents a nifti file holding its scan files, 
+segmentation, user marks, and status.
+"""
+
 from threading import Thread
-from consts import *
 import nibabel as nib
 import numpy as np
-from segment3d_itk import Brain_segmant
 import utils
+from consts import *
+from image_label import ImageLabel
+from segment3d_itk import BrainSegment
 
 
 class ScanFile:
@@ -30,7 +32,7 @@ class ScanFile:
         # normalize images
         self.frames = (self._array_data.astype(np.float64) / np.max(self._array_data)) * 255
 
-        # TODO: perform in separate thread somehow
+        # TODO: perform in separate thread
         self._contrasted_frames = np.zeros((10, self.frames.shape[0], self.frames.shape[1], self.frames.shape[2]))
         for i in range(1, 11):
             self._contrasted_frames[i-1] = contrast_change(i, self.frames)
@@ -51,7 +53,7 @@ class ScanFile:
         self.status = ''
 
         # class which performs the segmentation process
-        self._segment_worker = Brain_segmant(self.frames)
+        self._segment_worker = BrainSegment(self.frames)
 
         # what is currently displayed: USER MARKS / SEGMENTATION / CONVEX / BRAIN HALVES / CSF
         self.display_state = ''
@@ -201,20 +203,3 @@ def contrast_change(index, image):
     new_image = max_intens * ((image / max_intens) ** ((index/10) * 2))
     return new_image
 
-def histogram_equalization(frames):
-    '''
-    Perform histogram equalization on the given images to improve contrast.
-    :param frames: [numpy.ndarray] list of images
-    :return: equalized frames, same type and shape of input.
-    '''
-    equalized_frames = np.zeros(frames.shape)
-    for i in range(frames.shape[0]):
-        hist, bins = np.histogram(frames[i].flatten(), bins=256, normed=True)
-        cdf = hist.cumsum()  # cumulative distribution function
-        cdf = 255 * cdf / cdf[-1]  # normalize
-
-        # use linear interpolation of cdf to find new pixel values
-        image_equalized = np.interp(frames[i].flatten(), bins[:-1], cdf)
-        equalized_frames[i] = image_equalized.reshape(frames[i].shape)
-
-    return equalized_frames

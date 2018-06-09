@@ -1,5 +1,5 @@
 '''
-Class to holds squares, points, etc. marked by user.
+Class to holds polygons, points, etc. marked by user.
 These polygons may have missing points, if erased by user.
 '''
 

@@ -1,4 +1,11 @@
-import cv2
+
+"""
+Classes: WorkSpace, ScrollArea
+WorkSpace class holds all elements displayed to user while working;
+holds the scan, tools for drawing, buttons, etc.
+Is used as a singleton.
+"""
+
 import pickle
 import numpy as np
 import nibabel as nib
@@ -96,8 +103,6 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
         self.eraser_size2_btn.clicked.connect(lambda: self._change_eraser_size(BRUSH_WIDTH_MEDIUM))
         self.eraser_size3_btn.clicked.connect(lambda: self._change_eraser_size(BRUSH_WIDTH_LARGE))
 
-        # self.outer_square_btn.clicked.connect(lambda: self.tool_chosen.emit(OUTER_SQUARE))
-        # self.inner_square_btn.clicked.connect(lambda: self.tool_chosen.emit(INNER_SQUARE))
         self.polygon_btn.clicked.connect(lambda: self.tool_chosen.emit(POLYGON))
 
         # set initially chosen buttons with different style
@@ -192,24 +197,23 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
     @QtCore.pyqtSlot(int)
     def _emphasize_tool_button(self, tool_chosen):
+        '''Pick the current chosen tool and make the button's border more bold.'''
         # set all buttons to base style
         self.paintbrush_btn.setStyleSheet(self._base_tool_style)
         self.eraser_btn.setStyleSheet(self._base_tool_style)
-        # self.inner_square_btn.setStyleSheet(self._base_tool_style)
-        # self.outer_square_btn.setStyleSheet(self._base_tool_style)
+        self.polygon_btn.setStyleSheet(self._base_tool_style)
 
         # emphasize chosen tool button
         if tool_chosen == USE_PAINTBRUSH:
             self.paintbrush_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
         elif tool_chosen == USE_ERASER:
             self.eraser_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
-        elif tool_chosen == INNER_SQUARE:
-            self.inner_square_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
-        elif tool_chosen == OUTER_SQUARE:
-            self.outer_square_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
+        elif tool_chosen == POLYGON:
+            self.polygon_btn.setStyleSheet(self._base_tool_style + ' border-width: 5px;')
 
     def _change_paintbrush_size(self, size):
-        self._all_scans[self._current_scan_idx].image_label.paintbrush_size = size # TODO: on scan change, set paintbrush_size
+        # TODO: on scan change, set paintbrush_size
+        self._all_scans[self._current_scan_idx].image_label.paintbrush_size = size
         self.tool_chosen.emit(USE_PAINTBRUSH)
 
         self.paintbrush_size1_btn.setStyleSheet(self._base_size_style)
@@ -251,19 +255,11 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
             self._all_scans[self._current_scan_idx].image_label.change_frame_number(frame_number)
         self.jump_frame_lineedit.clear()
 
-    def _setup_progress_bar(self):
-        self._progress_bar = QtWidgets.QProgressBar(self)
-        # TODO: text is not displaying, fix.
-        self._progress_bar.setFormat('Segmentation running...')
-        self._progress_bar.setTextVisible(True)
-        self._progress_bar.setMinimum(0)
-        self._progress_bar.setMaximum(0)
-        self._progress_bar.resize(60, 20)
-        self.MainLayout.addStretch()
-        self.MainLayout.addWidget(self._progress_bar)
-        self.MainLayout.addStretch()
-
     def _perform_segmentation_wrapper(self):
+        '''
+        This methods starts all steps run for performing the segmentation.
+        Sets up queue and items in workspace table, and runs the segmentation algorithm.
+        '''
 
         # TODO: in scan file, when 'perform segmentation' is called, perform only if the thread is not already running?
 
@@ -467,6 +463,11 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
 class ScrollArea(QtWidgets.QScrollArea):
 
+    """
+    A scroll area on which image_label is set and displayed.
+    Allows for convenient scrolling and zooming of image. 
+    """
+
     def __init__(self, image_label):
         QtWidgets.QScrollArea.__init__(self)
         self.setStyleSheet('background-color:  rgb(4, 51, 57);')
@@ -485,36 +486,3 @@ class ScrollArea(QtWidgets.QScrollArea):
         # ignore so that scrolling is handled only by ImageLabel
         if event.type() == QtCore.QEvent.Wheel:
             event.ignore()
-
-
-def overlap_images(background_img_list, mask_img_list):
-    '''
-    Color mask in background image.
-    :param background_img_list: [numpy.ndarray] main image to be in background, shape: num_images, x, y
-    :param mask_img_list: [numpy.ndarray] binary image, display only white over image1
-    :return: numpy.ndarray
-    '''
-    if background_img_list.shape != mask_img_list.shape:
-        return mask_img_list
-    colored = []
-    for img, mask in zip(background_img_list, mask_img_list):
-        # add RGB channels
-        color_img = np.dstack((img,) * 3).astype(np.float64)
-        mask_img = np.dstack((mask,) * 3).astype(np.float64)
-        mask_img_orig = np.array(mask_img)
-
-        # place original image over mask where there is no segmentation
-        mask_img[np.where(mask_img_orig != 255)] = color_img[np.where(mask_img_orig != 255)]
-
-        # color mask in red  TODO fix, doesn't work
-        mask_img[np.where(mask_img_orig == 255), 0] = 255
-        mask_img[np.where(mask_img_orig == 255), 1] = 255
-        mask_img[np.where(mask_img_orig == 255), 2] = 255
-
-        alpha = 0.6
-        added_image = cv2.addWeighted(color_img, alpha, mask_img, 1-alpha, gamma=0)
-        colored.append(added_image)
-    return colored
-
-
-
