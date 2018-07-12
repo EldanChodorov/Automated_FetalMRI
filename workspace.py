@@ -6,6 +6,7 @@ holds the scan, tools for drawing, buttons, etc.
 Is used as a singleton.
 """
 
+import os
 import pickle
 import numpy as np
 import nibabel as nib
@@ -15,6 +16,11 @@ from Shapes import Shapes
 from consts import *
 from scan_file import ScanFile
 import utils
+
+curr_dir = os.getcwd()
+GROUND_TRUTH_FOLDER = os.path.join(curr_dir, 'final_test_files')
+GROUND_TRUTH_INPUT_DIR = os.path.join(GROUND_TRUTH_FOLDER, 'data')
+GROUND_TRUTH_OUTPUT_DIR = os.path.join(GROUND_TRUTH_FOLDER, 'labels')
 
 
 class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
@@ -124,6 +130,15 @@ class WorkSpace(QtWidgets.QWidget, FetalMRI_workspace.Ui_workspace):
 
         # hide info box which is relevant only after segmentation is shown
         self.verticalFrame.hide()
+
+    def save_current_scan_numpy_slice(self):
+        self._all_scans[self._current_scan_idx].save_numpy_slices(GROUND_TRUTH_INPUT_DIR)
+        self._all_scans[self._current_scan_idx].save_numpy_polygon(GROUND_TRUTH_OUTPUT_DIR)
+
+    def save_all_scans_numpy_slices(self):
+        for scan in self._all_scans:
+            scan.save_numpy_slices(GROUND_TRUTH_INPUT_DIR)
+            scan.save_numpy_polygon(GROUND_TRUTH_OUTPUT_DIR)
 
     @QtCore.pyqtSlot()
     def _toggle_csf(self):

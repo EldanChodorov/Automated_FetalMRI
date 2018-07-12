@@ -4,6 +4,8 @@ ScanFile class represents a nifti file holding its scan files,
 segmentation, user marks, and status.
 """
 
+import os
+from logging import warning
 from threading import Thread
 import nibabel as nib
 import numpy as np
@@ -62,6 +64,46 @@ class ScanFile:
         self._full_brain_volume = 0
         self._brain_halves_volume = [0, 0]
         self._csf_volume = 0
+
+    def save_numpy_polygon(self, dest_dir):
+        '''
+        Save each marked point as a numpy array. All frames will be saved in a folder for this scan.
+        :param dest_dir: folder to place sub-folder inside.
+        '''
+        polygon_numpy = self.image_label.points_to_image()
+        self.save_numpy_files_handler(polygon_numpy, dest_dir)
+
+    def save_numpy_slices(self, dest_dir):
+        '''
+        Save each frame as a numpy array. All frames will be saved in a folder for this scan.
+        :param dest_dir: folder to place sub-folder inside.
+        '''
+        self.save_numpy_files_handler(self.frames, dest_dir)
+
+    def save_numpy_files_handler(self, array_data, dest_dir):
+        base_nifti_name = self._nifti_path[self._nifti_path.rfind('\\')+1:]
+        base_nifti_name = base_nifti_name.rstrip('.gz').rstrip('.nii')
+        a = self._nifti_path[:self._nifti_path.rfind('\\')]
+
+        b = a[a.rfind('\\')+1:]
+        extra = b[:b.rfind('_')]
+
+        filename = os.path.join(dest_dir, base_nifti_name) + '_' + extra + '_frame' + '1'
+        tmp_filename = filename
+        suffix = 0
+        while os.path.exists(tmp_filename + '.npz'):
+            tmp_filename = filename + '_' + str(suffix)
+            suffix += 1
+        suffix = ('_' + tmp_filename[tmp_filename.rfind('_')+1:]) if tmp_filename != filename else ''
+
+        for i in range(1, array_data.shape[0] - 1):
+            filename = os.path.join(dest_dir, base_nifti_name) + '_' + extra + '_frame' + str(i) + suffix
+
+            # if os.path.exists(filename + '.npz'):
+            #     warning('{} was not saved, already exists.'.format(base_nifti_name))
+            #     break
+            np.savez(filename, array_data[i-1], array_data[i], array_data[i+1])
+            print("Saved file at {}".format(filename))
 
     def load_image_label(self):
         self.image_label.activate_image()

@@ -162,7 +162,7 @@ border-color: rgb(209, 238, 242);</string>
      <x>0</x>
      <y>0</y>
      <width>1218</width>
-     <height>31</height>
+     <height>47</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -208,6 +208,9 @@ border-color: rgb(209, 238, 242);</string>
     </property>
     <addaction name="actionProcess_Ready_Files"/>
     <addaction name="actionMarked_Files"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_current_scan_ROI"/>
+    <addaction name="actionSave_all_scans_ROI"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -361,6 +364,16 @@ border-color: rgb(209, 238, 242);</string>
    </property>
    <property name="shortcut">
     <string>I</string>
+   </property>
+  </action>
+  <action name="actionSave_current_scan_ROI">
+   <property name="text">
+    <string>Save current scan ROI</string>
+   </property>
+  </action>
+  <action name="actionSave_all_scans_ROI">
+   <property name="text">
+    <string>Save all scans ROI</string>
    </property>
   </action>
  </widget>

@@ -39,6 +39,8 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
 
         self._workspace = None
 
+        self._cwd = os.getcwd()
+
         # defined in FetalMRI_design.Ui_MainWindow
         self.setupUi(self)
 
@@ -105,6 +107,8 @@ class MainWindow(QtWidgets.QMainWindow, FetalMRI_mainwindow.Ui_MainWindow):
         self.actionLoad_Points.setEnabled(True)
         self.actionShow_Segmentation.setEnabled(True)
         self.actionSave_All_Segmentation.setEnabled(True)
+        self.actionSave_current_scan_ROI.triggered.connect(self._workspace.save_current_scan_numpy_slice)
+        self.actionSave_all_scans_ROI.triggered.connect(self._workspace.save_all_scans_numpy_slices)
 
     def _toggle_segmentation(self):
         '''Display/Hide segmentation from showing in workspace.'''

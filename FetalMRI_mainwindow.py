@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FetalMRI_Window.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.4.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -21,6 +21,7 @@ class Ui_MainWindow(object):
         self.mainWidget.setStyleSheet("background-color: rgb(4, 51, 57);")
         self.mainWidget.setObjectName("mainWidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.mainWidget)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -82,7 +83,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.mainWidget, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.CentralWidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1218, 31))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1218, 47))
         self.menubar.setStyleSheet("background-color:rgb(195, 223, 226)")
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
@@ -144,6 +145,10 @@ class Ui_MainWindow(object):
         self.actionShow_Scan.setCheckable(True)
         self.actionShow_Scan.setChecked(True)
         self.actionShow_Scan.setObjectName("actionShow_Scan")
+        self.actionSave_current_scan_ROI = QtWidgets.QAction(MainWindow)
+        self.actionSave_current_scan_ROI.setObjectName("actionSave_current_scan_ROI")
+        self.actionSave_all_scans_ROI = QtWidgets.QAction(MainWindow)
+        self.actionSave_all_scans_ROI.setObjectName("actionSave_all_scans_ROI")
         self.menuFile.addAction(self.actionOpen_Nifti_File)
         self.menuFile.addAction(self.actionOpen_Directory)
         self.menuFile.addAction(self.actionExit)
@@ -159,6 +164,9 @@ class Ui_MainWindow(object):
         self.menuView.addAction(self.actionShow_Scan)
         self.menuTools.addAction(self.actionProcess_Ready_Files)
         self.menuTools.addAction(self.actionMarked_Files)
+        self.menuTools.addSeparator()
+        self.menuTools.addAction(self.actionSave_current_scan_ROI)
+        self.menuTools.addAction(self.actionSave_all_scans_ROI)
         self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuWorkspace.menuAction())
@@ -204,4 +212,6 @@ class Ui_MainWindow(object):
         self.actionRun_All_Workspace.setText(_translate("MainWindow", "Run All Workspace"))
         self.actionShow_Scan.setText(_translate("MainWindow", "Show Scan"))
         self.actionShow_Scan.setShortcut(_translate("MainWindow", "I"))
+        self.actionSave_current_scan_ROI.setText(_translate("MainWindow", "Save current scan ROI"))
+        self.actionSave_all_scans_ROI.setText(_translate("MainWindow", "Save all scans ROI"))
 
